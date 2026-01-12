@@ -1,0 +1,13 @@
+2024-08-28 18:27:24,019 [main] ERROR o.a.i.c.r.RatisConsensus:781 - Failed to get all consensus group ids from disk 
+java.nio.file.NoSuchFileException: /data/iotdb/t_m_0827_db02fdf/data/datanode/consensus/schema_region
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.newDirectoryStream(UnixFileSystemProvider.java:427)
+	at java.nio.file.Files.newDirectoryStream(Files.java:457)
+	at org.apache.iotdb.consensus.ratis.RatisConsensus.getAllConsensusGroupIdsWithoutStarting(RatisConsensus.java:768)
+	at org.apache.iotdb.db.service.DataNode.removeInvalidRegions(DataNode.java:550)
+	at org.apache.iotdb.db.service.DataNode.sendRestartRequestToConfigNode(DataNode.java:649)
+	at org.apache.iotdb.db.service.DataNode.start(DataNode.java:233)
+	at org.apache.iotdb.commons.ServerCommandLine.run(ServerCommandLine.java:75)
+	at com.timecho.iotdb.DataNode.main(DataNode.java:60)

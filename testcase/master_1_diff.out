@@ -1,0 +1,140 @@
+6c6
+< |root.test.g_0.d1_10|     91070|
+---
+> |root.test.g_0.d1_10|     88440|
+10,12c10,12
+< |root.test.g_0.d1_14|     91070|
+< |root.test.g_0.d1_15|     91070|
+< |root.test.g_0.d1_16|     91070|
+---
+> |root.test.g_0.d1_14|     88440|
+> |root.test.g_0.d1_15|     88440|
+> |root.test.g_0.d1_16|     88440|
+14c14
+< |root.test.g_0.d1_18|     91070|
+---
+> |root.test.g_0.d1_18|     88440|
+18c18
+< |root.test.g_0.d1_21|     91200|
+---
+> |root.test.g_0.d1_21|     88990|
+30c30
+< |root.test.g_0.d1_32|     90790|
+---
+> |root.test.g_0.d1_32|     88360|
+57c57
+< |root.test.g_0.d1_57|     91090|
+---
+> |root.test.g_0.d1_57|     88440|
+71c71
+< | root.test.g_0.d1_7|     91160|
+---
+> | root.test.g_0.d1_7|     88540|
+77c77
+< |root.test.g_0.d1_75|     90620|
+---
+> |root.test.g_0.d1_75|     88150|
+83c83
+< |root.test.g_0.d1_80|     91700|
+---
+> |root.test.g_0.d1_80|     88960|
+87c87
+< |root.test.g_0.d1_84|     91700|
+---
+> |root.test.g_0.d1_84|     88960|
+100c100
+< |root.test.g_0.d1_96|     91430|
+---
+> |root.test.g_0.d1_96|     88210|
+107,109c107,109
+< |root.test.g_0.d2_11|     91070|
+< |root.test.g_0.d2_12|     91070|
+< |root.test.g_0.d2_13|     91070|
+---
+> |root.test.g_0.d2_11|     88840|
+> |root.test.g_0.d2_12|     88840|
+> |root.test.g_0.d2_13|     88840|
+112c112
+< |root.test.g_0.d2_16|     91070|
+---
+> |root.test.g_0.d2_16|     88840|
+124,125c124,125
+< |root.test.g_0.d2_27|     91200|
+< |root.test.g_0.d2_28|     91200|
+---
+> |root.test.g_0.d2_27|     88700|
+> |root.test.g_0.d2_28|     88700|
+127c127
+< | root.test.g_0.d2_3|     91160|
+---
+> | root.test.g_0.d2_3|     88940|
+129c129
+< |root.test.g_0.d2_31|     90790|
+---
+> |root.test.g_0.d2_31|     88120|
+131,133c131,133
+< |root.test.g_0.d2_33|     90790|
+< |root.test.g_0.d2_34|     90790|
+< |root.test.g_0.d2_35|     90790|
+---
+> |root.test.g_0.d2_33|     88120|
+> |root.test.g_0.d2_34|     88110|
+> |root.test.g_0.d2_35|     88110|
+139,140c139,140
+< |root.test.g_0.d2_40|     91140|
+< |root.test.g_0.d2_41|     91140|
+---
+> |root.test.g_0.d2_40|     88800|
+> |root.test.g_0.d2_41|     88790|
+154,155c154,155
+< |root.test.g_0.d2_54|     91090|
+< |root.test.g_0.d2_55|     91090|
+---
+> |root.test.g_0.d2_54|     88530|
+> |root.test.g_0.d2_55|     88530|
+158,160c158,160
+< |root.test.g_0.d2_58|     91090|
+< |root.test.g_0.d2_59|     91090|
+< | root.test.g_0.d2_6|     91160|
+---
+> |root.test.g_0.d2_58|     88520|
+> |root.test.g_0.d2_59|     88530|
+> | root.test.g_0.d2_6|     88950|
+163c163
+< |root.test.g_0.d2_62|     90810|
+---
+> |root.test.g_0.d2_62|     88350|
+167c167
+< |root.test.g_0.d2_66|     90810|
+---
+> |root.test.g_0.d2_66|     88360|
+173c173
+< |root.test.g_0.d2_71|     90620|
+---
+> |root.test.g_0.d2_71|     87500|
+177c177
+< |root.test.g_0.d2_75|     90620|
+---
+> |root.test.g_0.d2_75|     87500|
+182,183c182,183
+< | root.test.g_0.d2_8|     91160|
+< |root.test.g_0.d2_80|     91700|
+---
+> | root.test.g_0.d2_8|     88950|
+> |root.test.g_0.d2_80|     89440|
+188c188
+< |root.test.g_0.d2_85|     91700|
+---
+> |root.test.g_0.d2_85|     89450|
+191c191
+< |root.test.g_0.d2_88|     91700|
+---
+> |root.test.g_0.d2_88|     89440|
+193c193
+< | root.test.g_0.d2_9|     91160|
+---
+> | root.test.g_0.d2_9|     88950|
+206c206
+< It costs 0.232s
+---
+> It costs 1.400s

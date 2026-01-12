@@ -1,0 +1,1647 @@
++++ dirname tmp.sh
+++ cd .
+++ pwd
++ cur_dir=/auto_test/auto_test_shell/testcase
++ conf_file=/auto_test/auto_test_shell/testcase/../conf/test.conf
++ nodeinfo_dir=/auto_test/auto_test_shell/testcase/../conf
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep u_name
+++ awk -F = '{print $2}'
++ u_name=cluster
++ db_sys_admin=root
++ db_sec_admin=security_admin
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep '^db_dir'
+++ awk -F = '{print $2}'
++ db_dir=/data/iotdb/v1361_1111_rc2_52ddb61
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep test_ip
+++ awk -F = '{print $2}'
++ iotdb_host=172.20.70.4
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep v_cur_db
+++ awk -F = '{print $2}'
++ v_cur_db=v1361_1111_rc2_52ddb61
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep client_db_dir
+++ awk -F = '{print $2}'
++ cli_dir=/data1/iotdb/v1361_1111_rc2_52ddb61
++ ssl_str=
++ clean_env_dir=/auto_test/auto_test_shell/testcase/../clean_env
++ prepare_env_dir=/auto_test/auto_test_shell/testcase/../prepare_env
++ check_res_dir=/auto_test/auto_test_shell/testcase/../check_res
+++ basename tmp.sh
++ SCRIPT_NAME=tmp.sh
+++ head -1 /auto_test/auto_test_shell/testcase/../conf/confignode.txt
++ seed_cn_ip=172.20.70.5:10710
+++ head -1 /auto_test/auto_test_shell/testcase/../conf/confignode.txt
++ query_cn_ip=172.20.70.5
+++ head -1 /auto_test/auto_test_shell/testcase/../conf/datanode.txt
++ query_ip=172.20.70.4
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep bm_v13_dir
+++ awk -F = '{print $2}'
++ bm_dir=/data1/iotdb/bm_20251017_b6be9bd_v13
++ cn_num=3
++ dn_num=5
++ head -n 5 /auto_test/auto_test_shell/testcase/../conf/total_datanode.txt
++ head -n 5 /auto_test/auto_test_shell/testcase/../conf/total_datanode_port.txt
++ total_node_num=8
++ fail_flag=0
++ rm_fail_flag=0
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep test_ip
+++ awk -F . '{print $4}'
++ testcase_ip=4
+++ echo tmp.sh
+++ awk -F _ '{print $1}'
+++ awk -F tc '{print $2}'
++ tc_num=
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep testcase_res_db
+++ awk -F = '{print $2}'
++ testcase_res_db=172.20.70.3
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep testcase_res_port
+++ awk -F = '{print $2}'
++ testcase_res_port=6667
+++ date +%s
++ test_begin_sec=1764057311
++ remove_dn
++ check_data_consistent
++ wait_sync_done 180
++ local max_wait_time=180
++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -e 'flush;'
++ check_res success 1 tmp.sh
++ exp_res=success
++ exp_num=1
++ tc_desc=tmp.sh
+++ cat /auto_test/auto_test_shell/testcase/tmp.out
+++ grep success
+++ wc -l
++ v_act_num=1
++ [[ 1 = 1 ]]
++ echo 'tmp.sh PASS.'
+tmp.sh PASS.
++ let succ_flag++
++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -e 'show datanodes;'
++ cat /auto_test/auto_test_shell/testcase/tmp.out
++ grep Running
++ awk -F '|' '{gsub(" ","");print $4}'
++ mv /auto_test/auto_test_shell/testcase/tmp1.out /auto_test/auto_test_shell/testcase/tmp.out
++ exec
++ read line
++ true
++ ssh cluster@172.20.70.4 'grep "create a new" /data/iotdb/v1361_1111_rc2_52ddb61/logs/log_datanode_all.log|grep root.test'
++ ssh cluster@172.20.70.4 'grep "create a new" /data/iotdb/v1361_1111_rc2_52ddb61/logs/log_datanode_all.log|grep test_g_0'
+++ tail -n 1 /auto_test/auto_test_shell/testcase/tmp1.out
+++ awk -F, '{print $1}'
++ last_time_str1='2025-11-25 15:40:48'
+++ tail -n 1 /auto_test/auto_test_shell/testcase/tmp2.out
+++ awk -F, '{print $1}'
++ last_time_str2=
+++ date -d '2025-11-25 15:40:48' +%s
++ last_timestamp1=1764056448
+++ date -d '' +%s
++ last_timestamp2=1764000000
++ [[ 1764056448 -gt 1764000000 ]]
++ last_timestamp=1764056448
+++ date +%s
++ current_timestamp=1764057313
++ time_diff=865
++ '[' 865 -gt 180 ']'
++ echo 最后一条日志距离现在已超过1分钟（865秒）
+最后一条日志距离现在已超过1分钟（865秒）
++ break
++ read line
++ true
++ ssh cluster@172.20.70.26 'grep "create a new" /data/iotdb/v1361_1111_rc2_52ddb61/logs/log_datanode_all.log|grep root.test'
++ ssh cluster@172.20.70.26 'grep "create a new" /data/iotdb/v1361_1111_rc2_52ddb61/logs/log_datanode_all.log|grep test_g_0'
+++ tail -n 1 /auto_test/auto_test_shell/testcase/tmp1.out
+++ awk -F, '{print $1}'
++ last_time_str1='2025-11-25 15:40:47'
+++ awk -F, '{print $1}'
+++ tail -n 1 /auto_test/auto_test_shell/testcase/tmp2.out
++ last_time_str2=
+++ date -d '2025-11-25 15:40:47' +%s
++ last_timestamp1=1764056447
+++ date -d '' +%s
++ last_timestamp2=1764000000
++ [[ 1764056447 -gt 1764000000 ]]
++ last_timestamp=1764056447
+++ date +%s
++ current_timestamp=1764057313
++ time_diff=866
++ '[' 866 -gt 180 ']'
++ echo 最后一条日志距离现在已超过1分钟（866秒）
+最后一条日志距离现在已超过1分钟（866秒）
++ break
++ read line
++ true
++ ssh cluster@172.20.70.14 'grep "create a new" /data/iotdb/v1361_1111_rc2_52ddb61/logs/log_datanode_all.log|grep root.test'
++ ssh cluster@172.20.70.14 'grep "create a new" /data/iotdb/v1361_1111_rc2_52ddb61/logs/log_datanode_all.log|grep test_g_0'
+++ awk -F, '{print $1}'
+++ tail -n 1 /auto_test/auto_test_shell/testcase/tmp1.out
++ last_time_str1='2025-11-25 15:40:45'
+++ tail -n 1 /auto_test/auto_test_shell/testcase/tmp2.out
+++ awk -F, '{print $1}'
++ last_time_str2=
+++ date -d '2025-11-25 15:40:45' +%s
++ last_timestamp1=1764056445
+++ date -d '' +%s
++ last_timestamp2=1764000000
++ [[ 1764056445 -gt 1764000000 ]]
++ last_timestamp=1764056445
+++ date +%s
++ current_timestamp=1764057314
++ time_diff=869
++ '[' 869 -gt 180 ']'
++ echo 最后一条日志距离现在已超过1分钟（869秒）
+最后一条日志距离现在已超过1分钟（869秒）
++ break
++ read line
++ true
++ ssh cluster@172.20.70.27 'grep "create a new" /data/iotdb/v1361_1111_rc2_52ddb61/logs/log_datanode_all.log|grep root.test'
++ ssh cluster@172.20.70.27 'grep "create a new" /data/iotdb/v1361_1111_rc2_52ddb61/logs/log_datanode_all.log|grep test_g_0'
+++ tail -n 1 /auto_test/auto_test_shell/testcase/tmp1.out
+++ awk -F, '{print $1}'
++ last_time_str1='2025-11-25 15:40:47'
+++ tail -n 1 /auto_test/auto_test_shell/testcase/tmp2.out
+++ awk -F, '{print $1}'
++ last_time_str2=
+++ date -d '2025-11-25 15:40:47' +%s
++ last_timestamp1=1764056447
+++ date -d '' +%s
++ last_timestamp2=1764000000
++ [[ 1764056447 -gt 1764000000 ]]
++ last_timestamp=1764056447
+++ date +%s
++ current_timestamp=1764057314
++ time_diff=867
++ '[' 867 -gt 180 ']'
++ echo 最后一条日志距离现在已超过1分钟（867秒）
+最后一条日志距离现在已超过1分钟（867秒）
++ break
++ read line
++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -e 'show datanodes;'
++ cat /auto_test/auto_test_shell/testcase/tmp.out
++ grep Running
++ awk -F '|' '{gsub(" ","");print $4}'
++ mv /auto_test/auto_test_shell/testcase/tmp1.out /auto_test/auto_test_shell/testcase/tmp.out
++ sql1='select count(s_0) from root.test.g_0.** align by device;'
++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -timeout 3600 -e 'select count(s_0) from root.test.g_0.** align by device;'
++ exec
++ read line
+++ head -1 /auto_test/auto_test_shell/testcase/tmp.out
++ query_ip=172.20.70.4
+++ tail -1 /auto_test/auto_test_shell/testcase/tmp.out
++ query_ip2=172.20.70.27
++ ssh cluster@172.20.70.4 'source /etc/profile;cd /data/iotdb/v1361_1111_rc2_52ddb61;sudo ./sbin/stop-datanode.sh'
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 30074
++ check_dn_jps 172.20.70.4 60
++ local v_dn_ip=172.20.70.4
++ local max_wait_time=60
+++ date +%s
++ local t1=1764057316
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057317
++ t_elp=1
++ [[ 1 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057318
++ t_elp=2
++ [[ 2 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057320
++ t_elp=4
++ [[ 4 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057321
++ t_elp=5
++ [[ 5 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057322
++ t_elp=6
++ [[ 6 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057323
++ t_elp=7
++ [[ 7 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057325
++ t_elp=9
++ [[ 9 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057326
++ t_elp=10
++ [[ 10 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057327
++ t_elp=11
++ [[ 11 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057328
++ t_elp=12
++ [[ 12 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057330
++ t_elp=14
++ [[ 14 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057331
++ t_elp=15
++ [[ 15 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057332
++ t_elp=16
++ [[ 16 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057333
++ t_elp=17
++ [[ 17 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057335
++ t_elp=19
++ [[ 19 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str='30074 DataNode'
+++ echo 30074 DataNode
+++ awk '{print $1}'
++ v_dn_pid=30074
++ [[ 30074 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057336
++ t_elp=20
++ [[ 20 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.4 'sudo jps|grep DataNode'
++ v_dn_str=
+++ echo
+++ awk '{print $1}'
++ v_dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ [[ 172.20.70.4 = 172.20.70.4 ]]
++ query_ip=172.20.70.27
+++ echo 172.20.70.4
+++ awk -F . '{print $4}'
++ v_ip=4
++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.27 -timeout 3600 -e 'select count(s_0) from root.test.g_0.** align by device;'
+++ diff /auto_test/auto_test_shell/testcase/q_all_online_tree.out /auto_test/auto_test_shell/testcase/q_stop_ip4_tree.out
+++ grep root.
+++ wc -l
++ v_diff_tree=0
++ [[ 0 -gt 0 ]]
+++ date +%s
++ v_start_time=1764057337
++ ssh cluster@172.20.70.4 'source /etc/profile;cd /data/iotdb/v1361_1111_rc2_52ddb61;sudo ./sbin/start-datanode.sh -H /data/iotdb/v1361_1111_rc2_52ddb61/dn_1764057337_heapdump.hprof > /dev/null 2>&1 &'
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.4|'
+++ grep Running
+++ wc -l
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057339
++ v_elp_time=2
++ [[ 2 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.4|'
+++ grep Running
+++ wc -l
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057341
++ v_elp_time=4
++ [[ 4 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.4|'
+++ grep Running
+++ wc -l
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057343
++ v_elp_time=6
++ [[ 6 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.4|'
+++ grep Running
+++ wc -l
++ v_start_ok=1
++ [[ 1 -gt 0 ]]
++ break
++ read line
+++ head -1 /auto_test/auto_test_shell/testcase/tmp.out
++ query_ip=172.20.70.4
+++ tail -1 /auto_test/auto_test_shell/testcase/tmp.out
++ query_ip2=172.20.70.27
++ ssh cluster@172.20.70.26 'source /etc/profile;cd /data/iotdb/v1361_1111_rc2_52ddb61;sudo ./sbin/stop-datanode.sh'
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 13878
++ check_dn_jps 172.20.70.26 60
++ local v_dn_ip=172.20.70.26
++ local max_wait_time=60
+++ date +%s
++ local t1=1764057344
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057345
++ t_elp=1
++ [[ 1 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057346
++ t_elp=2
++ [[ 2 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057347
++ t_elp=3
++ [[ 3 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057349
++ t_elp=5
++ [[ 5 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057350
++ t_elp=6
++ [[ 6 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057351
++ t_elp=7
++ [[ 7 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057352
++ t_elp=8
++ [[ 8 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057354
++ t_elp=10
++ [[ 10 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057355
++ t_elp=11
++ [[ 11 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057356
++ t_elp=12
++ [[ 12 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057357
++ t_elp=13
++ [[ 13 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057359
++ t_elp=15
++ [[ 15 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057360
++ t_elp=16
++ [[ 16 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057361
++ t_elp=17
++ [[ 17 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057362
++ t_elp=18
++ [[ 18 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057364
++ t_elp=20
++ [[ 20 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057365
++ t_elp=21
++ [[ 21 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057366
++ t_elp=22
++ [[ 22 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057367
++ t_elp=23
++ [[ 23 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057369
++ t_elp=25
++ [[ 25 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057370
++ t_elp=26
++ [[ 26 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057371
++ t_elp=27
++ [[ 27 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057372
++ t_elp=28
++ [[ 28 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str='13878 DataNode'
+++ echo 13878 DataNode
+++ awk '{print $1}'
++ v_dn_pid=13878
++ [[ 13878 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057374
++ t_elp=30
++ [[ 30 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.26 'sudo jps|grep DataNode'
++ v_dn_str=
+++ echo
+++ awk '{print $1}'
++ v_dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ [[ 172.20.70.4 = 172.20.70.26 ]]
+++ echo 172.20.70.26
+++ awk -F . '{print $4}'
++ v_ip=26
++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -timeout 3600 -e 'select count(s_0) from root.test.g_0.** align by device;'
+++ diff /auto_test/auto_test_shell/testcase/q_all_online_tree.out /auto_test/auto_test_shell/testcase/q_stop_ip26_tree.out
+++ grep root.
+++ wc -l
++ v_diff_tree=84
++ [[ 84 -gt 0 ]]
++ let fail_flag++
++ echo 84
+84
+++ date +%s
++ v_start_time=1764057376
++ ssh cluster@172.20.70.26 'source /etc/profile;cd /data/iotdb/v1361_1111_rc2_52ddb61;sudo ./sbin/start-datanode.sh -H /data/iotdb/v1361_1111_rc2_52ddb61/dn_1764057376_heapdump.hprof > /dev/null 2>&1 &'
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.26 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.26|'
+++ grep Running
+++ wc -l
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057378
++ v_elp_time=2
++ [[ 2 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.26 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.26|'
+++ grep Running
+++ wc -l
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057380
++ v_elp_time=4
++ [[ 4 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.26 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.26|'
+++ grep Running
+++ wc -l
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057382
++ v_elp_time=6
++ [[ 6 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.26 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.26|'
+++ grep Running
+++ wc -l
++ v_start_ok=1
++ [[ 1 -gt 0 ]]
++ break
++ read line
+++ head -1 /auto_test/auto_test_shell/testcase/tmp.out
++ query_ip=172.20.70.4
+++ tail -1 /auto_test/auto_test_shell/testcase/tmp.out
++ query_ip2=172.20.70.27
++ ssh cluster@172.20.70.14 'source /etc/profile;cd /data/iotdb/v1361_1111_rc2_52ddb61;sudo ./sbin/stop-datanode.sh'
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 14538
++ check_dn_jps 172.20.70.14 60
++ local v_dn_ip=172.20.70.14
++ local max_wait_time=60
+++ date +%s
++ local t1=1764057383
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057384
++ t_elp=1
++ [[ 1 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057385
++ t_elp=2
++ [[ 2 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057386
++ t_elp=3
++ [[ 3 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057388
++ t_elp=5
++ [[ 5 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057389
++ t_elp=6
++ [[ 6 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057390
++ t_elp=7
++ [[ 7 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057391
++ t_elp=8
++ [[ 8 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057393
++ t_elp=10
++ [[ 10 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057394
++ t_elp=11
++ [[ 11 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057395
++ t_elp=12
++ [[ 12 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057396
++ t_elp=13
++ [[ 13 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057398
++ t_elp=15
++ [[ 15 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057399
++ t_elp=16
++ [[ 16 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057400
++ t_elp=17
++ [[ 17 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057401
++ t_elp=18
++ [[ 18 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057403
++ t_elp=20
++ [[ 20 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057404
++ t_elp=21
++ [[ 21 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057405
++ t_elp=22
++ [[ 22 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057406
++ t_elp=23
++ [[ 23 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057408
++ t_elp=25
++ [[ 25 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str='14538 DataNode'
+++ echo 14538 DataNode
+++ awk '{print $1}'
++ v_dn_pid=14538
++ [[ 14538 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057409
++ t_elp=26
++ [[ 26 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.14 'sudo jps|grep DataNode'
++ v_dn_str=
+++ echo
+++ awk '{print $1}'
++ v_dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ [[ 172.20.70.4 = 172.20.70.14 ]]
+++ echo 172.20.70.14
+++ awk -F . '{print $4}'
++ v_ip=14
++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -timeout 3600 -e 'select count(s_0) from root.test.g_0.** align by device;'
+++ diff /auto_test/auto_test_shell/testcase/q_all_online_tree.out /auto_test/auto_test_shell/testcase/q_stop_ip14_tree.out
+++ grep root.
+++ wc -l
++ v_diff_tree=0
++ [[ 0 -gt 0 ]]
+++ date +%s
++ v_start_time=1764057411
++ ssh cluster@172.20.70.14 'source /etc/profile;cd /data/iotdb/v1361_1111_rc2_52ddb61;sudo ./sbin/start-datanode.sh -H /data/iotdb/v1361_1111_rc2_52ddb61/dn_1764057411_heapdump.hprof > /dev/null 2>&1 &'
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.14 -timeout 3600 -e 'show datanodes;'
+++ grep Running
+++ grep '172.20.70.14|'
+++ wc -l
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057413
++ v_elp_time=2
++ [[ 2 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.14 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.14|'
+++ grep Running
+++ wc -l
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057415
++ v_elp_time=4
++ [[ 4 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.14 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.14|'
+++ wc -l
+++ grep Running
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057417
++ v_elp_time=6
++ [[ 6 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.14 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.14|'
+++ grep Running
+++ wc -l
++ v_start_ok=1
++ [[ 1 -gt 0 ]]
++ break
++ read line
+++ head -1 /auto_test/auto_test_shell/testcase/tmp.out
++ query_ip=172.20.70.4
+++ tail -1 /auto_test/auto_test_shell/testcase/tmp.out
++ query_ip2=172.20.70.27
++ ssh cluster@172.20.70.27 'source /etc/profile;cd /data/iotdb/v1361_1111_rc2_52ddb61;sudo ./sbin/stop-datanode.sh'
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 18852
++ check_dn_jps 172.20.70.27 60
++ local v_dn_ip=172.20.70.27
++ local max_wait_time=60
+++ date +%s
++ local t1=1764057418
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057419
++ t_elp=1
++ [[ 1 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057420
++ t_elp=2
++ [[ 2 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057421
++ t_elp=3
++ [[ 3 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057423
++ t_elp=5
++ [[ 5 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057424
++ t_elp=6
++ [[ 6 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057425
++ t_elp=7
++ [[ 7 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057426
++ t_elp=8
++ [[ 8 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057428
++ t_elp=10
++ [[ 10 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057429
++ t_elp=11
++ [[ 11 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057430
++ t_elp=12
++ [[ 12 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057431
++ t_elp=13
++ [[ 13 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057433
++ t_elp=15
++ [[ 15 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057434
++ t_elp=16
++ [[ 16 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057435
++ t_elp=17
++ [[ 17 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057436
++ t_elp=18
++ [[ 18 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057438
++ t_elp=20
++ [[ 20 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057439
++ t_elp=21
++ [[ 21 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057440
++ t_elp=22
++ [[ 22 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057441
++ t_elp=23
++ [[ 23 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ awk '{print $1}'
+++ echo 18852 DataNode
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057443
++ t_elp=25
++ [[ 25 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057444
++ t_elp=26
++ [[ 26 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057445
++ t_elp=27
++ [[ 27 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057447
++ t_elp=29
++ [[ 29 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057448
++ t_elp=30
++ [[ 30 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057449
++ t_elp=31
++ [[ 31 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057450
++ t_elp=32
++ [[ 32 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057452
++ t_elp=34
++ [[ 34 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057453
++ t_elp=35
++ [[ 35 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057454
++ t_elp=36
++ [[ 36 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str='18852 DataNode'
+++ echo 18852 DataNode
+++ awk '{print $1}'
++ v_dn_pid=18852
++ [[ 18852 -gt 0 ]]
++ sleep 1
+++ date +%s
++ t2=1764057455
++ t_elp=37
++ [[ 37 -gt 60 ]]
++ true
+++ ssh cluster@172.20.70.27 'sudo jps|grep DataNode'
++ v_dn_str=
+++ echo
+++ awk '{print $1}'
++ v_dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ [[ 172.20.70.4 = 172.20.70.27 ]]
+++ echo 172.20.70.27
+++ awk -F . '{print $4}'
++ v_ip=27
++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.4 -timeout 3600 -e 'select count(s_0) from root.test.g_0.** align by device;'
+++ diff /auto_test/auto_test_shell/testcase/q_all_online_tree.out /auto_test/auto_test_shell/testcase/q_stop_ip27_tree.out
+++ grep root.
+++ wc -l
++ v_diff_tree=0
++ [[ 0 -gt 0 ]]
+++ date +%s
++ v_start_time=1764057457
++ ssh cluster@172.20.70.27 'source /etc/profile;cd /data/iotdb/v1361_1111_rc2_52ddb61;sudo ./sbin/start-datanode.sh -H /data/iotdb/v1361_1111_rc2_52ddb61/dn_1764057457_heapdump.hprof > /dev/null 2>&1 &'
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.27 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.27|'
+++ grep Running
+++ wc -l
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057458
++ v_elp_time=1
++ [[ 1 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.27 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.27|'
+++ grep Running
+++ wc -l
++ v_start_ok=0
++ [[ 0 -gt 0 ]]
++ sleep 1
+++ date +%s
++ v_cur_time=1764057460
++ v_elp_time=3
++ [[ 3 -gt 120 ]]
++ true
+++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -u root -h 172.20.70.27 -timeout 3600 -e 'show datanodes;'
+++ grep '172.20.70.27|'
+++ grep Running
+++ wc -l
++ v_start_ok=1
++ [[ 1 -gt 0 ]]
++ break
++ read line
++ check_npe tmp.sh
++ tc_desc=tmp.sh
++ exec
++ read line
+++ ssh cluster@172.20.70.5 'grep NullPointer /data/iotdb/v1361_1111_rc2_52ddb61/logs/*confignode*all*|wc -l'
++ v_npe_num=0
++ [[ 0 -gt 0 ]]
++ read line
+++ ssh cluster@172.20.70.4 'grep NullPointer /data/iotdb/v1361_1111_rc2_52ddb61/logs/*confignode*all*|wc -l'
++ v_npe_num=0
++ [[ 0 -gt 0 ]]
++ read line
+++ ssh cluster@172.20.70.26 'grep NullPointer /data/iotdb/v1361_1111_rc2_52ddb61/logs/*confignode*all*|wc -l'
++ v_npe_num=0
++ [[ 0 -gt 0 ]]
++ read line
++ exec
++ read line
+++ ssh cluster@172.20.70.4 'grep NullPointer /data/iotdb/v1361_1111_rc2_52ddb61/logs/*datanode*all*|wc -l'
++ v_npe_num=0
++ [[ 0 -gt 0 ]]
++ read line
+++ ssh cluster@172.20.70.26 'grep NullPointer /data/iotdb/v1361_1111_rc2_52ddb61/logs/*datanode*all*|wc -l'
++ v_npe_num=0
++ [[ 0 -gt 0 ]]
++ read line
+++ ssh cluster@172.20.70.14 'grep NullPointer /data/iotdb/v1361_1111_rc2_52ddb61/logs/*datanode*all*|wc -l'
++ v_npe_num=0
++ [[ 0 -gt 0 ]]
++ read line
+++ ssh cluster@172.20.70.27 'grep NullPointer /data/iotdb/v1361_1111_rc2_52ddb61/logs/*datanode*all*|wc -l'
++ v_npe_num=0
++ [[ 0 -gt 0 ]]
++ read line
+++ ssh cluster@172.20.70.30 'grep NullPointer /data/iotdb/v1361_1111_rc2_52ddb61/logs/*datanode*all*|wc -l'
++ v_npe_num=0
++ [[ 0 -gt 0 ]]
++ read line
+++ date +%s
++ test_end_sec=1764057462
++ test_elp_sec=151
++ tc_res=true
++ [[ 1 = 0 ]]
++ tc_res=false
++ echo 'tmp.sh : fail'
+tmp.sh : fail
++ echo ''
+
++ echo tmp.sh
+tmp.sh
++ echo false
+false
++ echo 151
+151
++ res_root_pw=TimechoDB@2021
++ /data1/iotdb/v1361_1111_rc2_52ddb61/sbin/start-cli.sh -h 172.20.70.3 -p 6667 -pw TimechoDB@2021 -e 'insert into root.autotest.ip4(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'\''v1361_1111_rc2_52ddb61'\'',,'\''tmp.sh'\'',false,151);'
+Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 700: Error occurred while parsing SQL to physical plan: line 1:131 extraneous input ',' expecting {FALSE, NAN, NOW, NULL, TRUE, '-', '+', '/', '.', STRING_LITERAL, BINARY_LITERAL, DATETIME_LITERAL, INTEGER_LITERAL, EXPONENT_NUM_PART}

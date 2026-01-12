@@ -1,0 +1,206 @@
++-------------------+----------+
+|             Device|count(s_0)|
++-------------------+----------+
+| root.test.g_0.d1_0|     45590|
+| root.test.g_0.d1_1|     45590|
+|root.test.g_0.d1_10|     45460|
+|root.test.g_0.d1_11|     45460|
+|root.test.g_0.d1_12|     45460|
+|root.test.g_0.d1_13|     45460|
+|root.test.g_0.d1_14|     45460|
+|root.test.g_0.d1_15|     45460|
+|root.test.g_0.d1_16|     45460|
+|root.test.g_0.d1_17|     45460|
+|root.test.g_0.d1_18|     45460|
+|root.test.g_0.d1_19|     45460|
+| root.test.g_0.d1_2|     45590|
+|root.test.g_0.d1_20|     45570|
+|root.test.g_0.d1_21|     45570|
+|root.test.g_0.d1_22|     45570|
+|root.test.g_0.d1_23|     45570|
+|root.test.g_0.d1_24|     45570|
+|root.test.g_0.d1_25|     45570|
+|root.test.g_0.d1_26|     45570|
+|root.test.g_0.d1_27|     45570|
+|root.test.g_0.d1_28|     45570|
+|root.test.g_0.d1_29|     45570|
+| root.test.g_0.d1_3|     45590|
+|root.test.g_0.d1_30|     45470|
+|root.test.g_0.d1_31|     45470|
+|root.test.g_0.d1_32|     45470|
+|root.test.g_0.d1_33|     45470|
+|root.test.g_0.d1_34|     45470|
+|root.test.g_0.d1_35|     45470|
+|root.test.g_0.d1_36|     45470|
+|root.test.g_0.d1_37|     45470|
+|root.test.g_0.d1_38|     45470|
+|root.test.g_0.d1_39|     45470|
+| root.test.g_0.d1_4|     45590|
+|root.test.g_0.d1_40|     45530|
+|root.test.g_0.d1_41|     45530|
+|root.test.g_0.d1_42|     45530|
+|root.test.g_0.d1_43|     45530|
+|root.test.g_0.d1_44|     45530|
+|root.test.g_0.d1_45|     45530|
+|root.test.g_0.d1_46|     45530|
+|root.test.g_0.d1_47|     45530|
+|root.test.g_0.d1_48|     45530|
+|root.test.g_0.d1_49|     45530|
+| root.test.g_0.d1_5|     45590|
+|root.test.g_0.d1_50|     45460|
+|root.test.g_0.d1_51|     45460|
+|root.test.g_0.d1_52|     45460|
+|root.test.g_0.d1_53|     45460|
+|root.test.g_0.d1_54|     45460|
+|root.test.g_0.d1_55|     45460|
+|root.test.g_0.d1_56|     45460|
+|root.test.g_0.d1_57|     45460|
+|root.test.g_0.d1_58|     45460|
+|root.test.g_0.d1_59|     45460|
+| root.test.g_0.d1_6|     45590|
+|root.test.g_0.d1_60|     45610|
+|root.test.g_0.d1_61|     45610|
+|root.test.g_0.d1_62|     45610|
+|root.test.g_0.d1_63|     45610|
+|root.test.g_0.d1_64|     45610|
+|root.test.g_0.d1_65|     45610|
+|root.test.g_0.d1_66|     45610|
+|root.test.g_0.d1_67|     45610|
+|root.test.g_0.d1_68|     45610|
+|root.test.g_0.d1_69|     45610|
+| root.test.g_0.d1_7|     45590|
+|root.test.g_0.d1_70|     45270|
+|root.test.g_0.d1_71|     45270|
+|root.test.g_0.d1_72|     45270|
+|root.test.g_0.d1_73|     45270|
+|root.test.g_0.d1_74|     45270|
+|root.test.g_0.d1_75|     45270|
+|root.test.g_0.d1_76|     45270|
+|root.test.g_0.d1_77|     45270|
+|root.test.g_0.d1_78|     45270|
+|root.test.g_0.d1_79|     45270|
+| root.test.g_0.d1_8|     45590|
+|root.test.g_0.d1_80|     46030|
+|root.test.g_0.d1_81|     46030|
+|root.test.g_0.d1_82|     46030|
+|root.test.g_0.d1_83|     46030|
+|root.test.g_0.d1_84|     46030|
+|root.test.g_0.d1_85|     46030|
+|root.test.g_0.d1_86|     46030|
+|root.test.g_0.d1_87|     46030|
+|root.test.g_0.d1_88|     46030|
+|root.test.g_0.d1_89|     46030|
+| root.test.g_0.d1_9|     45590|
+|root.test.g_0.d1_90|     46090|
+|root.test.g_0.d1_91|     46090|
+|root.test.g_0.d1_92|     46090|
+|root.test.g_0.d1_93|     46090|
+|root.test.g_0.d1_94|     46090|
+|root.test.g_0.d1_95|     46090|
+|root.test.g_0.d1_96|     46090|
+|root.test.g_0.d1_97|     46090|
+|root.test.g_0.d1_98|     46090|
+|root.test.g_0.d1_99|     46090|
+| root.test.g_0.d2_0|     45590|
+| root.test.g_0.d2_1|     45590|
+|root.test.g_0.d2_10|     45460|
+|root.test.g_0.d2_11|     45460|
+|root.test.g_0.d2_12|     45460|
+|root.test.g_0.d2_13|     45460|
+|root.test.g_0.d2_14|     45460|
+|root.test.g_0.d2_15|     45460|
+|root.test.g_0.d2_16|     45460|
+|root.test.g_0.d2_17|     45460|
+|root.test.g_0.d2_18|     45460|
+|root.test.g_0.d2_19|     45460|
+| root.test.g_0.d2_2|     45590|
+|root.test.g_0.d2_20|     45570|
+|root.test.g_0.d2_21|     45570|
+|root.test.g_0.d2_22|     45570|
+|root.test.g_0.d2_23|     45570|
+|root.test.g_0.d2_24|     45570|
+|root.test.g_0.d2_25|     45570|
+|root.test.g_0.d2_26|     45570|
+|root.test.g_0.d2_27|     45570|
+|root.test.g_0.d2_28|     45570|
+|root.test.g_0.d2_29|     45570|
+| root.test.g_0.d2_3|     45590|
+|root.test.g_0.d2_30|     45470|
+|root.test.g_0.d2_31|     45470|
+|root.test.g_0.d2_32|     45470|
+|root.test.g_0.d2_33|     45470|
+|root.test.g_0.d2_34|     45470|
+|root.test.g_0.d2_35|     45470|
+|root.test.g_0.d2_36|     45470|
+|root.test.g_0.d2_37|     45470|
+|root.test.g_0.d2_38|     45470|
+|root.test.g_0.d2_39|     45470|
+| root.test.g_0.d2_4|     45590|
+|root.test.g_0.d2_40|     45530|
+|root.test.g_0.d2_41|     45530|
+|root.test.g_0.d2_42|     45530|
+|root.test.g_0.d2_43|     45530|
+|root.test.g_0.d2_44|     45530|
+|root.test.g_0.d2_45|     45530|
+|root.test.g_0.d2_46|     45530|
+|root.test.g_0.d2_47|     45530|
+|root.test.g_0.d2_48|     45530|
+|root.test.g_0.d2_49|     45530|
+| root.test.g_0.d2_5|     45590|
+|root.test.g_0.d2_50|     45460|
+|root.test.g_0.d2_51|     45460|
+|root.test.g_0.d2_52|     45460|
+|root.test.g_0.d2_53|     45460|
+|root.test.g_0.d2_54|     45460|
+|root.test.g_0.d2_55|     45460|
+|root.test.g_0.d2_56|     45460|
+|root.test.g_0.d2_57|     45460|
+|root.test.g_0.d2_58|     45460|
+|root.test.g_0.d2_59|     45460|
+| root.test.g_0.d2_6|     45590|
+|root.test.g_0.d2_60|     45610|
+|root.test.g_0.d2_61|     45610|
+|root.test.g_0.d2_62|     45610|
+|root.test.g_0.d2_63|     45610|
+|root.test.g_0.d2_64|     45610|
+|root.test.g_0.d2_65|     45610|
+|root.test.g_0.d2_66|     45610|
+|root.test.g_0.d2_67|     45610|
+|root.test.g_0.d2_68|     45610|
+|root.test.g_0.d2_69|     45610|
+| root.test.g_0.d2_7|     45590|
+|root.test.g_0.d2_70|     45270|
+|root.test.g_0.d2_71|     45270|
+|root.test.g_0.d2_72|     45270|
+|root.test.g_0.d2_73|     45270|
+|root.test.g_0.d2_74|     45270|
+|root.test.g_0.d2_75|     45270|
+|root.test.g_0.d2_76|     45270|
+|root.test.g_0.d2_77|     45270|
+|root.test.g_0.d2_78|     45270|
+|root.test.g_0.d2_79|     45270|
+| root.test.g_0.d2_8|     45590|
+|root.test.g_0.d2_80|     46030|
+|root.test.g_0.d2_81|     46030|
+|root.test.g_0.d2_82|     46030|
+|root.test.g_0.d2_83|     46030|
+|root.test.g_0.d2_84|     46030|
+|root.test.g_0.d2_85|     46030|
+|root.test.g_0.d2_86|     46030|
+|root.test.g_0.d2_87|     46030|
+|root.test.g_0.d2_88|     46030|
+|root.test.g_0.d2_89|     46030|
+| root.test.g_0.d2_9|     45590|
+|root.test.g_0.d2_90|     46090|
+|root.test.g_0.d2_91|     46090|
+|root.test.g_0.d2_92|     46090|
+|root.test.g_0.d2_93|     46090|
+|root.test.g_0.d2_94|     46090|
+|root.test.g_0.d2_95|     46090|
+|root.test.g_0.d2_96|     46090|
+|root.test.g_0.d2_97|     46090|
+|root.test.g_0.d2_98|     46090|
+|root.test.g_0.d2_99|     46090|
++-------------------+----------+
+Total line number = 200
+It costs 2.327s

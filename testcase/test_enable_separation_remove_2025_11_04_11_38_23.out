@@ -1,0 +1,421 @@
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 27212
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 4912
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 26306
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 21892
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 27657
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 26995
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 4698
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+tc1_enable_power_2bm_remove_dn_20251028.sh PASS.
+tc1_enable_power_2bm_remove_dn_20251028.sh PASS.
+tc1_enable_power_2bm_remove_dn_20251028.sh PASS.
+tc1_enable_power_2bm_remove_dn_20251028.sh PASS.
+最后一条日志距离现在已超过1分钟（122秒）
+最后一条日志距离现在已超过1分钟（126秒）
+最后一条日志距离现在已超过1分钟（124秒）
+最后一条日志距离现在已超过1分钟（127秒）
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 23127
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 31717
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 10309
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 1908
+tc1_enable_power_2bm_remove_dn_20251028.sh : pass
+1
+tc1_enable_power_2bm_remove_dn_20251028.sh
+true
+1033
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 24669
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 1169
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 12251
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 3713
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 10712
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 22904
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 31498
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+tc2_enable_power_2bm_remove_dn_stop_removing_dn_20251028.sh PASS.
+tc2_enable_power_2bm_remove_dn_stop_removing_dn_20251028.sh PASS.
+tc2_enable_power_2bm_remove_dn_stop_removing_dn_20251028.sh PASS.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 9140
+最后一条日志距离现在已超过1分钟（122秒）
+最后一条日志距离现在已超过1分钟（125秒）
+最后一条日志距离现在已超过1分钟（127秒）
+最后一条日志距离现在已超过1分钟（121秒）
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 27784
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 4604
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 14075
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 5536
+tc2_enable_power_2bm_remove_dn_stop_removing_dn_20251028.sh : pass
+2
+tc2_enable_power_2bm_remove_dn_stop_removing_dn_20251028.sh
+true
+853
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 29209
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 6322
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15779
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 7153
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 13189
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 27569
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 4387
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+tc3_enable_power_2bm_remove_dn_stop_adding_dn_20251029.sh PASS.
+tc3_enable_power_2bm_remove_dn_stop_adding_dn_20251029.sh PASS.
+tc3_enable_power_2bm_remove_dn_stop_adding_dn_20251029.sh PASS.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 17635
+Stopping 172.20.70.14
+最后一条日志距离现在已超过1分钟（124秒）
+最后一条日志距离现在已超过1分钟（121秒）
+最后一条日志距离现在已超过1分钟（122秒）
+最后一条日志距离现在已超过1分钟（1577秒）
+最后一条日志距离现在已超过1分钟（1752秒）
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 32435
+40
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 9595
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 18495
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 8982
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 11615
+tc3_enable_power_2bm_remove_dn_stop_adding_dn_20251029.sh : fail
+3
+tc3_enable_power_2bm_remove_dn_stop_adding_dn_20251029.sh
+false
+2020
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 2237
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 12624
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 21593
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 11599
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 14266
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 15448
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 32218
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 9381
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh PASS.
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh PASS.
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh PASS.
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh PASS.
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh PASS.
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh PASS.
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh PASS.
+Msg: The statement is executed successfully.
++-----------------------------+-----------------------------------------+--------------------------------------------+-----------------------------------------+--------------------------------------------+-----------------------------------------+--------------------------------------------+---------------------------------------------+------------------------------------------------+
+|                         Time|root.__audit.password_history._1.password|root.__audit.password_history._1.oldPassword|root.__audit.password_history._2.password|root.__audit.password_history._2.oldPassword|root.__audit.password_history._3.password|root.__audit.password_history._3.oldPassword|root.__audit.password_history._10000.password|root.__audit.password_history._10000.oldPassword|
++-----------------------------+-----------------------------------------+--------------------------------------------+-----------------------------------------+--------------------------------------------+-----------------------------------------+--------------------------------------------+---------------------------------------------+------------------------------------------------+
+|2025-11-04T12:45:58.103+08:00|           ��w�q�YUd
+�U}C��)��7�/ф�pt|              ��w�q�YUd
+�U}C��)��7�/ф�pt|                                     null|                                        null|                                     null|                                        null|                                         null|                                            null|
+|2025-11-04T12:46:03.024+08:00|                                     null|                                        null|           ��w�q�YUd
+�U}C��)��7�/ф�pt|              ��w�q�YUd
+�U}C��)��7�/ф�pt|                                     null|                                        null|                                         null|                                            null|
+|2025-11-04T12:46:35.289+08:00|                                     null|                                        null|                                     null|                                        null|                                     null|                                        null|               ��w�q�YUd
+�U}C��)��7�/ф�pt|                  ��w�q�YUd
+�U}C��)��7�/ф�pt|
+|2025-11-04T12:46:38.049+08:00|                                     null|                                        null|                                     null|                                        null|           ��w�q�YUd
+�U}C��)��7�/ф�pt|              ��w�q�YUd
+�U}C��)��7�/ф�pt|                                         null|                                            null|
++-----------------------------+-----------------------------------------+--------------------------------------------+-----------------------------------------+--------------------------------------------+-----------------------------------------+--------------------------------------------+---------------------------------------------+------------------------------------------------+
+Total line number = 4
+It costs 0.055s
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh PASS.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15876
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh PASS.
+最后一条日志距离现在已超过1分钟（1006秒）
+最后一条日志距离现在已超过1分钟（679秒）
+最后一条日志距离现在已超过1分钟（917秒）
+最后一条日志距离现在已超过1分钟（1025秒）
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 5484
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15854
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 23428
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 13402
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh : pass
+4
+tc4_enable_power_2bm_priv_lily_removing_dn_20251029.sh
+true
+3590
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 8996
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 20761
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 27981
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 17754
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 18940
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 5273
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 15625
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+tc5_enable_power_2bm_remove_dn_stop_removing_dn_20251029.sh PASS.
+tc5_enable_power_2bm_remove_dn_stop_removing_dn_20251029.sh PASS.
+tc5_enable_power_2bm_remove_dn_stop_removing_dn_20251029.sh PASS.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 20814
+Stopping 172.20.70.30
+最后一条日志距离现在已超过1分钟（122秒）
+最后一条日志距离现在已超过1分钟（121秒）
+最后一条日志距离现在已超过1分钟（135秒）
+最后一条日志距离现在已超过1分钟（142秒）
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 12088
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 23963
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 29853
+40
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 19596
+tc5_enable_power_2bm_remove_dn_stop_removing_dn_20251029.sh : fail
+5
+tc5_enable_power_2bm_remove_dn_stop_removing_dn_20251029.sh
+false
+2302
+Msg: The statement is executed successfully.

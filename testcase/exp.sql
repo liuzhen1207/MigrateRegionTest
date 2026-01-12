@@ -1,0 +1,1 @@
+/data1/iotdb/v1321_rc1_0401_mig_da56ef1/sbin/start-cli.sh  -h 172.20.70.4 -timeout 36000 -e "select count(s_172),count(s_293),count(s_8),count(s_490),count(s_368),count(s_597),max_time(s_172),max_time(s_293),max_time(s_8),max_time(s_490),max_time(s_368),max_time(s_597) from root.test.g_0.** align by device;"

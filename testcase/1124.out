@@ -1,0 +1,158 @@
++ i=1
+++ date +%Y_%m_%d_%H_%M_%S
++ v_cur_time=2025_11_24_16_19_00
+++ date +%s
++ v_cur_time1=1763972340
++ res_file=v1361rc2_2025_11_24_16_19_00.out
++ exec
++ read line
+++ echo tc1_v1361_2bm_remove_dn_20251112.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc1
++ sh -x tc1_v1361_2bm_remove_dn_20251112.sh
++ read line
+++ echo tc2_v1361_2bm_remove_dn_stop_removing_dn_20251113.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc2
++ sh -x tc2_v1361_2bm_remove_dn_stop_removing_dn_20251113.sh
++ read line
+++ echo tc3_v1361_2bm_remove_dn_stop_adding_dn_20251113.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc3
++ sh -x tc3_v1361_2bm_remove_dn_stop_adding_dn_20251113.sh
++ read line
+++ echo tc4_v1361_2bm_priv_lily_remove_dn_20251113.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc4
++ sh -x tc4_v1361_2bm_priv_lily_remove_dn_20251113.sh
++ read line
+++ echo tc5_v1361_2bm_stop_dn_remove_unknown_20251113.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc5
++ sh -x tc5_v1361_2bm_stop_dn_remove_unknown_20251113.sh
++ read line
+++ echo tc6_v1361_DRsimple_2bm_extend_region.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc6
++ sh -x tc6_v1361_DRsimple_2bm_extend_region.sh
++ read line
+++ echo tc7_v1361_DRsimple_2bm_remove_region.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc7
++ sh -x tc7_v1361_DRsimple_2bm_remove_region.sh
++ read line
+++ echo tc8_v1361_SRsimple_2bm_extend_region.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc8
++ sh -x tc8_v1361_SRsimple_2bm_extend_region.sh
++ read line
+++ echo tc9_v1361_SRsimple_2bm_remove_region.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc9
++ sh -x tc9_v1361_SRsimple_2bm_remove_region.sh
++ read line
+++ echo tc10_v1361_SRDR1Rep_2bm_remove_region.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc10
++ sh -x tc10_v1361_SRDR1Rep_2bm_remove_region.sh
++ read line
+++ echo tc11_v1361_SRDR1Rep_2bm_extend_region.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc11
++ sh -x tc11_v1361_SRDR1Rep_2bm_extend_region.sh
++ read line
+++ echo tc12_v1361_2bm_extend_remove_twoway.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc12
++ sh -x tc12_v1361_2bm_extend_remove_twoway.sh
++ read line
+++ echo tc13_v1361_2bm_remove_extend_twoway.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc13
++ sh -x tc13_v1361_2bm_remove_extend_twoway.sh
++ read line
+++ echo tc14_v1361_2bm_extend_extend.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc14
++ sh -x tc14_v1361_2bm_extend_extend.sh
++ read line
+++ echo tc15_v1361_2bm_remove_remove.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc15
++ sh -x tc15_v1361_2bm_remove_remove.sh
++ read line
+++ echo tc16_v1361_2bm_extend_migrate.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc16
++ sh -x tc16_v1361_2bm_extend_migrate.sh
++ read line
+++ echo tc17_v1361_2bm_extend_stopAddingDN.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc17
++ sh -x tc17_v1361_2bm_extend_stopAddingDN.sh
++ read line
+++ echo tc18_v1361_2bm_extend_to_unknown.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc18
++ sh -x tc18_v1361_2bm_extend_to_unknown.sh
++ read line
+++ echo tc19_v1361_2bm_extend_to_CNID.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc19
++ sh -x tc19_v1361_2bm_extend_to_CNID.sh
++ read line
+++ echo tc20_v1361_remove_from_not_exist_dnid.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc20
++ sh -x tc20_v1361_remove_from_not_exist_dnid.sh
++ read line
+++ echo tc21_v1361_remove_from_unknown.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc21
++ sh -x tc21_v1361_remove_from_unknown.sh
++ read line
+++ echo tc22_v1361_reconstruct_unknown.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc22
++ sh -x tc22_v1361_reconstruct_unknown.sh
++ read line
+++ echo tc23_v1361_reconstruct_repeatelist.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc23
++ sh -x tc23_v1361_reconstruct_repeatelist.sh
++ read line
+++ echo tc24_v1361_reconstruct_normal.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc24
++ sh -x tc24_v1361_reconstruct_normal.sh
++ read line
+++ echo tc26_v1361_reconstruct_1rep.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc26
++ sh -x tc26_v1361_reconstruct_1rep.sh
++ read line
+++ echo tc25_v1361_reconstruct_simple.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc25
++ sh -x tc25_v1361_reconstruct_simple.sh
++ read line
+++ echo tc27_v1361_reconstruct_parser.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc27
++ sh -x tc27_v1361_reconstruct_parser.sh
++ read line
+++ echo tc28_v1361_remove_unknown_region_extend.sh:
+++ awk -F _ '{print $1}'
++ v_tc=tc28
++ sh -x tc28_v1361_remove_unknown_region_extend.sh:
++ read line
+++ echo tc29_v1361_remove_regions_until_less_than_1rep.sh
+++ awk -F _ '{print $1}'
++ v_tc=tc29
++ sh -x tc29_v1361_remove_regions_until_less_than_1rep.sh
++ read line
+++ date +%s
++ v_cur_time2=1763992459
++ v_elp=20119
++ echo 'test time:20119 sec.'
+test time:20119 sec.

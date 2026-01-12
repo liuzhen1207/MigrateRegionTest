@@ -1,0 +1,206 @@
++-------------------+----------+
+|             Device|count(s_0)|
++-------------------+----------+
+| root.test.g_0.d1_0|     91160|
+| root.test.g_0.d1_1|     91160|
+|root.test.g_0.d1_10|     91070|
+|root.test.g_0.d1_11|     91070|
+|root.test.g_0.d1_12|     91070|
+|root.test.g_0.d1_13|     91070|
+|root.test.g_0.d1_14|     91070|
+|root.test.g_0.d1_15|     91070|
+|root.test.g_0.d1_16|     91070|
+|root.test.g_0.d1_17|     91070|
+|root.test.g_0.d1_18|     91070|
+|root.test.g_0.d1_19|     91070|
+| root.test.g_0.d1_2|     91160|
+|root.test.g_0.d1_20|     91200|
+|root.test.g_0.d1_21|     91200|
+|root.test.g_0.d1_22|     91200|
+|root.test.g_0.d1_23|     91200|
+|root.test.g_0.d1_24|     91200|
+|root.test.g_0.d1_25|     91200|
+|root.test.g_0.d1_26|     91200|
+|root.test.g_0.d1_27|     91200|
+|root.test.g_0.d1_28|     91200|
+|root.test.g_0.d1_29|     91200|
+| root.test.g_0.d1_3|     91160|
+|root.test.g_0.d1_30|     90790|
+|root.test.g_0.d1_31|     90790|
+|root.test.g_0.d1_32|     90790|
+|root.test.g_0.d1_33|     90790|
+|root.test.g_0.d1_34|     90790|
+|root.test.g_0.d1_35|     90790|
+|root.test.g_0.d1_36|     90790|
+|root.test.g_0.d1_37|     90790|
+|root.test.g_0.d1_38|     90790|
+|root.test.g_0.d1_39|     90790|
+| root.test.g_0.d1_4|     91160|
+|root.test.g_0.d1_40|     91140|
+|root.test.g_0.d1_41|     91140|
+|root.test.g_0.d1_42|     91140|
+|root.test.g_0.d1_43|     91140|
+|root.test.g_0.d1_44|     91140|
+|root.test.g_0.d1_45|     91140|
+|root.test.g_0.d1_46|     91140|
+|root.test.g_0.d1_47|     91140|
+|root.test.g_0.d1_48|     91140|
+|root.test.g_0.d1_49|     91140|
+| root.test.g_0.d1_5|     91160|
+|root.test.g_0.d1_50|     91090|
+|root.test.g_0.d1_51|     91090|
+|root.test.g_0.d1_52|     91090|
+|root.test.g_0.d1_53|     91090|
+|root.test.g_0.d1_54|     91090|
+|root.test.g_0.d1_55|     91090|
+|root.test.g_0.d1_56|     91090|
+|root.test.g_0.d1_57|     91090|
+|root.test.g_0.d1_58|     91090|
+|root.test.g_0.d1_59|     91090|
+| root.test.g_0.d1_6|     91160|
+|root.test.g_0.d1_60|     90810|
+|root.test.g_0.d1_61|     90810|
+|root.test.g_0.d1_62|     90810|
+|root.test.g_0.d1_63|     90810|
+|root.test.g_0.d1_64|     90810|
+|root.test.g_0.d1_65|     90810|
+|root.test.g_0.d1_66|     90810|
+|root.test.g_0.d1_67|     90810|
+|root.test.g_0.d1_68|     90810|
+|root.test.g_0.d1_69|     90810|
+| root.test.g_0.d1_7|     91160|
+|root.test.g_0.d1_70|     90620|
+|root.test.g_0.d1_71|     90620|
+|root.test.g_0.d1_72|     90620|
+|root.test.g_0.d1_73|     90620|
+|root.test.g_0.d1_74|     90620|
+|root.test.g_0.d1_75|     90620|
+|root.test.g_0.d1_76|     90620|
+|root.test.g_0.d1_77|     90620|
+|root.test.g_0.d1_78|     90620|
+|root.test.g_0.d1_79|     90620|
+| root.test.g_0.d1_8|     91160|
+|root.test.g_0.d1_80|     91700|
+|root.test.g_0.d1_81|     91700|
+|root.test.g_0.d1_82|     91700|
+|root.test.g_0.d1_83|     91700|
+|root.test.g_0.d1_84|     91700|
+|root.test.g_0.d1_85|     91700|
+|root.test.g_0.d1_86|     91700|
+|root.test.g_0.d1_87|     91700|
+|root.test.g_0.d1_88|     91700|
+|root.test.g_0.d1_89|     91700|
+| root.test.g_0.d1_9|     91160|
+|root.test.g_0.d1_90|     91430|
+|root.test.g_0.d1_91|     91430|
+|root.test.g_0.d1_92|     91430|
+|root.test.g_0.d1_93|     91430|
+|root.test.g_0.d1_94|     91430|
+|root.test.g_0.d1_95|     91430|
+|root.test.g_0.d1_96|     91430|
+|root.test.g_0.d1_97|     91430|
+|root.test.g_0.d1_98|     91430|
+|root.test.g_0.d1_99|     91430|
+| root.test.g_0.d2_0|     91160|
+| root.test.g_0.d2_1|     91160|
+|root.test.g_0.d2_10|     91070|
+|root.test.g_0.d2_11|     91070|
+|root.test.g_0.d2_12|     91070|
+|root.test.g_0.d2_13|     91070|
+|root.test.g_0.d2_14|     91070|
+|root.test.g_0.d2_15|     91070|
+|root.test.g_0.d2_16|     91070|
+|root.test.g_0.d2_17|     91070|
+|root.test.g_0.d2_18|     91070|
+|root.test.g_0.d2_19|     91070|
+| root.test.g_0.d2_2|     91160|
+|root.test.g_0.d2_20|     91200|
+|root.test.g_0.d2_21|     91200|
+|root.test.g_0.d2_22|     91200|
+|root.test.g_0.d2_23|     91200|
+|root.test.g_0.d2_24|     91200|
+|root.test.g_0.d2_25|     91200|
+|root.test.g_0.d2_26|     91200|
+|root.test.g_0.d2_27|     91200|
+|root.test.g_0.d2_28|     91200|
+|root.test.g_0.d2_29|     91200|
+| root.test.g_0.d2_3|     91160|
+|root.test.g_0.d2_30|     90790|
+|root.test.g_0.d2_31|     90790|
+|root.test.g_0.d2_32|     90790|
+|root.test.g_0.d2_33|     90790|
+|root.test.g_0.d2_34|     90790|
+|root.test.g_0.d2_35|     90790|
+|root.test.g_0.d2_36|     90790|
+|root.test.g_0.d2_37|     90790|
+|root.test.g_0.d2_38|     90790|
+|root.test.g_0.d2_39|     90790|
+| root.test.g_0.d2_4|     91160|
+|root.test.g_0.d2_40|     91140|
+|root.test.g_0.d2_41|     91140|
+|root.test.g_0.d2_42|     91140|
+|root.test.g_0.d2_43|     91140|
+|root.test.g_0.d2_44|     91140|
+|root.test.g_0.d2_45|     91140|
+|root.test.g_0.d2_46|     91140|
+|root.test.g_0.d2_47|     91140|
+|root.test.g_0.d2_48|     91140|
+|root.test.g_0.d2_49|     91140|
+| root.test.g_0.d2_5|     91160|
+|root.test.g_0.d2_50|     91090|
+|root.test.g_0.d2_51|     91090|
+|root.test.g_0.d2_52|     91090|
+|root.test.g_0.d2_53|     91090|
+|root.test.g_0.d2_54|     91090|
+|root.test.g_0.d2_55|     91090|
+|root.test.g_0.d2_56|     91090|
+|root.test.g_0.d2_57|     91090|
+|root.test.g_0.d2_58|     91090|
+|root.test.g_0.d2_59|     91090|
+| root.test.g_0.d2_6|     91160|
+|root.test.g_0.d2_60|     90810|
+|root.test.g_0.d2_61|     90810|
+|root.test.g_0.d2_62|     90810|
+|root.test.g_0.d2_63|     90810|
+|root.test.g_0.d2_64|     90810|
+|root.test.g_0.d2_65|     90810|
+|root.test.g_0.d2_66|     90810|
+|root.test.g_0.d2_67|     90810|
+|root.test.g_0.d2_68|     90810|
+|root.test.g_0.d2_69|     90810|
+| root.test.g_0.d2_7|     91160|
+|root.test.g_0.d2_70|     90620|
+|root.test.g_0.d2_71|     90620|
+|root.test.g_0.d2_72|     90620|
+|root.test.g_0.d2_73|     90620|
+|root.test.g_0.d2_74|     90620|
+|root.test.g_0.d2_75|     90620|
+|root.test.g_0.d2_76|     90620|
+|root.test.g_0.d2_77|     90620|
+|root.test.g_0.d2_78|     90620|
+|root.test.g_0.d2_79|     90620|
+| root.test.g_0.d2_8|     91160|
+|root.test.g_0.d2_80|     91700|
+|root.test.g_0.d2_81|     91700|
+|root.test.g_0.d2_82|     91700|
+|root.test.g_0.d2_83|     91700|
+|root.test.g_0.d2_84|     91700|
+|root.test.g_0.d2_85|     91700|
+|root.test.g_0.d2_86|     91700|
+|root.test.g_0.d2_87|     91700|
+|root.test.g_0.d2_88|     91700|
+|root.test.g_0.d2_89|     91700|
+| root.test.g_0.d2_9|     91160|
+|root.test.g_0.d2_90|     91430|
+|root.test.g_0.d2_91|     91430|
+|root.test.g_0.d2_92|     91430|
+|root.test.g_0.d2_93|     91430|
+|root.test.g_0.d2_94|     91430|
+|root.test.g_0.d2_95|     91430|
+|root.test.g_0.d2_96|     91430|
+|root.test.g_0.d2_97|     91430|
+|root.test.g_0.d2_98|     91430|
+|root.test.g_0.d2_99|     91430|
++-------------------+----------+
+Total line number = 200
+It costs 0.189s

@@ -1,0 +1,16 @@
+2024-08-28 18:28:34,815 [5@group-000200000000->7-GrpcLogAppender-LogAppenderDaemon] WARN  o.a.r.g.s.GrpcLogAppender:293 - 5@group-000200000000->7-GrpcLogAppender: Wait interrupted by java.lang.InterruptedException 
+2024-08-28 18:28:45,101 [IoTDB-Shutdown-Hook] WARN  o.a.i.c.conf.CommonConfig:550 - Change system status to ReadOnly! Only query statements are permitted! 
+2024-08-28 18:28:45,125 [5@group-000200000000->4-GrpcLogAppender-LogAppenderDaemon] WARN  o.a.r.g.s.GrpcLogAppender:293 - 5@group-000200000000->4-GrpcLogAppender: Wait interrupted by java.lang.InterruptedException 
+2024-08-28 18:28:45,125 [5@group-000200000000->3-GrpcLogAppender-LogAppenderDaemon] WARN  o.a.r.g.s.GrpcLogAppender:293 - 5@group-000200000000->3-GrpcLogAppender: Wait interrupted by java.lang.InterruptedException 
+2024-08-28 18:29:05,014 [pool-28-IoTDB-Compaction-Worker-8] WARN  o.a.i.d.s.d.c.s.CompactionWorker:66 - CompactionThread-7 terminates because interruption 
+2024-08-28 18:29:05,015 [pool-28-IoTDB-Compaction-Worker-9] WARN  o.a.i.d.s.d.c.s.CompactionWorker:66 - CompactionThread-8 terminates because interruption 
+2024-08-28 18:29:05,015 [pool-28-IoTDB-Compaction-Worker-10] WARN  o.a.i.d.s.d.c.s.CompactionWorker:66 - CompactionThread-9 terminates because interruption 
+2024-08-28 18:29:05,015 [pool-28-IoTDB-Compaction-Worker-7] WARN  o.a.i.d.s.d.c.s.CompactionWorker:66 - CompactionThread-6 terminates because interruption 
+2024-08-28 18:29:05,017 [pool-28-IoTDB-Compaction-Worker-4] WARN  o.a.t.r.r.LocalTsFileInput:96 - Current thread is interrupted by another thread when it is blocked in an I/O operation upon a channel. 
+2024-08-28 18:29:05,024 [pool-28-IoTDB-Compaction-Worker-6] WARN  o.a.t.r.r.LocalTsFileInput:96 - Current thread is interrupted by another thread when it is blocked in an I/O operation upon a channel. 
+2024-08-28 18:29:05,289 [pool-28-IoTDB-Compaction-Worker-6] WARN  o.a.i.d.s.d.c.e.t.AbstractCompactionTask:182 - root.test.g_0-2 [Compaction] INNER_SEQ task interrupted 
+2024-08-28 18:29:05,289 [pool-28-IoTDB-Compaction-Worker-1] WARN  o.a.i.d.s.d.c.e.t.AbstractCompactionTask:182 - root.test.g_0-4 [Compaction] INNER_SEQ task interrupted 
+2024-08-28 18:29:05,289 [pool-28-IoTDB-Compaction-Worker-5] WARN  o.a.i.d.s.d.c.e.t.AbstractCompactionTask:182 - root.test.g_0-4 [Compaction] INNER_SEQ task interrupted 
+2024-08-28 18:29:05,289 [pool-28-IoTDB-Compaction-Worker-4] WARN  o.a.i.d.s.d.c.e.t.AbstractCompactionTask:182 - root.test.g_0-3 [Compaction] INNER_SEQ task interrupted 
+2024-08-28 18:29:05,289 [pool-28-IoTDB-Compaction-Worker-2] WARN  o.a.i.d.s.d.c.e.t.AbstractCompactionTask:182 - root.test.g_0-3 [Compaction] INNER_SEQ task interrupted 
+2024-08-28 18:29:05,299 [pool-28-IoTDB-Compaction-Worker-3] WARN  o.a.i.d.s.d.c.e.t.AbstractCompactionTask:182 - root.test.g_0-2 [Compaction] INNER_SEQ task interrupted 

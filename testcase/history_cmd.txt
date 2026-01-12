@@ -1,0 +1,1 @@
+nohup sh -x run_all_mig.sh >0826_v2061rc3.out &

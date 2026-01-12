@@ -1,0 +1,1277 @@
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 18282
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 11063
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 13097
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 10800
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 21657
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 32196
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 17989
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 10815
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+ErrorCan't execute sql because801: Authentication failed.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 27206
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15133
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15636
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 13269
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 24121
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 2149
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 26981
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 14902
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+ErrorCan't execute sql because801: Authentication failed.
+remove datanode 172.20.70.30 cost 39 - 5 sec.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 29819
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 17972
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 17032
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 14701
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 26601
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 3470
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 29596
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 17743
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+ErrorCan't execute sql because801: Authentication failed.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 32397
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 20860
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 18485
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 16167
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 27937
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 4852
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 32171
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 20638
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+ErrorCan't execute sql because801: Authentication failed.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 2665
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 23680
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 19970
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 17720
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 29354
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 6111
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 2427
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 23448
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+ErrorCan't execute sql because801: Authentication failed.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 5356
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 26527
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 21353
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 7419
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 5132
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 26296
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+ErrorCan't execute sql because801: Authentication failed.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
++----------------------+
+|num_of_deleted_devices|
++----------------------+
+|                     1|
++----------------------+
+Total line number = 1
+It costs 0.291s
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
++----------------------+
+|num_of_deleted_devices|
++----------------------+
+|                     1|
++----------------------+
+Total line number = 1
+It costs 0.168s
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
++----------------------+
+|num_of_deleted_devices|
++----------------------+
+|                     1|
++----------------------+
+Total line number = 1
+It costs 0.108s
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
++----------------------+
+|num_of_deleted_devices|
++----------------------+
+|                     1|
++----------------------+
+Total line number = 1
+It costs 0.167s
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
++----------------------+
+|num_of_deleted_devices|
++----------------------+
+|                     1|
++----------------------+
+Total line number = 1
+It costs 0.146s
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 8117
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 29601
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 22885
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 8813
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 7894
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 29380
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+ErrorCan't execute sql because801: Authentication failed.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
++----------------------+
+|num_of_deleted_devices|
++----------------------+
+|                     1|
++----------------------+
+Total line number = 1
+It costs 0.215s
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
++----------------------+
+|num_of_deleted_devices|
++----------------------+
+|                     1|
++----------------------+
+Total line number = 1
+It costs 0.146s
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
++----------------------+
+|num_of_deleted_devices|
++----------------------+
+|                     1|
++----------------------+
+Total line number = 1
+It costs 0.138s
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
++----------------------+
+|num_of_deleted_devices|
++----------------------+
+|                     1|
++----------------------+
+Total line number = 1
+It costs 0.227s
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
++----------------------+
+|num_of_deleted_devices|
++----------------------+
+|                     1|
++----------------------+
+Total line number = 1
+It costs 0.149s
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 10819
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 32652
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 24496
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 10267
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 10596
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 32421
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+ErrorCan't execute sql because801: Authentication failed.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 13559
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 3311
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 26062
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 11773
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 13335
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 3091
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+alter user root pasword success.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 5687
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 16400
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 6482
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 27738
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 27379
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 17314
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 7427
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 28623
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 28301
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 13298
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 16105
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 6231
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+alter user root pasword success.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 20315
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 10759
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 30507
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 30082
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 21205
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 11700
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 31416
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 31009
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 15106
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 20023
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 10512
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+alter user root pasword success.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 24329
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15098
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 794
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 32726
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 25207
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 16088
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 1786
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 1214
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 16913
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 24032
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 14848
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+alter user root pasword success.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 28247
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 19403
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 3632
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 29348
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 20590
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 4782
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 18701
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 27951
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 19156
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+alter user root pasword success.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 32524
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 24024
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 6625
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 4963
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 12832
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 883
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 24800
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 7412
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 5791
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 13622
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 20610
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 32229
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 23781
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+alter user root pasword success.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 9266
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 4003
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 28093
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 8702
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15439
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 22329
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 3706
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 27853
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+alter user root pasword success.
+Msg: The statement is executed successfully.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 6902
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 31288
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 11011
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 10416
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 17132
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 23828
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 6598
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 30993
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+ErrorCan't execute sql because801: Authentication failed.
+Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 305: The ConfigNode to be removed is not in the cluster, or the input format is incorrect.
+Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 700: Error occurred while parsing SQL to physical plan: line 1:18 extraneous input '-' expecting INTEGER_LITERAL
+Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 700: Error occurred while parsing SQL to physical plan: line 1:17 missing INTEGER_LITERAL at '<EOF>'
+Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 700: Error occurred while parsing SQL to physical plan: line 1:18 mismatched input 'null' expecting INTEGER_LITERAL
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 9721
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 1945
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 12714
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 12079
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 18777
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 25346
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 9490
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 1704
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+alter user root pasword success.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 12397
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 4835
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 14113
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 13788
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 26718
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 12099
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 4589
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+alter user root pasword success.
+Msg: The statement is executed successfully.
+Msg: Remove DataNode 172.20.70.27 success.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15591
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 8374
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 16158
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 22514
+Msg: The statement is executed successfully.

@@ -1,0 +1,146 @@
+#!/bin/bash
+cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
+conf_file="${cur_dir}/../conf/test.conf"
+nodeinfo_dir="${cur_dir}/../conf"
+u_name=`cat ${conf_file}|grep u_name|awk -F '=' '{print $2}'`
+db_dir=`cat ${conf_file}|grep ^db_dir|awk -F '=' '{print $2}'`
+iotdb_host=`cat ${conf_file}|grep test_ip|awk -F '=' '{print $2}'`
+v_cur_db=`cat ${conf_file}|grep v_cur_db|awk -F '=' '{print $2}'`
+cli_dir=`cat ${conf_file}|grep client_db_dir|awk -F '=' '{print $2}'`
+res_file="${cur_dir}/../test_result/res_${v_cur_db}.out"
+clean_env_dir="${cur_dir}/../clean_env"
+prepare_env_dir="${cur_dir}/../prepare_env"
+check_res_dir="${cur_dir}/../check_res"
+SCRIPT_NAME=$(basename "$0")
+seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
+query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
+bm_ip=`head -1 ${nodeinfo_dir}/bm_node.txt`
+bm_dir=/data1/benchmark/bm_20240320_76af1a40
+query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
+# https://jira.infra.timecho.com:8443/browse/TIMECHODB-456 
+fail_file="fail.log"
+cn_num=3
+dn_num=5
+dr_rep_num=2
+sr_rep_num=3
+head -n ${dn_num} ${nodeinfo_dir}/total_datanode.txt > ${nodeinfo_dir}/datanode.txt
+head -n ${dn_num} ${nodeinfo_dir}/total_datanode_port.txt > ${nodeinfo_dir}/datanode_port.txt
+total_node_num=$((cn_num+dn_num))
+backup_dir_on_cn_dn_host=/data/iotdb/autotest_backup/3db_test_data
+tmp_out_file="tc${tc_num}_tmp.out"
+fail_flag=0
+testcase_ip=`cat ${conf_file}|grep test_ip|awk -F '.' '{print $4}'`
+tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
+testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
+testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
+test_begin_sec=`date +%s`
+function clean_env()
+{
+   #clean env
+   sh -x ${clean_env_dir}/stop_cluster.sh
+   sh -x ${clean_env_dir}/clean_cluster.sh
+   sh -x ${clean_env_dir}/reset_conf.sh
+}
+
+
+function set_conf()
+{
+  exec 3<${nodeinfo_dir}/confignode.txt
+  while read line <&3
+  do
+     ssh ${u_name}@${line} "sed -i 's/#ON_HEAP_MEMORY=.*/ON_HEAP_MEMORY=\"2G\"/g' ${db_dir}/conf/confignode-env.sh"
+     ssh ${u_name}@${line} "sed -i 's/#OFF_HEAP_MEMORY=.*/OFF_HEAP_MEMORY=\"1G\"/g' ${db_dir}/conf/confignode-env.sh"
+     ssh ${u_name}@${line} "sed -i 's/^cn_seed_config_node=.*/cn_seed_config_node=${seed_cn_ip}/g' ${db_dir}/conf/iotdb-confignode.properties"
+     ssh ${u_name}@${line} "sed -i 's/^cn_internal_address=.*/cn_internal_address=${line}/g' ${db_dir}/conf/iotdb-confignode.properties"
+     ssh ${u_name}@${line} "sed -i 's/.*cn_metric_reporter_list=.*/cn_metric_reporter_list=PROMETHEUS/g' ${db_dir}/conf/iotdb-confignode.properties"
+     ssh ${u_name}@${line} "sed -i 's/.*cn_metric_level=.*/cn_metric_level=IMPORTANT/g' ${db_dir}/conf/iotdb-confignode.properties"
+     ssh ${u_name}@${line} "sed -i 's/.*cn_metric_prometheus_reporter_port=.*/cn_metric_prometheus_reporter_port=9081/g' ${db_dir}/conf/iotdb-confignode.properties"
+     ssh ${u_name}@${line} "sed -i 's/.*schema_replication_factor=.*/schema_replication_factor=3/g' ${db_dir}/conf/iotdb-common.properties"
+     ssh ${u_name}@${line} "sed -i 's/.*data_replication_factor=.*/data_replication_factor=2/g' ${db_dir}/conf/iotdb-common.properties"
+     ssh ${u_name}@${line} "sed -i 's/# schema_region_group_extension_policy=.*/schema_region_group_extension_policy=CUSTOM/g' ${db_dir}/conf/iotdb-common.properties"
+     ssh ${u_name}@${line} "sed -i 's/# data_region_group_extension_policy=.*/data_region_group_extension_policy=CUSTOM/g' ${db_dir}/conf/iotdb-common.properties"
+     ssh ${u_name}@${line} "sed -i 's/# default_schema_region_group_num_per_database=.*/default_schema_region_group_num_per_database=1/g' ${db_dir}/conf/iotdb-common.properties"
+     ssh ${u_name}@${line} "sed -i 's/# default_data_region_group_num_per_database=.*/default_data_region_group_num_per_database=5/g' ${db_dir}/conf/iotdb-common.properties"
+     
+  done
+
+  exec 3<${nodeinfo_dir}/datanode.txt
+  while read line <&3
+  do
+     ssh ${u_name}@${line} "sed -i 's/#ON_HEAP_MEMORY=.*/ON_HEAP_MEMORY=\"20G\"/g' ${db_dir}/conf/datanode-env.sh"
+     ssh ${u_name}@${line} "sed -i 's/#OFF_HEAP_MEMORY=.*/OFF_HEAP_MEMORY=\"2G\"/g' ${db_dir}/conf/datanode-env.sh"
+     ssh ${u_name}@${line} "sed -i 's/^dn_seed_config_node=.*/dn_seed_config_node=${seed_cn_ip}/g' ${db_dir}/conf/iotdb-datanode.properties"
+     ssh ${u_name}@${line} "sed -i 's/^dn_internal_address=.*/dn_internal_address=${line}/g' ${db_dir}/conf/iotdb-datanode.properties"
+     ssh ${u_name}@${line} "sed -i 's/^dn_rpc_address=.*/dn_rpc_address=${line}/g' ${db_dir}/conf/iotdb-datanode.properties"
+     ssh ${u_name}@${line} "sed -i 's/.*dn_metric_reporter_list=.*/dn_metric_reporter_list=PROMETHEUS/g' ${db_dir}/conf/iotdb-datanode.properties"
+     ssh ${u_name}@${line} "sed -i 's/.*dn_metric_level=.*/dn_metric_level=IMPORTANT/g' ${db_dir}/conf/iotdb-datanode.properties"
+     ssh ${u_name}@${line} "sed -i 's/.*schema_replication_factor=.*/schema_replication_factor=3/g' ${db_dir}/conf/iotdb-common.properties"
+     ssh ${u_name}@${line} "sed -i 's/.*data_replication_factor=.*/data_replication_factor=2/g' ${db_dir}/conf/iotdb-common.properties"
+     ssh ${u_name}@${line} "sed -i 's/# schema_region_group_extension_policy=.*/schema_region_group_extension_policy=CUSTOM/g' ${db_dir}/conf/iotdb-common.properties"
+     ssh ${u_name}@${line} "sed -i 's/# data_region_group_extension_policy=.*/data_region_group_extension_policy=CUSTOM/g' ${db_dir}/conf/iotdb-common.properties"
+     ssh ${u_name}@${line} "sed -i 's/# default_schema_region_group_num_per_database=.*/default_schema_region_group_num_per_database=1/g' ${db_dir}/conf/iotdb-common.properties"
+     ssh ${u_name}@${line} "sed -i 's/# default_data_region_group_num_per_database=.*/default_data_region_group_num_per_database=5/g' ${db_dir}/conf/iotdb-common.properties"
+
+  done
+ 
+}
+
+function start_db()
+{
+   #clean env
+   sh -x ${clean_env_dir}/stop_cluster.sh
+   sh -x ${clean_env_dir}/clean_cluster.sh
+   sh -x ${clean_env_dir}/reset_conf.sh
+   #start cluster
+   head -n $cn_num ${nodeinfo_dir}/total_node.txt > ${nodeinfo_dir}/confignode.txt 
+   set_conf
+#copy data
+exec 3<${nodeinfo_dir}/datanode.txt
+while read line<&3
+do
+ssh ${u_name}@${line} "sudo cp -rp ${backup_dir_on_cn_dn_host}/data ${db_dir}/ " &
+done
+exec 3<${nodeinfo_dir}/datanode.txt
+while read line<&3
+do
+        while true
+        do
+        v_check_cp=`ssh ${u_name}@${line} "sudo ps -ef|grep \"cp -rp\"|grep -v grep|wc -l"`
+        if [[ ${v_check_cp} = 0 ]];then
+           ssh ${u_name}@${line} "sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"";
+           break
+        else
+           sleep 5
+        fi
+        done
+done
+exec 3<${nodeinfo_dir}/confignode.txt
+while read line<&3
+do
+v_check=`grep ${line} ${nodeinfo_dir}/datanode.txt |wc -l`
+if [[ ${v_check} = 0 ]];then
+ssh ${u_name}@${line} "sudo cp -rp ${backup_dir_on_cn_dn_host}/data ${db_dir}/ "
+ssh ${u_name}@${line} "sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"";
+fi
+done
+
+   sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"
+
+}
+
+function pre_and_exec_mig_region()
+{
+
+  v_mig_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep root.test|head -1|awk -F '|' '{gsub(" ","");print $2}'`
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8","$9}'>${cur_dir}/mig_id_info.txt
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8}'>${cur_dir}/mig_region_dn_id.txt
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/all_dn_id.txt
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
+
+   sleep 2
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "delete from root.test.g_0.*.s_40;">${cur_dir}/del_s_40.out &
+ 
+} 
+clean_env
+start_db
+pre_and_exec_mig_region

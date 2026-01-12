@@ -1,0 +1,629 @@
++++ dirname tc111_RMDN_no11_remove_readonly_dn.sh
+++ cd .
+++ pwd
++ cur_dir=/auto_test/auto_test_shell/testcase
++ conf_file=/auto_test/auto_test_shell/testcase/../conf/test.conf
++ nodeinfo_dir=/auto_test/auto_test_shell/testcase/../conf
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep u_name
+++ awk -F = '{print $2}'
++ u_name=cluster
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep '^db_dir'
+++ awk -F = '{print $2}'
++ db_dir=/data/iotdb/v1361_1125_rc3_d2e7bf22
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep test_ip
+++ awk -F = '{print $2}'
++ iotdb_host=172.20.70.4
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep v_cur_db
+++ awk -F = '{print $2}'
++ v_cur_db=v1361_1125_rc3_d2e7bf22
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep client_db_dir
+++ awk -F = '{print $2}'
++ cli_dir=/data1/iotdb/v1361_1125_rc3_d2e7bf22
++ res_file=/auto_test/auto_test_shell/testcase/../test_result/res_v1361_1125_rc3_d2e7bf22.out
++ clean_env_dir=/auto_test/auto_test_shell/testcase/../clean_env
++ prepare_env_dir=/auto_test/auto_test_shell/testcase/../prepare_env
++ check_res_dir=/auto_test/auto_test_shell/testcase/../check_res
+++ basename tc111_RMDN_no11_remove_readonly_dn.sh
++ SCRIPT_NAME=tc111_RMDN_no11_remove_readonly_dn.sh
+++ head -1 /auto_test/auto_test_shell/testcase/../conf/confignode.txt
++ seed_cn_ip=172.20.70.5:10710
+++ head -1 /auto_test/auto_test_shell/testcase/../conf/confignode.txt
++ query_cn_ip=172.20.70.5
+++ head -1 /auto_test/auto_test_shell/testcase/../conf/bm_node.txt
++ bm_ip=172.20.70.13
+++ head -1 /auto_test/auto_test_shell/testcase/../conf/datanode.txt
++ query_ip=172.20.70.4
+++ head -2 /auto_test/auto_test_shell/testcase/../conf/datanode.txt
+++ tail -1
++ query_ip2=172.20.70.26
++ fail_file=fail.log
++ cn_num=3
++ dn_num=5
++ head -n 5 /auto_test/auto_test_shell/testcase/../conf/total_datanode.txt
++ head -n 5 /auto_test/auto_test_shell/testcase/../conf/total_datanode_port.txt
++ total_node_num=8
++ backup_dir_on_cn_dn_host=/data/iotdb/autotest_backup/tree_table_view_IoT_remove
++ tmp_out_file=tc_tmp.out
++ fail_flag=0
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep test_ip
+++ awk -F . '{print $4}'
++ testcase_ip=4
+++ echo tc111_RMDN_no11_remove_readonly_dn.sh
+++ awk -F _ '{print $1}'
+++ awk -F tc '{print $2}'
++ tc_num=111
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep testcase_res_db
+++ awk -F = '{print $2}'
++ testcase_res_db=172.20.70.3
+++ cat /auto_test/auto_test_shell/testcase/../conf/test.conf
+++ grep testcase_res_port
+++ awk -F = '{print $2}'
++ testcase_res_port=6667
+++ date +%s
++ test_begin_sec=1764574260
++ clean_env
++ sh -x /auto_test/auto_test_shell/testcase/../clean_env/stop_cluster.sh
++++ dirname /auto_test/auto_test_shell/testcase/../clean_env/stop_cluster.sh
+++ cd /auto_test/auto_test_shell/testcase/../clean_env
+++ pwd
++ cur_dir=/auto_test/auto_test_shell/clean_env
++ conf_file=/auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep u_name
+++ awk -F = '{print $2}'
++ u_name=cluster
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep '^db_dir'
+++ awk -F = '{print $2}'
++ db_dir=/data/iotdb/v1361_1125_rc3_d2e7bf22
++ stop_cluster
++ exec
++ read line
++ ssh cluster@172.20.70.4 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh'
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+++ date +%s
++ t1=1764574260
++ true
+++ ssh cluster@172.20.70.4 'source /etc/profile;sudo jps|grep -i datanode'
++ dn_pid_str=
+++ awk '{print $1}'
+++ echo
++ dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.26 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh'
+sed: can't read /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/../conf/iotdb-datanode.properties: No such file or directory
+WARNING: dn_rpc_port not found in the configuration file. Using default value dn_rpc_port=6667
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+++ date +%s
++ t1=1764574261
++ true
+++ ssh cluster@172.20.70.26 'source /etc/profile;sudo jps|grep -i datanode'
++ dn_pid_str=
+++ echo
+++ awk '{print $1}'
++ dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.14 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh'
+sudo: /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh: command not found
+++ date +%s
++ t1=1764574261
++ true
+++ ssh cluster@172.20.70.14 'source /etc/profile;sudo jps|grep -i datanode'
++ dn_pid_str=
+++ echo
+++ awk '{print $1}'
++ dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.27 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh'
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+++ date +%s
++ t1=1764574262
++ true
+++ ssh cluster@172.20.70.27 'source /etc/profile;sudo jps|grep -i datanode'
++ dn_pid_str=
+++ echo
+++ awk '{print $1}'
++ dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.30 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh'
+sed: can't read /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/../conf/iotdb-datanode.properties: No such file or directory
+WARNING: dn_rpc_port not found in the configuration file. Using default value dn_rpc_port=6667
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+++ date +%s
++ t1=1764574262
++ true
+++ ssh cluster@172.20.70.30 'source /etc/profile;sudo jps|grep -i datanode'
++ dn_pid_str=
+++ echo
+++ awk '{print $1}'
++ dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ exec
++ read line
++ ssh cluster@172.20.70.5 'source /etc/profile;sudo	/data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+sudo: /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh: command not found
+++ date +%s
++ t1=1764574262
++ true
+++ ssh cluster@172.20.70.5 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.4 'source /etc/profile;sudo	/data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574263
++ true
+++ ssh cluster@172.20.70.4 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.26 'source /etc/profile;sudo	/data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574263
++ true
+++ ssh cluster@172.20.70.26 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ exec
++ read line
++ ssh cluster@172.20.70.4 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574264
++ true
+++ ssh cluster@172.20.70.4 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.26 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574264
++ true
+++ ssh cluster@172.20.70.26 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.14 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+sudo: /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh: command not found
+++ date +%s
++ t1=1764574264
++ true
+++ ssh cluster@172.20.70.14 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.27 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574265
++ true
+++ ssh cluster@172.20.70.27 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.30 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574265
++ true
+++ ssh cluster@172.20.70.30 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ jps
++ grep App
++ awk '{print "kill -9 "$1}'
++ sh
++ sleep 1
++ sh -x /auto_test/auto_test_shell/testcase/../clean_env/clean_cluster.sh
++++ dirname /auto_test/auto_test_shell/testcase/../clean_env/clean_cluster.sh
+++ cd /auto_test/auto_test_shell/testcase/../clean_env
+++ pwd
++ cur_dir=/auto_test/auto_test_shell/clean_env
++ conf_file=/auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep u_name
+++ awk -F = '{print $2}'
++ u_name=cluster
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep '^db_dir'
+++ awk -F = '{print $2}'
++ db_dir=/data/iotdb/v1361_1125_rc3_d2e7bf22
++ clean_cluster
++ exec
++ read line
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.14 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.14 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.27 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.27 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.30 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.30 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ exec
++ read line
++ ssh cluster@172.20.70.5 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.5 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ sh -x /auto_test/auto_test_shell/testcase/../clean_env/reset_conf.sh
++++ dirname /auto_test/auto_test_shell/testcase/../clean_env/reset_conf.sh
+++ cd /auto_test/auto_test_shell/testcase/../clean_env
+++ pwd
++ cur_dir=/auto_test/auto_test_shell/clean_env
++ conf_file=/auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep u_name
+++ awk -F = '{print $2}'
++ u_name=cluster
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep '^db_dir'
+++ awk -F = '{print $2}'
++ db_dir=/data/iotdb/v1361_1125_rc3_d2e7bf22
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep '^client_db_dir'
+++ awk -F = '{print $2}'
++ client_db_dir=/data1/iotdb/v1361_1125_rc3_d2e7bf22
++ reset_conf
++ exec
++ read line
++ ssh cluster@172.20.70.5 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf
++ read line
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig
++ ssh cluster@172.20.70.4 'source /etc/profile;sudo rm -rf /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ ssh cluster@172.20.70.4 'source /etc/profile;sudo cp -rp /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ read line
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig
++ ssh cluster@172.20.70.26 'source /etc/profile;sudo rm -rf /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ ssh cluster@172.20.70.26 'source /etc/profile;sudo cp -rp /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ read line
++ exec
++ read line
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig
++ ssh cluster@172.20.70.4 'source /etc/profile;sudo rm -rf /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ ssh cluster@172.20.70.4 'source /etc/profile;sudo cp -rp /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ read line
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig
++ ssh cluster@172.20.70.26 'source /etc/profile;sudo rm -rf /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ ssh cluster@172.20.70.26 'source /etc/profile;sudo cp -rp /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ read line
++ ssh cluster@172.20.70.14 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf
++ read line
++ ssh cluster@172.20.70.27 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf
++ ssh cluster@172.20.70.27 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig
++ ssh cluster@172.20.70.27 'source /etc/profile;sudo rm -rf /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ ssh cluster@172.20.70.27 'source /etc/profile;sudo cp -rp /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ read line
++ ssh cluster@172.20.70.30 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf
++ ssh cluster@172.20.70.30 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig
++ ssh cluster@172.20.70.30 'source /etc/profile;sudo rm -rf /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ ssh cluster@172.20.70.30 'source /etc/profile;sudo cp -rp /data/iotdb/v1361_1125_rc3_d2e7bf22/conf_orig /data/iotdb/v1361_1125_rc3_d2e7bf22/conf'
++ read line
++ start_db
++ sh -x /auto_test/auto_test_shell/testcase/../clean_env/stop_cluster.sh
++++ dirname /auto_test/auto_test_shell/testcase/../clean_env/stop_cluster.sh
+++ cd /auto_test/auto_test_shell/testcase/../clean_env
+++ pwd
++ cur_dir=/auto_test/auto_test_shell/clean_env
++ conf_file=/auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep u_name
+++ awk -F = '{print $2}'
++ u_name=cluster
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep '^db_dir'
+++ awk -F = '{print $2}'
++ db_dir=/data/iotdb/v1361_1125_rc3_d2e7bf22
++ stop_cluster
++ exec
++ read line
++ ssh cluster@172.20.70.4 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh'
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+++ date +%s
++ t1=1764574272
++ true
+++ ssh cluster@172.20.70.4 'source /etc/profile;sudo jps|grep -i datanode'
++ dn_pid_str=
+++ echo
+++ awk '{print $1}'
++ dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.26 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh'
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+++ date +%s
++ t1=1764574273
++ true
+++ ssh cluster@172.20.70.26 'source /etc/profile;sudo jps|grep -i datanode'
++ dn_pid_str=
+++ echo
+++ awk '{print $1}'
++ dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.14 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh'
+sudo: /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh: command not found
+++ date +%s
++ t1=1764574273
++ true
+++ ssh cluster@172.20.70.14 'source /etc/profile;sudo jps|grep -i datanode'
++ dn_pid_str=
+++ echo
+++ awk '{print $1}'
++ dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.27 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh'
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+++ date +%s
++ t1=1764574273
++ true
+++ ssh cluster@172.20.70.27 'source /etc/profile;sudo jps|grep -i datanode'
++ dn_pid_str=
+++ echo
+++ awk '{print $1}'
++ dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.30 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-datanode.sh'
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+++ date +%s
++ t1=1764574274
++ true
+++ ssh cluster@172.20.70.30 'source /etc/profile;sudo jps|grep -i datanode'
++ dn_pid_str=
+++ echo
+++ awk '{print $1}'
++ dn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ exec
++ read line
++ ssh cluster@172.20.70.5 'source /etc/profile;sudo	/data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+sudo: /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh: command not found
+++ date +%s
++ t1=1764574274
++ true
+++ ssh cluster@172.20.70.5 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ awk '{print $1}'
+++ echo
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.4 'source /etc/profile;sudo	/data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574275
++ true
+++ ssh cluster@172.20.70.4 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.26 'source /etc/profile;sudo	/data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574275
++ true
+++ ssh cluster@172.20.70.26 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ exec
++ read line
++ ssh cluster@172.20.70.4 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574276
++ true
+++ ssh cluster@172.20.70.4 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.26 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574276
++ true
+++ ssh cluster@172.20.70.26 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.14 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+sudo: /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh: command not found
+++ date +%s
++ t1=1764574276
++ true
+++ ssh cluster@172.20.70.14 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.27 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574277
++ true
+++ ssh cluster@172.20.70.27 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ ssh cluster@172.20.70.30 'source /etc/profile;sudo /data/iotdb/v1361_1125_rc3_d2e7bf22/sbin/stop-confignode.sh'
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+++ date +%s
++ t1=1764574277
++ true
+++ ssh cluster@172.20.70.30 'source /etc/profile;sudo jps|grep -i confignode'
++ cn_pid_str=
+++ echo
+++ awk '{print $1}'
++ cn_pid=
++ [[ '' -gt 0 ]]
++ break
++ read line
++ jps
++ grep App
++ sh
++ awk '{print "kill -9 "$1}'
++ sleep 1
++ sh -x /auto_test/auto_test_shell/testcase/../clean_env/clean_cluster.sh
++++ dirname /auto_test/auto_test_shell/testcase/../clean_env/clean_cluster.sh
+++ cd /auto_test/auto_test_shell/testcase/../clean_env
+++ pwd
++ cur_dir=/auto_test/auto_test_shell/clean_env
++ conf_file=/auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep u_name
+++ awk -F = '{print $2}'
++ u_name=cluster
+++ cat /auto_test/auto_test_shell/clean_env/../conf/test.conf
+++ grep '^db_dir'
+++ awk -F = '{print $2}'
++ db_dir=/data/iotdb/v1361_1125_rc3_d2e7bf22
++ clean_cluster
++ exec
++ read line
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.14 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.14 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.27 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.27 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.30 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.30 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ exec
++ read line
++ ssh cluster@172.20.70.5 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.5 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.4 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/data
++ ssh cluster@172.20.70.26 test -d /data/iotdb/v1361_1125_rc3_d2e7bf22/logs
++ read line

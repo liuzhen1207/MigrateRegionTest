@@ -1,0 +1,2 @@
+set_sys_conf ${line} ${db_dir} ".*data_region_consensus_protocol_class=.*" "data_region_consensus_protocol_class=org.apache.iotdb.consensus.iot.IoTConsensusV2"
+set_sys_conf ${line} ${db_dir} ".*iot_consensus_v2_mode=.*" "iot_consensus_v2_mode=batch"

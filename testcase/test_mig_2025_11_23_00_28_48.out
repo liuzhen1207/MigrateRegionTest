@@ -1,0 +1,1279 @@
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 10197
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 19465
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 6984
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 24049
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 8889
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 19422
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 9904
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 19214
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 27911
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 25134
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 11069
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 27786
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 12634
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 23037
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 27701
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 24915
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+remove datanode 172.20.70.30 cost 31 - 5 sec.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 30575
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 27913
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 12516
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 29304
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15224
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 24476
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 30354
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 27683
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 785
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 30720
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 13935
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 30757
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 16645
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 25930
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 563
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 30497
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 3494
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 1028
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15364
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 32345
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 18059
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 27342
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 3270
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 780
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 6223
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 3899
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 16802
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 28779
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 5994
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 3670
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 8941
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 6746
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 18305
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 30274
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 8705
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 6526
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 11638
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 9597
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 19814
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 31773
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 11415
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 9368
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
+For more information, please check the following hint.
+usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
+       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
+       <trust_store>] -u <username> [-usessl <use_ssl>]
+ -c                        Rpc Compression enabled or not
+ -disableISO8601           Display timestamp in number(optional)
+ -e <execute>              execute statement (optional)
+ -h <host>                 Host Name (optional, default 127.0.0.1)
+ -help                     Display help information(optional)
+ -p <port>                 Port (optional, default 6667)
+ -pw <password>            password (optional)
+ -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
+                           it's not set (optional)
+ -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
+ -ts <trust_store>         trust_store statement (optional)
+ -u <username>             User name (required)
+ -usessl <use_ssl>         use_ssl statement (optional)
+Msg: The statement is executed successfully.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 14367
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 12456
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 21333
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 833
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 14142
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 12229
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 17296
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 15505
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 22912
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 8982
+Check whether the rpc_port is used..., port is 6667
+Stop DataNode, PID: 26095
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 2444
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 17000
+Check whether the internal_port is used..., port is 10710
+Stop ConfigNode, PID: 15256
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the rpc_port is used..., port is 6667
+No DataNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+Check whether the internal_port is used..., port is 10710
+No ConfigNode to stop
+license is exist.
+license is exist.
+license is exist.

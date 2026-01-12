@@ -1,0 +1,422 @@
+2024-06-27 17:27:20,852 [main] INFO  o.a.i.c.c.ConfigNodeDescriptor:123 - start reading ConfigNode conf file: file:/data/iotdb/timechodb_685_log_0627/sbin/../conf/iotdb-system.properties 
+2024-06-27 17:27:20,872 [main] INFO  c.t.i.service.ConfigNode:40 - IoTDB-ConfigNode environment variables: 
+	CONFIGNODE_HOME=/data/iotdb/timechodb_685_log_0627/sbin/..;
+	CONFIGNODE_CONF=/data/iotdb/timechodb_685_log_0627/sbin/../conf; 
+2024-06-27 17:27:20,872 [main] INFO  c.t.i.service.ConfigNode:44 - IoTDB-ConfigNode default charset is: UTF-8 
+2024-06-27 17:27:20,873 [main] INFO  o.a.i.c.s.ConfigNodeCommandLine:68 - Running mode -s 
+2024-06-27 17:27:20,873 [main] INFO  o.a.i.c.s.ConfigNodeCommandLine:72 - Starting IoTDB 1.3.3-SNAPSHOT (Build: b8d02dd-dev) 
+2024-06-27 17:27:20,875 [main] INFO  o.a.i.c.c.ConfigNodeStartupCheck:65 - configNode port check successful. 
+2024-06-27 17:27:20,875 [main] INFO  o.a.i.c.s.StartupChecks:50 - Start JMX locally. 
+2024-06-27 17:27:20,876 [main] INFO  o.a.i.c.s.StartupChecks:78 - JDK version is 8. 
+2024-06-27 17:27:20,876 [main] INFO  o.a.i.c.s.StartupChecks:84 - JVM version is Java HotSpot(TM) 64-Bit Server VM 25.191-b12. 
+2024-06-27 17:27:20,905 [main] INFO  o.a.i.c.s.ConfigNode:121 - Activating IoTDB-ConfigNode... 
+2024-06-27 17:27:20,906 [main] INFO  o.a.i.c.s.RegisterManager:54 - The JMX ServerService service is started successfully, which takes 0 ms. 
+2024-06-27 17:27:20,991 [main] INFO  o.a.i.c.p.c.PipeConfig:294 - PipeHardlinkBaseDirName: pipe 
+2024-06-27 17:27:20,991 [main] INFO  o.a.i.c.p.c.PipeConfig:295 - PipeHardlinkTsFileDirName: tsfile 
+2024-06-27 17:27:20,991 [main] INFO  o.a.i.c.p.c.PipeConfig:296 - PipeHardlinkWALDirName: wal 
+2024-06-27 17:27:20,991 [main] INFO  o.a.i.c.p.c.PipeConfig:297 - PipeHardLinkWALEnabled: false 
+2024-06-27 17:27:20,991 [main] INFO  o.a.i.c.p.c.PipeConfig:299 - PipeDataStructureTabletRowSize: 2048 
+2024-06-27 17:27:20,992 [main] INFO  o.a.i.c.p.c.PipeConfig:300 - PipeDataStructureTabletMemoryBlockAllocationRejectThreshold: 0.4 
+2024-06-27 17:27:20,992 [main] INFO  o.a.i.c.p.c.PipeConfig:304 - PipeSubtaskExecutorMaxThreadNum: 4 
+2024-06-27 17:27:20,992 [main] INFO  o.a.i.c.p.c.PipeConfig:305 - PipeSubtaskExecutorBasicCheckPointIntervalByConsumedEventCount: 10000 
+2024-06-27 17:27:20,992 [main] INFO  o.a.i.c.p.c.PipeConfig:308 - PipeSubtaskExecutorBasicCheckPointIntervalByTimeDuration: 10000 
+2024-06-27 17:27:20,992 [main] INFO  o.a.i.c.p.c.PipeConfig:311 - PipeSubtaskExecutorPendingQueueMaxBlockingTimeMs: 1000 
+2024-06-27 17:27:20,992 [main] INFO  o.a.i.c.p.c.PipeConfig:314 - PipeSubtaskExecutorCronHeartbeatEventIntervalSeconds: 20 
+2024-06-27 17:27:20,992 [main] INFO  o.a.i.c.p.c.PipeConfig:318 - PipeExtractorAssignerDisruptorRingBufferSize: 65536 
+2024-06-27 17:27:20,992 [main] INFO  o.a.i.c.p.c.PipeConfig:321 - PipeExtractorAssignerDisruptorRingBufferEntrySizeInBytes: 50 
+2024-06-27 17:27:20,993 [main] INFO  o.a.i.c.p.c.PipeConfig:324 - PipeExtractorMatcherCacheSize: 1024 
+2024-06-27 17:27:20,993 [main] INFO  o.a.i.c.p.c.PipeConfig:326 - PipeConnectorHandshakeTimeoutMs: 10000 
+2024-06-27 17:27:20,993 [main] INFO  o.a.i.c.p.c.PipeConfig:327 - PipeConnectorTransferTimeoutMs: 900000 
+2024-06-27 17:27:20,993 [main] INFO  o.a.i.c.p.c.PipeConfig:328 - PipeConnectorReadFileBufferSize: 8388608 
+2024-06-27 17:27:20,993 [main] INFO  o.a.i.c.p.c.PipeConfig:329 - PipeConnectorRetryIntervalMs: 1000 
+2024-06-27 17:27:20,993 [main] INFO  o.a.i.c.p.c.PipeConfig:330 - PipeConnectorRPCThriftCompressionEnabled: false 
+2024-06-27 17:27:20,993 [main] INFO  o.a.i.c.p.c.PipeConfig:333 - PipeLeaderCacheMemoryUsagePercentage: 0.1 
+2024-06-27 17:27:20,993 [main] INFO  o.a.i.c.p.c.PipeConfig:335 - PipeListeningQueueTransferSnapshotThreshold: 1000 
+2024-06-27 17:27:20,994 [main] INFO  o.a.i.c.p.c.PipeConfig:338 - PipeSnapshotExecutionMaxBatchSize: 1000 
+2024-06-27 17:27:20,994 [main] INFO  o.a.i.c.p.c.PipeConfig:339 - PipeRemainingTimeCommitAutoSwitchSeconds: 30 
+2024-06-27 17:27:20,994 [main] INFO  o.a.i.c.p.c.PipeConfig:342 - PipeRemainingTimeCommitRateAverageTime: MEAN 
+2024-06-27 17:27:20,994 [main] INFO  o.a.i.c.p.c.PipeConfig:345 - PipeAsyncConnectorSelectorNumber: 4 
+2024-06-27 17:27:20,994 [main] INFO  o.a.i.c.p.c.PipeConfig:346 - PipeAsyncConnectorMaxClientNumber: 16 
+2024-06-27 17:27:20,994 [main] INFO  o.a.i.c.p.c.PipeConfig:348 - PipeAllConnectorsRateLimitBytesPerSecond: -1.0 
+2024-06-27 17:27:20,994 [main] INFO  o.a.i.c.p.c.PipeConfig:351 - PipeEndPointRateLimiterDropCheckIntervalMs: 1000 
+2024-06-27 17:27:20,994 [main] INFO  o.a.i.c.p.c.PipeConfig:355 - SeperatedPipeHeartbeatEnabled: true 
+2024-06-27 17:27:20,994 [main] INFO  o.a.i.c.p.c.PipeConfig:356 - PipeHeartbeatIntervalSecondsForCollectingPipeMeta: 100 
+2024-06-27 17:27:20,994 [main] INFO  o.a.i.c.p.c.PipeConfig:359 - PipeMetaSyncerInitialSyncDelayMinutes: 3 
+2024-06-27 17:27:20,995 [main] INFO  o.a.i.c.p.c.PipeConfig:361 - PipeMetaSyncerSyncIntervalMinutes: 3 
+2024-06-27 17:27:20,995 [main] INFO  o.a.i.c.p.c.PipeConfig:362 - PipeMetaSyncerAutoRestartPipeCheckIntervalRound: 1 
+2024-06-27 17:27:20,995 [main] INFO  o.a.i.c.p.c.PipeConfig:365 - PipeAutoRestartEnabled: true 
+2024-06-27 17:27:20,995 [main] INFO  o.a.i.c.p.c.PipeConfig:367 - PipeAirGapReceiverEnabled: false 
+2024-06-27 17:27:20,995 [main] INFO  o.a.i.c.p.c.PipeConfig:368 - PipeAirGapReceiverPort: 9780 
+2024-06-27 17:27:20,995 [main] INFO  o.a.i.c.p.c.PipeConfig:370 - PipeMaxAllowedHistoricalTsFilePerDataRegion: 100 
+2024-06-27 17:27:20,995 [main] INFO  o.a.i.c.p.c.PipeConfig:373 - PipeMaxAllowedPendingTsFileEpochPerDataRegion: 2 
+2024-06-27 17:27:20,995 [main] INFO  o.a.i.c.p.c.PipeConfig:376 - PipeMaxAllowedPinnedMemTableCount: 50 
+2024-06-27 17:27:20,995 [main] INFO  o.a.i.c.p.c.PipeConfig:377 - PipeMaxAllowedLinkedTsFileCount: 100 
+2024-06-27 17:27:20,995 [main] INFO  o.a.i.c.p.c.PipeConfig:378 - PipeMaxAllowedLinkedDeletedTsFileDiskUsagePercentage: 0.1 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:381 - PipeStuckRestartIntervalSeconds: 120 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:383 - PipeMetaReportMaxLogNumPerRound: 10 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:384 - PipeMetaReportMaxLogIntervalRounds: 36 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:385 - PipeTsFilePinMaxLogNumPerRound: 10 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:386 - PipeTsFilePinMaxLogIntervalRounds: 90 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:387 - PipeWalPinMaxLogNumPerRound: 10 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:388 - PipeWalPinMaxLogIntervalRounds: 90 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:390 - PipeMemoryManagementEnabled: true 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:391 - PipeMemoryAllocateMaxRetries: 10 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:392 - PipeMemoryAllocateRetryIntervalInMs: 1000 
+2024-06-27 17:27:20,996 [main] INFO  o.a.i.c.p.c.PipeConfig:394 - PipeMemoryAllocateMinSizeInBytes: 32 
+2024-06-27 17:27:20,997 [main] INFO  o.a.i.c.p.c.PipeConfig:395 - PipeMemoryAllocateForTsFileSequenceReaderInBytes: 2097152 
+2024-06-27 17:27:20,997 [main] INFO  o.a.i.c.p.c.PipeConfig:398 - PipeMemoryExpanderIntervalSeconds: 180 
+2024-06-27 17:27:20,997 [main] INFO  o.a.i.c.p.c.PipeConfig:400 - TwoStageAggregateMaxCombinerLiveTimeInMs: 480000 
+2024-06-27 17:27:20,997 [main] INFO  o.a.i.c.p.c.PipeConfig:403 - TwoStageAggregateDataRegionInfoCacheTimeInMs: 180000 
+2024-06-27 17:27:20,997 [main] INFO  o.a.i.c.p.c.PipeConfig:406 - TwoStageAggregateSenderEndPointsCacheInMs: 180000 
+2024-06-27 17:27:20,997 [main] INFO  o.a.i.c.p.c.PipeConfig:410 - SubscriptionCacheMemoryUsagePercentage: 0.2 
+2024-06-27 17:27:21,011 [main] INFO  o.a.i.c.p.r.IoTDBReceiverAgent:118 - Clean pipe receiver dir /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/system/pipe/receiver successfully. 
+2024-06-27 17:27:21,011 [main] INFO  o.a.i.c.p.r.IoTDBReceiverAgent:125 - Create pipe receiver dir /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/system/pipe/receiver successfully. 
+2024-06-27 17:27:21,011 [main] INFO  o.a.i.c.m.p.a.r.PipeConfigNodeRuntimeAgent:63 - PipeRuntimeConfigNodeAgent started 
+2024-06-27 17:27:21,011 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Pipe Runtime Config Node Agent service is started successfully, which takes 22 ms. 
+2024-06-27 17:27:21,012 [main] INFO  o.a.i.c.s.ConfigNode:267 - Successfully setup internal services. 
+2024-06-27 17:27:21,046 [main] INFO  o.a.i.c.a.a.BasicAuthorizer$InstanceHolder:104 - Authorizer provider class: org.apache.iotdb.commons.auth.authorizer.LocalFileAuthorizer 
+2024-06-27 17:27:21,105 [main] INFO  o.a.i.c.a.u.BasicUserManager:131 - Admin initialized 
+2024-06-27 17:27:21,167 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:170 - new cached thread pool: ConfigNode-Manager-Recovery 
+2024-06-27 17:27:21,190 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:213 - new single scheduled thread pool: IoTDB-Region-Maintainer 
+2024-06-27 17:27:21,229 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:233 - new scheduled thread pool: CQ-Scheduler 
+2024-06-27 17:27:21,234 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:137 - new single thread pool: Pipe-Runtime-Procedure-Submitter 
+2024-06-27 17:27:21,235 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:213 - new single scheduled thread pool: Pipe-Runtime-Meta-Syncer 
+2024-06-27 17:27:21,237 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:213 - new single scheduled thread pool: Pipe-Runtime-Heartbeat 
+2024-06-27 17:27:21,239 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:213 - new single scheduled thread pool: Subscription-Runtime-Meta-Syncer 
+2024-06-27 17:27:21,250 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:213 - new single scheduled thread pool: Cluster-Heartbeat-Service 
+2024-06-27 17:27:21,251 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:213 - new single scheduled thread pool: Cluster-LoadStatistics-Service 
+2024-06-27 17:27:21,253 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:213 - new single scheduled thread pool: Cluster-Event-Service 
+2024-06-27 17:27:21,254 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: Cluster-LoadStatistics-Publisher, thread number: 5 
+2024-06-27 17:27:21,329 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:213 - new single scheduled thread pool: Cluster-RetryFailedTasks-Service 
+2024-06-27 17:27:21,362 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: Activation-Service, thread number: 2 
+2024-06-27 17:27:21,388 [main] INFO  c.t.i.m.a.ActivationManager:228 - License file not detected during ConfigNode's starting. 
+2024-06-27 17:27:21,398 [main] INFO  c.t.i.m.a.ActivationManager:241 - License file watching service launched successfully 
+2024-06-27 17:27:21,398 [main] INFO  c.t.i.m.a.ActivationManager:175 - Active node watching service launched successfully 
+2024-06-27 17:27:21,399 [main] INFO  c.t.i.m.a.ActivationManager:178 - Expiration warning service launched successfully 
+2024-06-27 17:27:21,399 [main] INFO  o.a.i.c.s.ConfigNode:318 - Successfully initialize ConfigManager. 
+2024-06-27 17:27:21,399 [main] INFO  o.a.i.c.s.ConfigNode:134 - IoTDB-ConfigNode is in restarting process... 
+2024-06-27 17:27:21,400 [pool-13-IoTDB-Activation-Service-2] WARN  c.t.i.m.a.ActivationManager:377 - License has not been set, and this ConfigNode currently not connects to any active ConfigNode. Cluster is readonly now. Contact Timecho for more information. 
+2024-06-27 17:27:21,595 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:213 - new single scheduled thread pool: RatisBgDiskGuardian 
+2024-06-27 17:27:21,679 [main] INFO  o.a.r.m.MetricRegistriesLoader:64 - Loaded MetricRegistries class org.apache.iotdb.consensus.ratis.metrics.MetricRegistryManager 
+2024-06-27 17:27:21,697 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.rpc.type = GRPC (default) 
+2024-06-27 17:27:21,701 [main] INFO  o.a.ratis.conf.ConfUtils:53 - raft.grpc.admin.host = null (fallback to raft.grpc.server.host) 
+2024-06-27 17:27:21,702 [main] INFO  o.a.ratis.conf.ConfUtils:53 - raft.grpc.admin.port = 10720 (fallback to raft.grpc.server.port) 
+2024-06-27 17:27:21,702 [main] INFO  o.a.ratis.conf.ConfUtils:53 - raft.grpc.client.host = null (fallback to raft.grpc.server.host) 
+2024-06-27 17:27:21,703 [main] INFO  o.a.ratis.conf.ConfUtils:53 - raft.grpc.client.port = 10720 (fallback to raft.grpc.server.port) 
+2024-06-27 17:27:21,703 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.server.host = null (default) 
+2024-06-27 17:27:21,703 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.server.port = 10720 (custom) 
+2024-06-27 17:27:21,704 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.message.size.max = 512MB (=536870912) (custom) 
+2024-06-27 17:27:21,704 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.appender.buffer.byte-limit = 16777216 (custom) 
+2024-06-27 17:27:21,705 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.flow.control.window = 4194304 (custom) 
+2024-06-27 17:27:21,705 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.request.timeout = 10000ms (custom) 
+2024-06-27 17:27:21,720 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.server.heartbeat.channel = true (default) 
+2024-06-27 17:27:21,723 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.server.async.request.thread.pool.cached = true (default) 
+2024-06-27 17:27:21,723 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.server.async.request.thread.pool.size = 32 (default) 
+2024-06-27 17:27:21,962 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.datastream.type = DISABLED (default) 
+2024-06-27 17:27:21,964 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.sleep.deviation.threshold = 4000ms (custom) 
+2024-06-27 17:27:21,965 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.close.threshold = 2147483647s (custom) 
+2024-06-27 17:27:21,965 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.leaderelection.leader.step-down.wait-time = 30s (custom) 
+2024-06-27 17:27:21,968 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.storage.dir = [/data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus] (custom) 
+2024-06-27 17:27:21,969 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.threadpool.proxy.cached = true (default) 
+2024-06-27 17:27:21,970 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.threadpool.proxy.size = 0 (default) 
+2024-06-27 17:27:21,974 [2-impl-thread1] INFO  o.a.r.s.i.RaftServerProxy:264 - 2: found a subdirectory /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000 
+2024-06-27 17:27:21,978 [2-impl-thread1] INFO  o.a.r.s.i.RaftServerProxy$ImplMap:100 - 2: addNew group-000000000000:[] returns group-000000000000:java.util.concurrent.CompletableFuture@12ea9e14[Not completed] 
+2024-06-27 17:27:21,992 [2-groupManagement] INFO  o.a.r.s.i.RaftServerImpl:256 - 2: new RaftServerImpl for group-000000000000:[] with ApplicationStateMachineProxy:uninitialized 
+2024-06-27 17:27:21,993 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.timeout.min = 2000ms (custom) 
+2024-06-27 17:27:21,994 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.timeout.max = 4000ms (custom) 
+2024-06-27 17:27:21,994 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.sleep.time = 1s (custom) 
+2024-06-27 17:27:21,994 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.slowness.timeout = 60000ms (default) 
+2024-06-27 17:27:21,994 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.leaderelection.leader.step-down.wait-time = 30s (custom) 
+2024-06-27 17:27:21,994 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.leaderelection.member.majority-add = false (default) 
+2024-06-27 17:27:21,995 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.sleep.deviation.threshold = 4000ms (custom) 
+2024-06-27 17:27:21,999 [2-groupManagement] INFO  o.a.r.s.impl.ServerState:113 - 2@group-000000000000: ConfigurationManager, init=-1: peers:[]|listeners:[], old=null, confs=<EMPTY_MAP> 
+2024-06-27 17:27:22,004 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.notification.no-leader.timeout = 60s (default) 
+2024-06-27 17:27:22,005 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.read.timeout = 60000ms (custom) 
+2024-06-27 17:27:22,008 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.retrycache.expirytime = 142700ms (custom) 
+2024-06-27 17:27:22,008 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.retrycache.statistics.expirytime = 100ms (default) 
+2024-06-27 17:27:22,012 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.read.option = LINEARIZABLE (custom) 
+2024-06-27 17:27:22,013 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.read.read-after-write-consistent.write-index-cache.expiry-time = 60s (default) 
+2024-06-27 17:27:22,028 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.request.timeout = 10000ms (custom) 
+2024-06-27 17:27:22,030 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.appender.install.snapshot.enabled = true (default) 
+2024-06-27 17:27:22,030 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.threadpool.server.cached = true (default) 
+2024-06-27 17:27:22,031 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.threadpool.server.size = 0 (default) 
+2024-06-27 17:27:22,031 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.threadpool.client.cached = true (default) 
+2024-06-27 17:27:22,031 [2-groupManagement] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.threadpool.client.size = 0 (default) 
+2024-06-27 17:27:22,033 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.storage.free-space.min = 0MB (=0) (default) 
+2024-06-27 17:27:22,034 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.corruption.policy = WARN_AND_RETURN (custom) 
+2024-06-27 17:27:22,034 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.storage.dir = [/data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus] (custom) 
+2024-06-27 17:27:22,043 [2-impl-thread1] INFO  o.a.r.s.s.RaftStorageDirectoryImpl:228 - Lock on /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/in_use.lock acquired by nodename 31998@i-7juoh9pu 
+2024-06-27 17:27:22,051 [2-impl-thread1] INFO  o.a.r.s.s.RaftStorageImpl:118 - Read RaftStorageMetadata{term=1, votedFor=} from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/current/raft-meta 
+2024-06-27 17:27:22,074 [2-impl-thread1] INFO  o.a.r.s.impl.ServerState:388 - 2@group-000000000000: set configuration 37: peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720, 2|172.20.70.26:10720]|listeners:[], old=null 
+2024-06-27 17:27:22,086 [2-impl-thread1] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.pipe.PipeInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,086 [ForkJoinPool.commonPool-worker-3] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.ModelInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,086 [ForkJoinPool.commonPool-worker-1] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.AuthorInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,086 [ForkJoinPool.commonPool-worker-4] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.cq.CQInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,086 [ForkJoinPool.commonPool-worker-6] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.subscription.SubscriptionInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,086 [ForkJoinPool.commonPool-worker-3] INFO  o.a.i.c.p.ModelInfo:107 - acquire ModelTableWriteLock 
+2024-06-27 17:27:22,087 [ForkJoinPool.commonPool-worker-2] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.TTLInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,087 [ForkJoinPool.commonPool-worker-5] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.node.NodeInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,087 [ForkJoinPool.commonPool-worker-7] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.UDFInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,087 [ForkJoinPool.commonPool-worker-2] ERROR o.a.i.c.p.TTLInfo:177 - Failed to load snapshot of TTLInfo, snapshot file [/data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382/ttl_info.bin] does not exist. 
+2024-06-27 17:27:22,087 [ForkJoinPool.commonPool-worker-7] INFO  o.a.i.c.p.UDFInfo:83 - acquire UDFTableLock 
+2024-06-27 17:27:22,087 [ForkJoinPool.commonPool-worker-2] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.TTLInfo cost 0 ms 
+2024-06-27 17:27:22,087 [ForkJoinPool.commonPool-worker-2] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.manager.pipe.extractor.ConfigRegionListeningQueue from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,090 [ForkJoinPool.commonPool-worker-3] INFO  o.a.i.c.p.ModelInfo:112 - release ModelTableWriteLock 
+2024-06-27 17:27:22,090 [ForkJoinPool.commonPool-worker-3] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.ModelInfo cost 4 ms 
+2024-06-27 17:27:22,090 [ForkJoinPool.commonPool-worker-3] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.ClusterInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,090 [ForkJoinPool.commonPool-worker-2] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.manager.pipe.extractor.ConfigRegionListeningQueue cost 3 ms 
+2024-06-27 17:27:22,091 [ForkJoinPool.commonPool-worker-2] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.quota.QuotaInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,091 [2-impl-thread1] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.pipe.PipeInfo cost 5 ms 
+2024-06-27 17:27:22,091 [ForkJoinPool.commonPool-worker-3] INFO  o.a.i.c.p.ClusterInfo:95 - clusterID has been recovered from snapshot: 7004d73e-a316-4da7-906f-abc8a211693c 
+2024-06-27 17:27:22,091 [ForkJoinPool.commonPool-worker-3] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.ClusterInfo cost 1 ms 
+2024-06-27 17:27:22,091 [2-impl-thread1] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.schema.ClusterSchemaInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,091 [ForkJoinPool.commonPool-worker-4] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.cq.CQInfo cost 5 ms 
+2024-06-27 17:27:22,091 [ForkJoinPool.commonPool-worker-3] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.ProcedureInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,091 [ForkJoinPool.commonPool-worker-4] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.TriggerInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,091 [ForkJoinPool.commonPool-worker-4] INFO  o.a.i.c.p.TriggerInfo:92 - acquire TriggerTableLock 
+2024-06-27 17:27:22,091 [ForkJoinPool.commonPool-worker-6] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.subscription.SubscriptionInfo cost 5 ms 
+2024-06-27 17:27:22,092 [ForkJoinPool.commonPool-worker-6] INFO  o.a.i.c.p.e.ConfigPlanExecutor:638 - [ConfigNodeSnapshot] Start to load snapshot for org.apache.iotdb.confignode.persistence.partition.PartitionInfo from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,093 [ForkJoinPool.commonPool-worker-3] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.ProcedureInfo cost 2 ms 
+2024-06-27 17:27:22,092 [ForkJoinPool.commonPool-worker-2] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.quota.QuotaInfo cost 1 ms 
+2024-06-27 17:27:22,092 [ForkJoinPool.commonPool-worker-7] INFO  o.a.i.c.p.UDFInfo:88 - release UDFTableLock 
+2024-06-27 17:27:22,094 [ForkJoinPool.commonPool-worker-7] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.UDFInfo cost 7 ms 
+2024-06-27 17:27:22,094 [ForkJoinPool.commonPool-worker-4] INFO  o.a.i.c.p.TriggerInfo:97 - release TriggerTableLock 
+2024-06-27 17:27:22,094 [ForkJoinPool.commonPool-worker-4] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.TriggerInfo cost 3 ms 
+2024-06-27 17:27:22,096 [ForkJoinPool.commonPool-worker-1] INFO  o.a.i.c.a.u.BasicUserManager:131 - Admin initialized 
+2024-06-27 17:27:22,097 [ForkJoinPool.commonPool-worker-1] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.AuthorInfo cost 11 ms 
+2024-06-27 17:27:22,100 [ForkJoinPool.commonPool-worker-5] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.node.NodeInfo cost 13 ms 
+2024-06-27 17:27:22,111 [2-impl-thread1] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.schema.ClusterSchemaInfo cost 20 ms 
+2024-06-27 17:27:22,149 [ForkJoinPool.commonPool-worker-6] INFO  o.a.i.c.p.e.ConfigPlanExecutor:643 - [ConfigNodeSnapshot] Load snapshot for org.apache.iotdb.confignode.persistence.partition.PartitionInfo cost 57 ms 
+2024-06-27 17:27:22,149 [2-impl-thread1] INFO  o.a.i.c.p.e.ConfigPlanExecutor:653 - [ConfigNodeSnapshot] Load snapshot success, latestSnapshotRootDir: /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_6382 
+2024-06-27 17:27:22,167 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.use.memory = false (default) 
+2024-06-27 17:27:22,175 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.purge.gap = 1024 (default) 
+2024-06-27 17:27:22,175 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.appender.buffer.byte-limit = 16777216 (custom) 
+2024-06-27 17:27:22,177 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.statemachine.data.read.timeout = 1000ms (default) 
+2024-06-27 17:27:22,177 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.purge.preservation.log.num = 1000 (custom) 
+2024-06-27 17:27:22,179 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.segment.size.max = 24MB (=25165824) (custom) 
+2024-06-27 17:27:22,183 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.segment.cache.num.max = 2 (custom) 
+2024-06-27 17:27:22,184 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.segment.cache.size.max = 25165824 (custom) 
+2024-06-27 17:27:22,184 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.appender.buffer.byte-limit = 16777216 (custom) 
+2024-06-27 17:27:22,186 [2-impl-thread1] INFO  o.a.ratis.util.AwaitToRun:81 - Thread[2@group-000000000000-cacheEviction-AwaitToRun,5,main] started 
+2024-06-27 17:27:22,189 [2-impl-thread1] INFO  o.a.r.s.r.s.SegmentedRaftLogWorker:183 - new 2@group-000000000000-SegmentedRaftLogWorker for RaftStorageImpl:Storage Directory /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000 
+2024-06-27 17:27:22,190 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.queue.byte-limit = 64MB (=67108864) (custom) 
+2024-06-27 17:27:22,190 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.queue.element-limit = 4096 (default) 
+2024-06-27 17:27:22,192 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.segment.size.max = 24MB (=25165824) (custom) 
+2024-06-27 17:27:22,192 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.preallocated.size = 4MB (=4194304) (custom) 
+2024-06-27 17:27:22,192 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.force.sync.num = 128 (default) 
+2024-06-27 17:27:22,193 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.statemachine.data.sync = true (default) 
+2024-06-27 17:27:22,193 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.statemachine.data.sync.timeout = 10s (default) 
+2024-06-27 17:27:22,194 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.statemachine.data.sync.timeout.retry = -1 (default) 
+2024-06-27 17:27:22,195 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.write.buffer.size = 16777224 (custom) 
+2024-06-27 17:27:22,202 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.appender.buffer.byte-limit = 16777216 (custom) 
+2024-06-27 17:27:22,203 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.unsafe-flush.enabled = false (default) 
+2024-06-27 17:27:22,203 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.async-flush.enabled = false (default) 
+2024-06-27 17:27:22,204 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.statemachine.data.caching.enabled = false (default) 
+2024-06-27 17:27:22,226 [2-impl-thread1] INFO  o.a.r.s.impl.ServerState:388 - 2@group-000000000000: set configuration 0: peers:[0|172.20.70.5:10720]|listeners:[], old=null 
+2024-06-27 17:27:22,232 [2-impl-thread1] INFO  o.a.r.s.impl.ServerState:388 - 2@group-000000000000: set configuration 17: peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720]|listeners:[], old=peers:[0|172.20.70.5:10720]|listeners:[] 
+2024-06-27 17:27:22,233 [2-impl-thread1] INFO  o.a.r.s.impl.ServerState:388 - 2@group-000000000000: set configuration 19: peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720]|listeners:[], old=null 
+2024-06-27 17:27:22,234 [2-impl-thread1] INFO  o.a.r.s.impl.ServerState:388 - 2@group-000000000000: set configuration 35: peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720, 2|172.20.70.26:10720]|listeners:[], old=peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720]|listeners:[] 
+2024-06-27 17:27:22,234 [2-impl-thread1] INFO  o.a.r.s.impl.ServerState:388 - 2@group-000000000000: set configuration 37: peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720, 2|172.20.70.26:10720]|listeners:[], old=null 
+2024-06-27 17:27:22,293 [2-impl-thread1] INFO  o.a.r.s.r.s.LogSegment:170 - Successfully read 6383 entries from segment file /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/current/log_inprogress_0 
+2024-06-27 17:27:22,296 [2-impl-thread1] INFO  o.a.r.s.r.s.SegmentedRaftLogWorker:135 - 2@group-000000000000-SegmentedRaftLogWorker: flushIndex: setUnconditionally 0 -> 6382 
+2024-06-27 17:27:22,296 [2-impl-thread1] INFO  o.a.r.s.r.s.SegmentedRaftLogWorker:135 - 2@group-000000000000-SegmentedRaftLogWorker: safeCacheEvictIndex: setUnconditionally 0 -> -1 
+2024-06-27 17:27:22,314 [2-impl-thread1] INFO  o.a.r.s.r.s.BufferedWriteChannel:62 - open log_inprogress_0 (append) at position 454832 
+2024-06-27 17:27:22,316 [2-impl-thread1] INFO  o.a.r.s.i.RaftServerImpl:396 - 2@group-000000000000: start as a follower, conf=37: peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720, 2|172.20.70.26:10720]|listeners:[], old=null 
+2024-06-27 17:27:22,316 [2-impl-thread1] INFO  o.a.r.s.i.RaftServerImpl:383 - 2@group-000000000000: changes role from      null to FOLLOWER at term 1 for startAsFollower 
+2024-06-27 17:27:22,317 [2-impl-thread1] INFO  o.a.r.s.impl.RoleInfo:139 - 2: start 2@group-000000000000-FollowerState 
+2024-06-27 17:27:22,317 [2@group-000000000000-FollowerState] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.first-election.timeout.min = 50ms (custom) 
+2024-06-27 17:27:22,318 [2@group-000000000000-FollowerState] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.first-election.timeout.max = 150ms (custom) 
+2024-06-27 17:27:22,318 [2-impl-thread1] INFO  o.a.r.util.JmxRegister:44 - Successfully registered JMX Bean with object name Ratis:service=RaftServer,group=group-000000000000,id=2 
+2024-06-27 17:27:22,320 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.snapshot.trigger-when-stop.enabled = true (default) 
+2024-06-27 17:27:22,320 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.snapshot.trigger-when-remove.enabled = false (custom) 
+2024-06-27 17:27:22,321 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.snapshot.auto.trigger.enabled = true (custom) 
+2024-06-27 17:27:22,321 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.snapshot.auto.trigger.threshold = 400000 (default) 
+2024-06-27 17:27:22,321 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.snapshot.retention.file.num = 2 (custom) 
+2024-06-27 17:27:22,322 [2-impl-thread1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.purge.upto.snapshot.index = true (custom) 
+2024-06-27 17:27:22,325 [main] INFO  o.a.r.s.i.RaftServerProxy:406 - 2: start RPC server 
+2024-06-27 17:27:22,367 [main] INFO  o.a.r.g.s.GrpcService:302 - 2: GrpcService started, listening on 10720 
+2024-06-27 17:27:22,369 [JvmPauseMonitor0] INFO  o.a.r.u.JvmPauseMonitor:146 - JvmPauseMonitor-2: Started 
+2024-06-27 17:27:22,372 [main] INFO  o.a.i.c.m.c.ConsensusManager:90 - Init ConsensusManager successfully when restarted 
+2024-06-27 17:27:22,408 [2@group-000000000000-FollowerState] INFO  o.a.r.s.i.FollowerState:143 - 2@group-000000000000-FollowerState: change to CANDIDATE, lastRpcElapsedTime:91688114ns, electionTimeout:89ms 
+2024-06-27 17:27:22,409 [2@group-000000000000-FollowerState] INFO  o.a.r.s.impl.RoleInfo:110 - 2: shutdown 2@group-000000000000-FollowerState 
+2024-06-27 17:27:22,409 [2@group-000000000000-FollowerState] INFO  o.a.r.s.i.RaftServerImpl:383 - 2@group-000000000000: changes role from  FOLLOWER to CANDIDATE at term 1 for changeToCandidate 
+2024-06-27 17:27:22,411 [2@group-000000000000-FollowerState] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.leaderelection.pre-vote = true (default) 
+2024-06-27 17:27:22,411 [2@group-000000000000-FollowerState] INFO  o.a.r.s.impl.RoleInfo:139 - 2: start 2@group-000000000000-LeaderElection1 
+2024-06-27 17:27:22,413 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.LeaderElection:321 - 2@group-000000000000-LeaderElection1 PRE_VOTE round 0: submit vote requests at term 1 for 37: peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720, 2|172.20.70.26:10720]|listeners:[], old=null 
+2024-06-27 17:27:22,428 [2@group-000000000000-LeaderElection1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.first-election.timeout.min = 50ms (custom) 
+2024-06-27 17:27:22,429 [2@group-000000000000-LeaderElection1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.first-election.timeout.max = 150ms (custom) 
+2024-06-27 17:27:22,429 [2@group-000000000000-LeaderElection1-2] INFO  o.a.r.g.s.GrpcServerProtocolClient:65 - Build channel for 1|172.20.70.4:10720 
+2024-06-27 17:27:22,429 [2@group-000000000000-LeaderElection1-1] INFO  o.a.r.g.s.GrpcServerProtocolClient:65 - Build channel for 0|172.20.70.5:10720 
+2024-06-27 17:27:22,487 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.LeaderElection:89 - 2@group-000000000000-LeaderElection1: PRE_VOTE TIMEOUT received 0 response(s) and 0 exception(s): 
+2024-06-27 17:27:22,487 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.LeaderElection:323 - 2@group-000000000000-LeaderElection1 PRE_VOTE round 0: result TIMEOUT 
+2024-06-27 17:27:22,487 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.LeaderElection:321 - 2@group-000000000000-LeaderElection1 PRE_VOTE round 1: submit vote requests at term 1 for 37: peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720, 2|172.20.70.26:10720]|listeners:[], old=null 
+2024-06-27 17:27:22,488 [2@group-000000000000-LeaderElection1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.first-election.timeout.min = 50ms (custom) 
+2024-06-27 17:27:22,488 [2@group-000000000000-LeaderElection1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.first-election.timeout.max = 150ms (custom) 
+2024-06-27 17:27:22,638 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.LeaderElection:89 - 2@group-000000000000-LeaderElection1: PRE_VOTE TIMEOUT received 0 response(s) and 0 exception(s): 
+2024-06-27 17:27:22,638 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.LeaderElection:323 - 2@group-000000000000-LeaderElection1 PRE_VOTE round 1: result TIMEOUT 
+2024-06-27 17:27:22,638 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.LeaderElection:321 - 2@group-000000000000-LeaderElection1 PRE_VOTE round 2: submit vote requests at term 1 for 37: peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720, 2|172.20.70.26:10720]|listeners:[], old=null 
+2024-06-27 17:27:22,639 [2@group-000000000000-LeaderElection1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.first-election.timeout.min = 50ms (custom) 
+2024-06-27 17:27:22,639 [2@group-000000000000-LeaderElection1] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.first-election.timeout.max = 150ms (custom) 
+2024-06-27 17:27:22,687 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.LeaderElection:89 - 2@group-000000000000-LeaderElection1: PRE_VOTE DISCOVERED_A_NEW_TERM (term=2) received 1 response(s) and 0 exception(s): 
+2024-06-27 17:27:22,687 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.LeaderElection:93 -   Response 0: 2<-1#0:FAIL-t2 
+2024-06-27 17:27:22,688 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.LeaderElection:323 - 2@group-000000000000-LeaderElection1 PRE_VOTE round 2: result DISCOVERED_A_NEW_TERM (term=2) 
+2024-06-27 17:27:22,688 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.RaftServerImpl:383 - 2@group-000000000000: changes role from CANDIDATE to FOLLOWER at term 2 for DISCOVERED_A_NEW_TERM (term=2) 
+2024-06-27 17:27:22,688 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.impl.RoleInfo:130 - 2: shutdown 2@group-000000000000-LeaderElection1 
+2024-06-27 17:27:22,688 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.impl.RoleInfo:139 - 2: start 2@group-000000000000-FollowerState 
+2024-06-27 17:27:22,689 [2@group-000000000000-LeaderElection1] INFO  o.a.r.s.i.RaftServerImpl:575 - 2@group-000000000000: set firstElectionSinceStartup to false for DISCOVERED_A_NEW_TERM (term=2) 
+2024-06-27 17:27:22,996 [2-server-thread1] INFO  o.a.i.c.c.s.ConfigRegionStateMachine:242 - Current node [nodeId:2, ip:port: TEndPoint(ip:172.20.70.26, port:10720)] is not longer the leader, the new leader is [nodeId:1] 
+2024-06-27 17:27:22,998 [2-server-thread1] INFO  o.a.i.c.p.r.IoTDBReceiverAgent:118 - Clean pipe receiver dir /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/system/pipe/receiver successfully. 
+2024-06-27 17:27:22,998 [2-server-thread1] INFO  o.a.i.c.p.r.IoTDBReceiverAgent:125 - Create pipe receiver dir /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/system/pipe/receiver successfully. 
+2024-06-27 17:27:22,998 [2-server-thread1] INFO  o.a.i.c.c.s.ConfigRegionStateMachine:271 - Current node [nodeId:2, ip:port: TEndPoint(ip:172.20.70.26, port:10720)] is not longer the leader, all services on old leader are unavailable now. 
+2024-06-27 17:27:22,998 [2-server-thread1] INFO  o.a.r.s.impl.ServerState:269 - 2@group-000000000000: change Leader from null to 1 at term 2 for appendEntries, leader elected after 991ms 
+2024-06-27 17:27:23,001 [2-server-thread1] INFO  o.a.r.s.i.RaftServerImpl:1702 - 2@group-000000000000: Failed appendEntries as previous log entry ((t:2, i:6388)) is not found 
+2024-06-27 17:27:23,004 [2-server-thread1] INFO  o.a.r.s.i.RaftServerImpl:1672 - 2@group-000000000000: inconsistency entries. Reply:1<-2#1104:FAIL-t2,INCONSISTENCY,nextIndex=6383,followerCommit=6382,matchIndex=-1 
+2024-06-27 17:27:23,012 [2-server-thread1] INFO  o.a.r.s.impl.ServerState:388 - 2@group-000000000000: set configuration 6383: peers:[0|172.20.70.5:10720, 1|172.20.70.4:10720, 2|172.20.70.26:10720]|listeners:[], old=null 
+2024-06-27 17:27:23,014 [2-server-thread1] INFO  o.a.r.s.r.s.SegmentedRaftLogWorker:437 - 2@group-000000000000-SegmentedRaftLogWorker: Rolling segment log-0_6382 to index:6382 
+2024-06-27 17:27:23,016 [2@group-000000000000-SegmentedRaftLogWorker] INFO  o.a.r.s.r.s.SegmentedRaftLogWorker$FinalizeLogSegment:593 - 2@group-000000000000-SegmentedRaftLogWorker: Rolled log segment from /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/current/log_inprogress_0 to /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/current/log_0-6382 
+2024-06-27 17:27:23,021 [2@group-000000000000-SegmentedRaftLogWorker] INFO  o.a.r.s.r.s.BufferedWriteChannel:62 - open log_inprogress_6383 at position 0 
+2024-06-27 17:27:23,074 [2@group-000000000000-SegmentedRaftLogWorker] INFO  o.a.r.s.r.s.SegmentedRaftLogWorker$StartLogSegment:636 - 2@group-000000000000-SegmentedRaftLogWorker: created new log segment /data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus/47474747-4747-4747-4747-000000000000/current/log_inprogress_6383 
+2024-06-27 17:27:23,077 [main] INFO  o.a.i.c.s.m.MetricService:99 - MetricService start to init. 
+2024-06-27 17:27:23,078 [main] INFO  o.a.i.m.AbstractMetricService:98 - Start metric service at level: IMPORTANT 
+2024-06-27 17:27:23,086 [main] INFO  o.a.i.c.s.m.MetricService:61 - Load metric reporters, type: [PROMETHEUS] 
+2024-06-27 17:27:23,102 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.node.NodeInfo:532 - Successfully update Node 1 's version. 
+2024-06-27 17:27:23,115 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.node.NodeInfo:532 - Successfully update Node 0 's version. 
+2024-06-27 17:27:23,393 [main] INFO  o.a.i.m.r.p.PrometheusReporter:91 - PrometheusReporter started, use port 9081 
+2024-06-27 17:27:23,405 [main] INFO  o.a.i.c.s.m.MetricService:102 - MetricService start successfully. 
+2024-06-27 17:27:23,405 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Metrics ServerService service is started successfully, which takes 328 ms. 
+2024-06-27 17:27:23,431 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:213 - new single scheduled thread pool: JVM-GC-Statistics-Monitor 
+2024-06-27 17:27:23,441 [main] INFO  o.a.t.c.c.TSFileDescriptor:128 - try loading iotdb-system.properties from /data/iotdb/timechodb_685_log_0627/sbin/../conf/iotdb-system.properties 
+2024-06-27 17:27:23,458 [main] INFO  o.a.i.c.s.ThriftService:113 - IoTDB: start Config Node service... 
+2024-06-27 17:27:23,502 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:270 - new SynchronousQueue thread pool: ConfigNodeRPC-Processor 
+2024-06-27 17:27:23,504 [ConfigNodeRPC-Service] INFO  o.a.i.c.s.AbstractThriftServiceThread:302 - The Config Node service service thread begin to run... 
+2024-06-27 17:27:23,604 [main] INFO  o.a.i.c.s.ThriftService:139 - IoTDB: start Config Node service successfully, listening on ip 172.20.70.26 port 10710 
+2024-06-27 17:27:23,604 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Config Node service service is started successfully, which takes 146 ms. 
+2024-06-27 17:27:23,606 [main] INFO  o.a.i.c.s.ConfigNode:144 - IoTDB configuration: 
+	clusterName=defaultCluster;
+	configNodeId=2;
+	internalAddress=172.20.70.26;
+	internalPort=10710;
+	consensusPort=10720;
+	seedConfigNode=TEndPoint(ip:172.20.70.5, port:10710);
+	configRegionId=0;
+	configNodeConsensusProtocolClass=org.apache.iotdb.consensus.ratis.RatisConsensus;
+	schemaRegionConsensusProtocolClass=org.apache.iotdb.consensus.ratis.RatisConsensus;
+	schemaReplicationFactor=3;
+	dataRegionConsensusProtocolClass=org.apache.iotdb.consensus.iot.IoTConsensus;
+	dataReplicationFactor=2;
+	seriesSlotNum=1000;
+	seriesPartitionExecutorClass=org.apache.iotdb.commons.partition.executor.hash.BKDRHashExecutor;
+	schemaRegionGroupExtensionPolicy=CUSTOM;
+	defaultSchemaRegionGroupNumPerDatabase=1;
+	schemaRegionPerDataNode=1.0;
+	dataRegionGroupExtensionPolicy=CUSTOM;
+	defaultDataRegionGroupNumPerDatabase=5;
+	dataRegionPerDataNode=5.0;
+	regionGroupAllocatePolicy=GCR;
+	rpcMaxConcurrentClientNum=65535;
+	thriftServerAwaitTimeForStopService=60;
+	maxClientNumForEachNode=300;
+	systemDir=/data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/system;
+	consensusDir=/data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/consensus;
+	udfDir=/data/iotdb/timechodb_685_log_0627/sbin/../ext/udf;
+	udfTemporaryLibDir=/data/iotdb/timechodb_685_log_0627/sbin/../ext/udf/tmp;
+	triggerDir=/data/iotdb/timechodb_685_log_0627/sbin/../ext/trigger;
+	triggerTemporaryLibDir=/data/iotdb/timechodb_685_log_0627/sbin/../ext/trigger/tmp;
+	pipeDir=/data/iotdb/timechodb_685_log_0627/sbin/../ext/pipe;
+	pipeTemporaryLibDir=/data/iotdb/timechodb_685_log_0627/sbin/../ext/pipe/tmp;
+	pipeReceiverFileDir=/data/iotdb/timechodb_685_log_0627/sbin/../data/confignode/system/pipe/receiver;
+	procedureCompletedEvictTTL=800;
+	procedureCompletedCleanInterval=30;
+	procedureCoreWorkerThreadsCount=16;
+	heartbeatIntervalInMs=1000;
+	unknownDataNodeDetectInterval=1000;
+	leaderDistributionPolicy=CFD;
+	enableAutoLeaderBalanceForRatisConsensus=true;
+	enableAutoLeaderBalanceForIoTConsensus=true;
+	routePriorityPolicy=LEADER;
+	readConsistencyLevel=strong;
+	dataRegionRatisConsensusLogAppenderBufferSize=16777216;
+	configNodeRatisConsensusLogAppenderBufferSize=16777216;
+	schemaRegionRatisConsensusLogAppenderBufferSize=16777216;
+	dataRegionRatisSnapshotTriggerThreshold=400000;
+	configNodeRatisSnapshotTriggerThreshold=400000;
+	schemaRegionRatisSnapshotTriggerThreshold=400000;
+	dataRegionRatisLogUnsafeFlushEnable=false;
+	configNodeRatisLogUnsafeFlushEnable=false;
+	schemaRegionRatisLogUnsafeFlushEnable=false;
+	dataRegionRatisLogSegmentSizeMax=25165824;
+	configNodeRatisLogSegmentSizeMax=25165824;
+	schemaRegionRatisLogSegmentSizeMax=25165824;
+	configNodeSimpleConsensusLogSegmentSizeMax=25165824;
+	dataRegionRatisGrpcFlowControlWindow=4194304;
+	configNodeRatisGrpcLeaderOutstandingAppendsMax=128;
+	schemaRegionRatisGrpcLeaderOutstandingAppendsMax=128;
+	dataRegionRatisGrpcLeaderOutstandingAppendsMax=128;
+	configNodeRatisLogForceSyncNum=128;
+	schemaRegionRatisLogForceSyncNum=128;
+	dataRegionRatisLogForceSyncNum=128;
+	configNodeRatisGrpcFlowControlWindow=4194304;
+	schemaRegionRatisGrpcFlowControlWindow=4194304;
+	dataRegionRatisRpcLeaderElectionTimeoutMinMs=2000;
+	configNodeRatisRpcLeaderElectionTimeoutMinMs=2000;
+	schemaRegionRatisRpcLeaderElectionTimeoutMinMs=2000;
+	dataRegionRatisRpcLeaderElectionTimeoutMaxMs=4000;
+	configNodeRatisRpcLeaderElectionTimeoutMaxMs=4000;
+	schemaRegionRatisRpcLeaderElectionTimeoutMaxMs=4000;
+	cqSubmitThread=2;
+	cqMinEveryIntervalInMs=1000;
+	dataRegionRatisRequestTimeoutMs=10000;
+	configNodeRatisRequestTimeoutMs=10000;
+	schemaRegionRatisRequestTimeoutMs=10000;
+	configNodeRatisMaxRetryAttempts=10;
+	configNodeRatisInitialSleepTimeMs=100;
+	configNodeRatisMaxSleepTimeMs=10000;
+	dataRegionRatisMaxRetryAttempts=10;
+	dataRegionRatisInitialSleepTimeMs=100;
+	dataRegionRatisMaxSleepTimeMs=10000;
+	schemaRegionRatisMaxRetryAttempts=10;
+	schemaRegionRatisInitialSleepTimeMs=100;
+	schemaRegionRatisMaxSleepTimeMs=10000;
+	configNodeRatisPreserveLogsWhenPurge=1000;
+	schemaRegionRatisPreserveLogsWhenPurge=1000;
+	dataRegionRatisPreserveLogsWhenPurge=1000;
+	ratisFirstElectionTimeoutMinMs=50;
+	ratisFirstElectionTimeoutMaxMs=150;
+	configNodeRatisLogMax=2147483648;
+	schemaRegionRatisLogMax=2147483648;
+	dataRegionRatisLogMax=21474836480;
+	configNodeRatisPeriodicSnapshotInterval=86400;
+	schemaRegionRatisPeriodicSnapshotInterval=86400;
+	dataRegionRatisPeriodicSnapshotInterval=86400;
+	isEnablePrintingNewlyCreatedPartition=false;
+	forceWalPeriodForConfigNodeSimpleInMs=100; 
+2024-06-27 17:27:23,606 [main] INFO  o.a.i.c.s.ConfigNode:145 - IoTDB-ConfigNode has successfully restarted and joined the cluster: defaultCluster. 
+2024-06-27 17:27:23,851 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.ActivationManager:511 - Loading remote license... 
+2024-06-27 17:27:23,881 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.node.NodeInfo:532 - Successfully update Node 2 's version. 
+2024-06-27 17:27:24,012 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.License:270 - NDU2MFR7KE74B37C5YU62PWHLHOQPO2ZOOD5P472C467XM3JRBZSCCV7FDAOOMXPKEAVSN77FBC5PDGW2WCXNBVH5LRAFJXGHLMDJLFWJ2K36Y2WT3GDNDA5IHTXHU3L64XYMZ6IAKWMGURGFOMPBSD23EDTNWAWBE6S7KOSN5KCOVMOLGDFBLV7GT7YUPVTPGGUUEV26LWBW4UALWV2FPNCONJRC3U6QEAVCOTMMTNSRZR2IERXC7XNIXTG57LGPPHKRFZMOAZNTGN7VPXDQEXPPKSC6YOJ3HLFUO26VRDXMNLSQN6C36ZNHZXSWHWVSSUCU7MNCNVVHBFVSXDCGC2G6NE36DDMGQJD373BZWBMDAT75SJFE24J6UDFFXPMQETRCNSJBTM2MT5FUA22DOTD6I====== 
+2024-06-27 17:27:24,013 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.License:270 - OSIIWVCO5KVRZ7DUS6T4C7IVZVGOIKEJKQZH2MSPJ5TRIIX3YL3CDNQVOH3O2JU3AMTDTELLDC3LZ5PDNFLFL3SEBLYKZKN4DRPKU2L5KBLNFKUL5U5CPOXGXYE3IFQV5YSX6S52X5IJMFJNMYK7RYXR22QY62NE6LHZ2JUZRYDI2T4FCAZRQQE6R3VHYHWT2FZ73FONVBP5INYYKWBHSCC2CZYSSZT5G6P57WTXD52LO6CKJSV276IKUIMINRQAZW6QS6WM7IKUZ7WBDBN4246OW327372RFE32MJB3GQQNPMXQQNWXST2QEQCYQREJN4KK63TH2FPBZ6KPEHWITFL7PPB46C7URWYQW7MS6SLF4GJBXAKOBK3X4VLI4P6AQEB6S7WE7VDBHIGIMHKYBGFUVU====== 
+2024-06-27 17:27:24,013 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.License:270 - JXG72EGFTD2SVQ4VEIOWMN3TQACPHJBCTARFLLHVGRUARMCWIYRNZK4STWDEH6GFTKFLQU7WUDCHVMPWOXWRDPQUK73ZGU477K57RJFNWPRK35JEUQR2E37Y3ZNZV6CH46JOQNB7QCNJWCZSXM7YDFKQJYC2U55CXJP52NTPPIQNCX55GZUPECDHA53IRFAR4SBAGOBWSUAVWQS3FUVN7TFXVDEMM3TWQXRHXNTM363E7CBPHAGF2AVR7TG5JLRQEEBGAN4VNULO5F7DVVF5VPUE65QMMD2BFYUQX2GEOVYKEOQ7PMUE3WYEBSN2LKQUDMFWJUG6XKAMYOWQVAHGAXO5YKH256XCKHFEJAOTF5F2KB5BQ6DP3PEEV43MHOAFREP3Y6MJLQP37LQX2XEJ7RS65E====== 
+2024-06-27 17:27:24,014 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.License:270 - OFAHTKY2DUKT2QDOMQAR5EOICEEDJV6ZLA7TUFF5T5AYLLVM5MM5KXXBVZEQBFCMXLKXGDRXTHNGYK7SQNXGIDEJSO6EEIQ2RG2NTVPW4GTYV7553JXSJOYJVQXKKKHOS3NWHABFYMFYAMBLFULENN5GTDB4WUBJH7EKMFDVEZE5P36UNQ2B3V7FSY64MTTD2URJVM6HSVVJ2RX33MDPEVDPGFHOSD47WOD7P6RUC76U7DCMPY7RBTDMQHGBIVSL6AU6ZFFEZMM4MP7FGSZVZVIJTDLLV3RZCQL6T5IOIJP5FNCOUP4E4TFVB4GSKPMRZ7MHKRPCQJ6IOMSPPHP5JW3TE2RGQQOFPHT37MBTDNHTB6BQVFPGA7YNL7UGTCOENCQHFYWS5WIBPHCZVWEAZCQPS4====== 
+2024-06-27 17:27:24,018 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.License:270 - G4RM6MR6ZKR4LZFDVITEYAFJ27JLWNLWTLCQS4WPJNKO665EP3APL5NBNIRBX3WWOZVIXS4LEMMQZN44DRXH3VSZFTDFZWY6Y4K7IU7FLRHGIODJLFYHPR3GJZ62B2QEXCET7UL5OAQE5KTVHHAVGOQYLATBOHCHEIW6724DSYJJVBKRYMHAW36NOXDGVKSMWZOJLMU7TYBOKRIWAIXKG7KSLRJENMVPPYG6GA7XE5W5GWOIMXUPK755CT7KK4M5ZIHK2Z2PAOW7ZIQKR3PJ6SVXB4VE5GMP3ZOUAVFK43F3YD5NFJN5C4EXYLDCT5SSXJ6UDWOHQASU54PJTIFNEKJFWM2CKR5KRL4ITAOT3FAXOTQG2Q6UIN4IP3CASVYSOIUX2E3RFMV5C6ASMJEOHMXPHI====== 
+2024-06-27 17:27:24,019 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.License:270 - EKBE2PA66MWPPMCSUGUJC6DQLPHSOIU3CWLYOTXMPQ65QXVM2IXA3FGANTCEKI6RJODLIM55ZNSYBHDXRW4HEP6AOGT6OBVUXHE3AKNXK35JQQG4N6JEUKAA2FNUZ4V5MYR4BWIYXOO7PRAK5KLKHNO7LLACWDNTP3DMYXCBDNIH5AI72IGALRZ27Z5KLSUQIEUI3OG4VL3K6O6KIJTJS52GOLIYTYFS23KW4C3JW2CS6PYUAFHF3IMJHHX2R6YOPJDKA5BQV3TQVX2YSQFFASLSPRT6WVVCCTLRMU2D2LHEBR4AWRP763NU6MACGBHDOB7VFD3NRJYMBQITDLGYFTGTB6SJGUUCCLACYFILEAKMYH7EURZ2QAAVXOPZLPYJTK2UKIG3Z6EDKYDSILXF6V6ERI====== 
+2024-06-27 17:27:24,019 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.License:270 - MA5IKDLAYG4R3536GJQBYRSK6G63WSALX6AOZJ32Q675OLXO4X7Z6OR4XUNUW5C2V5OG5FLRZ3RD2G2BM3LMSVPZQXOAEXKKD7Y46OLZSDPWG2TI6PFXYNLG5EZE7ZZ52ZFYLW2U5QBGXILFLAJTBLR7GP4ATMVOOFMOO44IJGJEWVSXRLDEOTGFMVHQEBOQ33J6EY2S7KWEW3JZC2RNWH4AA2OWK2OIMHTAJ4N3BJQPJEJXDMWZYNRUR3DFUTPP5P4XUHPXN4WIAYSTSEKHZ3ZFCRKYJAJDQMAAEQYZ6SUUEMQGF3ERRLG277PNALLGFIDKI6X42OTW4NFIW54W76VHL4E4DSYCBKCNBHPMDSRVRIVQZZN5GRUXITAUY6ZWVH6VSUQPAMYVOWDX2DKW6YAVYA====== 
+2024-06-27 17:27:24,020 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.License:270 - FXXTDNHGI5LPUNZQICINC2JDR2WWQTHH4ISI5FRPK3GB4A3VCYFMZ6RKTKY5JDCWXFCC2MC6UPPRNMUWQAZA56Z64MSWMMFTNGTFWHO6TEUSFMWR2KJVYEKGTXNWG2WFN4HBAGDFRTO6MCHC4EQGO52MZIAU23ZWLTZLHQLTUK3CG4B664TQ6RMXK5HNRZ4MU56PFWSUBOU2QPEPYYBKNYIX3UJMWDKS4PV7OCJ7Z7PKLW32LSJEAYWC43I4PEEDUYVBYP2K4RY2GZN35MEI372RMLOW5UFARYA2BP2Y3YRHGQXUYWALHQX64IPYYGKYYWEDCCFN64USBXJGXX3X3B5HIUFFGTL7OSCE7SQIMXUCGEZ22F3JS7ZIBUPMF7SEXFHR6NW7WVRDLZXJATEUGLEXRY====== 
+2024-06-27 17:27:24,020 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.License:257 - ConfigNode's activation status is PASSIVE_ACTIVATED; Previous status is UNKNOWN 
+2024-06-27 17:27:24,022 [pool-16-IoTDB-ConfigNodeRPC-Processor-1] INFO  c.t.i.m.a.ActivationManager:519 - License updated because receive remote license 
+2024-06-27 17:27:24,024 [main] INFO  c.t.i.m.a.ActivationManager:634 - /data/iotdb/timechodb_685_log_0627/sbin/../activation/system_info file generated successfully. Content is 01-47FZ4XOV-HT5GSIEO 
+2024-06-27 17:27:26,391 [pool-16-IoTDB-ConfigNodeRPC-Processor-2] INFO  o.a.i.c.s.t.ConfigNodeRPCServiceProcessor:242 - Execute GetSystemConfiguration with result TSystemConfigurationResp(status:TSStatus(code:400, message:The current ConfigNode is not leader, please redirect to a new ConfigNode., redirectNode:TEndPoint(ip:172.20.70.4, port:10710))) 
+2024-06-27 17:27:26,470 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.node.NodeInfo:532 - Successfully update Node 3 's version. 
+2024-06-27 17:27:28,436 [pool-16-IoTDB-ConfigNodeRPC-Processor-3] INFO  o.a.i.c.s.t.ConfigNodeRPCServiceProcessor:242 - Execute GetSystemConfiguration with result TSystemConfigurationResp(status:TSStatus(code:400, message:The current ConfigNode is not leader, please redirect to a new ConfigNode., redirectNode:TEndPoint(ip:172.20.70.4, port:10710))) 
+2024-06-27 17:27:28,499 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.node.NodeInfo:532 - Successfully update Node 4 's version. 
+2024-06-27 17:27:31,214 [pool-16-IoTDB-ConfigNodeRPC-Processor-4] INFO  o.a.i.c.s.t.ConfigNodeRPCServiceProcessor:242 - Execute GetSystemConfiguration with result TSystemConfigurationResp(status:TSStatus(code:400, message:The current ConfigNode is not leader, please redirect to a new ConfigNode., redirectNode:TEndPoint(ip:172.20.70.4, port:10710))) 
+2024-06-27 17:27:31,275 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.node.NodeInfo:532 - Successfully update Node 5 's version. 
+2024-06-27 17:27:33,417 [pool-16-IoTDB-ConfigNodeRPC-Processor-5] INFO  o.a.i.c.s.t.ConfigNodeRPCServiceProcessor:242 - Execute GetSystemConfiguration with result TSystemConfigurationResp(status:TSStatus(code:400, message:The current ConfigNode is not leader, please redirect to a new ConfigNode., redirectNode:TEndPoint(ip:172.20.70.4, port:10710))) 
+2024-06-27 17:27:33,472 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.node.NodeInfo:532 - Successfully update Node 6 's version. 
+2024-06-27 17:27:35,586 [pool-16-IoTDB-ConfigNodeRPC-Processor-6] INFO  o.a.i.c.s.t.ConfigNodeRPCServiceProcessor:242 - Execute GetSystemConfiguration with result TSystemConfigurationResp(status:TSStatus(code:400, message:The current ConfigNode is not leader, please redirect to a new ConfigNode., redirectNode:TEndPoint(ip:172.20.70.4, port:10710))) 
+2024-06-27 17:27:35,706 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.node.NodeInfo:532 - Successfully update Node 7 's version. 
+2024-06-27 17:30:21,999 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.s.SubscriptionInfo:494 - Handling consumer group meta changes ... 
+2024-06-27 17:30:22,062 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.p.PipeTaskInfo:558 - Handling pipe meta changes ... 
+2024-06-27 17:30:22,152 [2@group-000000000000-StateMachineUpdater] INFO  o.a.i.c.p.s.SubscriptionInfo:336 - Handling topic meta changes ... 
+2024-06-27 17:31:22,375 [2-server-thread5] INFO  o.a.r.s.i.RaftServerImpl:1209 - 2@group-000000000000: takeSnapshotAsync SnapshotManagementRequest:client-0AAB442DFF3C->2@group-000000000000, cid=2, seq=null, RO, null, Create: 
+2024-06-27 17:31:22,376 [2-server-thread5] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.snapshot.creation.gap = 1024 (default) 
+2024-06-27 17:31:22,377 [pool-14-IoTDB-RatisBgDiskGuardian-1] INFO  o.a.i.c.r.RatisConsensus:791 - org.apache.iotdb.consensus.ratis.RatisConsensus@32bd3d11 group group-000000000000: successfully taken snapshot at index 6382 with force = false 

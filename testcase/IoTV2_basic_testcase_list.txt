@@ -1,0 +1,2 @@
+tc0001_iotv2_aft_comp_del_1row.sh
+tc0002_iotv2_bef_nocomp_del_1row.sh

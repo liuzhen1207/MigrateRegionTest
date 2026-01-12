@@ -1,0 +1,616 @@
+2024-04-12 11:47:28,785 [main] INFO  o.a.i.d.c.IoTDBDescriptor:148 - Start to read config file file:/data/iotdb/v1321_rc1_0401_mig_da56ef1/sbin/../conf/iotdb-common.properties 
+2024-04-12 11:47:28,792 [main] INFO  o.a.i.d.c.IoTDBDescriptor:168 - Start to read config file file:/data/iotdb/v1321_rc1_0401_mig_da56ef1/sbin/../conf/iotdb-datanode.properties 
+2024-04-12 11:47:28,795 [main] INFO  o.a.i.d.c.IoTDBDescriptor:1896 - initial allocateMemoryForRead = 6174120345 
+2024-04-12 11:47:28,795 [main] INFO  o.a.i.d.c.IoTDBDescriptor:1897 - initial allocateMemoryForWrite = 6174120345 
+2024-04-12 11:47:28,795 [main] INFO  o.a.i.d.c.IoTDBDescriptor:1898 - initial allocateMemoryForSchema = 2058040115 
+2024-04-12 11:47:28,795 [main] INFO  o.a.i.d.c.IoTDBDescriptor:1899 - initial allocateMemoryForConsensus = 2058040115 
+2024-04-12 11:47:28,795 [main] INFO  o.a.i.d.c.IoTDBDescriptor:1900 - initial allocateMemoryForPipe = 2058040115 
+2024-04-12 11:47:28,795 [main] INFO  o.a.i.d.c.IoTDBDescriptor:2063 - allocateMemoryForSchemaRegion = 1029020057 
+2024-04-12 11:47:28,795 [main] INFO  o.a.i.d.c.IoTDBDescriptor:2067 - allocateMemoryForSchemaCache = 823216046 
+2024-04-12 11:47:28,795 [main] INFO  o.a.i.d.c.IoTDBDescriptor:2071 - allocateMemoryForPartitionCache = 205804011 
+2024-04-12 11:47:28,807 [main] INFO  o.a.i.t.c.c.TSFileDescriptor:126 - try loading iotdb-common.properties from /data/iotdb/v1321_rc1_0401_mig_da56ef1/sbin/../conf/iotdb-common.properties 
+2024-04-12 11:47:28,815 [main] INFO  o.a.i.d.c.IoTDBDescriptor:1587 - MQTT host is not configured, will use dn_rpc_address. 
+2024-04-12 11:47:28,891 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: Stateful-Trigger-Information-Updater 
+2024-04-12 11:47:28,895 [main] INFO  c.t.i.DataNodeServerCommandLineNew:39 - Running mode -s 
+2024-04-12 11:47:28,898 [main] INFO  o.a.i.d.c.IoTDBStartCheck:134 - Starting IoTDB 1.3.2-SNAPSHOT (Build: da56ef1) 
+2024-04-12 11:47:28,902 [main] INFO  o.a.i.c.s.StartupChecks:50 - Start JMX locally. 
+2024-04-12 11:47:28,903 [main] INFO  o.a.i.c.s.StartupChecks:78 - JDK version is 8. 
+2024-04-12 11:47:28,904 [main] INFO  o.a.i.c.s.StartupChecks:84 - JVM version is Java HotSpot(TM) 64-Bit Server VM 25.191-b12. 
+2024-04-12 11:47:28,904 [main] INFO  o.a.i.d.c.DataNodeStartupCheck:56 - DataNode port check successful. 
+2024-04-12 11:47:28,904 [main] INFO  o.a.i.db.service.DataNode:265 - The DataNode is prepared successfully, which takes 9 ms 
+2024-04-12 11:47:28,907 [main] INFO  o.a.i.d.p.c.ConfigNodeInfo:165 - Load ConfigNode successfully: [TEndPoint(ip:172.20.70.26, port:10710), TEndPoint(ip:172.20.70.4, port:10710), TEndPoint(ip:172.20.70.5, port:10710)], which takes 1 ms. 
+2024-04-12 11:47:28,907 [main] INFO  o.a.i.db.service.DataNode:281 - Pulling system configurations from the ConfigNode-leader... 
+2024-04-12 11:47:29,076 [main] WARN  o.a.i.d.p.c.ConfigNodeClient:321 - Failed to connect to ConfigNode TEndPoint(ip:172.20.70.26, port:10710) from DataNode TEndPoint(ip:172.20.70.27, port:6667), because the current node is not leader or not ready yet, will try again later 
+2024-04-12 11:47:29,092 [main] INFO  o.a.i.db.service.DataNode:352 - Successfully pull system configurations from ConfigNode-leader, which takes 185 ms 
+2024-04-12 11:47:29,092 [main] INFO  o.a.i.db.service.DataNode:526 - Sending restart request to ConfigNode-leader... 
+2024-04-12 11:47:29,195 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: Pipe-Runtime-Periodical-Job-Executor 
+2024-04-12 11:47:29,203 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:137 - new single thread pool: Pipe-Receiver-Air-Gap-Agent 
+2024-04-12 11:47:29,207 [main] INFO  o.a.i.d.p.a.r.PipePeriodicalJobExecutor:75 - Pipe periodical job LoadTsFileManager#cleanupTasks is registered successfully. Interval: 440 seconds. 
+2024-04-12 11:47:29,207 [main] INFO  o.a.i.db.service.DataNode:571 - Restart request to cluster: defaultCluster is accepted, which takes 115 ms. 
+2024-04-12 11:47:29,212 [main] INFO  o.a.i.d.s.r.d.TierManager:197 - create folder /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence failed. Is the folder existed: true 
+2024-04-12 11:47:29,213 [main] INFO  o.a.i.d.s.r.d.TierManager:197 - create folder /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/unsequence failed. Is the folder existed: true 
+2024-04-12 11:47:29,214 [main] INFO  o.a.i.d.s.r.d.TierManager:197 - create folder /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence failed. Is the folder existed: true 
+2024-04-12 11:47:29,214 [main] INFO  o.a.i.d.s.r.d.TierManager:197 - create folder /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/unsequence failed. Is the folder existed: true 
+2024-04-12 11:47:29,215 [main] INFO  o.a.i.d.s.r.d.TierManager:185 - The folders is reset successfully, which takes 1 ms. 
+2024-04-12 11:47:29,215 [main] INFO  o.a.i.db.service.DataNode:637 - Setting up IoTDB DataNode... 
+2024-04-12 11:47:29,215 [main] INFO  o.a.i.c.s.RegisterManager:54 - The JMX ServerService service is started successfully, which takes 0 ms. 
+2024-04-12 11:47:29,216 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: Stateful-Trigger-Information-Updater 
+2024-04-12 11:47:29,218 [main] INFO  o.a.i.c.u.s.UDFClassLoaderManager:54 - UDF lib root: /data/iotdb/v1321_rc1_0401_mig_da56ef1/ext/udf 
+2024-04-12 11:47:29,243 [main] INFO  o.a.i.c.p.r.IoTDBReceiverAgent:104 - Clean pipe receiver dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/system/pipe/receiver successfully. 
+2024-04-12 11:47:29,243 [main] INFO  o.a.i.c.p.r.IoTDBReceiverAgent:111 - Create pipe receiver dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/system/pipe/receiver successfully. 
+2024-04-12 11:47:29,246 [main] INFO  o.a.i.d.p.p.a.SimpleConsensusProgressIndexAssigner:62 - Start SimpleConsensusProgressIndexAssigner ... 
+2024-04-12 11:47:29,256 [main] INFO  o.a.i.db.service.DataNode:1001 - Prepare pipe resources successfully, which takes 37 ms. 
+2024-04-12 11:47:29,256 [main] INFO  o.a.i.db.service.DataNode:647 - Recover the schema... 
+2024-04-12 11:47:29,413 [main] INFO  o.reflections.Reflections:219 - Reflections took 143 ms to scan 1 urls, producing 115 keys and 269 values 
+2024-04-12 11:47:29,443 [main] INFO  o.a.i.d.s.SchemaEngine:106 - used schema engine mode: Memory. 
+2024-04-12 11:47:29,685 [main] INFO  o.reflections.Reflections:219 - Reflections took 240 ms to scan 2 urls, producing 581 keys and 1964 values 
+2024-04-12 11:47:29,753 [main] INFO  o.a.i.d.s.s.SchemaRegionLoader:111 - [SchemaRegionLoader], schemaEngineMode:Memory, currentMode:Memory 
+2024-04-12 11:47:29,760 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: SchemaRegion-Recover-Task, thread number: 8 
+2024-04-12 11:47:29,762 [main] INFO  o.a.i.db.service.DataNode:1018 - Recover schema successfully, which takes 506 ms. 
+2024-04-12 11:47:29,956 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: Flush, thread number: 8 
+2024-04-12 11:47:29,957 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:170 - new cached thread pool: Flush-SubTask 
+2024-04-12 11:47:29,959 [main] INFO  o.a.i.d.s.d.f.p.FlushSubTaskPoolManager:57 - Flush sub task manager started. 
+2024-04-12 11:47:29,959 [main] INFO  o.a.i.d.s.d.f.p.FlushTaskPoolManager:60 - Flush task manager started. 
+2024-04-12 11:47:29,960 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Flush ServerService service is started successfully, which takes 3 ms. 
+2024-04-12 11:47:29,961 [main] INFO  o.a.i.c.s.RegisterManager:54 - The CACHE_HIT_RATIO_DISPLAY_SERVICE service is started successfully, which takes 0 ms. 
+2024-04-12 11:47:29,961 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: WAL-Delete 
+2024-04-12 11:47:29,964 [main] INFO  o.a.i.c.s.RegisterManager:54 - The WAL ServerService service is started successfully, which takes 3 ms. 
+2024-04-12 11:47:29,965 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: Compaction-Schedule, thread number: 4 
+2024-04-12 11:47:29,966 [main] INFO  o.a.i.d.s.d.c.s.CompactionScheduleTaskManager:71 - Compaction schedule task manager started. 
+2024-04-12 11:47:29,966 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Compaction Schedule Manager service is started successfully, which takes 1 ms. 
+2024-04-12 11:47:29,967 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:170 - new cached thread pool: StorageEngine 
+2024-04-12 11:47:29,969 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.StorageEngine:464 - construct a data region instance, the database is root.test.g_0, Thread is 20 
+2024-04-12 11:47:29,970 [main] INFO  o.a.i.d.s.d.w.r.WALRecoverManager:72 - Start recovering wal. 
+2024-04-12 11:47:29,970 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.StorageEngine:464 - construct a data region instance, the database is root.test.g_0, Thread is 21 
+2024-04-12 11:47:29,970 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.StorageEngine:464 - construct a data region instance, the database is root.test.g_0, Thread is 22 
+2024-04-12 11:47:29,980 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:63 - root.test.g_0 [Compaction][Recover] recovering sequence inner compaction 
+2024-04-12 11:47:29,980 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:63 - root.test.g_0 [Compaction][Recover] recovering sequence inner compaction 
+2024-04-12 11:47:29,980 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:63 - root.test.g_0 [Compaction][Recover] recovering sequence inner compaction 
+2024-04-12 11:47:29,981 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:86 - root.test.g_0 [Compaction][Recover] recover compaction in data region dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/3 
+2024-04-12 11:47:29,981 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:86 - root.test.g_0 [Compaction][Recover] recover compaction in data region dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/4 
+2024-04-12 11:47:29,981 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:86 - root.test.g_0 [Compaction][Recover] recover compaction in data region dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/1 
+2024-04-12 11:47:29,981 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/1/2538 
+2024-04-12 11:47:29,981 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/4/2538 
+2024-04-12 11:47:29,981 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/3/2538 
+2024-04-12 11:47:29,983 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/3/2539 
+2024-04-12 11:47:29,983 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/1/2539 
+2024-04-12 11:47:29,983 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/4/2539 
+2024-04-12 11:47:29,984 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:63 - root.test.g_0 [Compaction][Recover] recovering unsequence inner compaction 
+2024-04-12 11:47:29,984 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:86 - root.test.g_0 [Compaction][Recover] recover compaction in data region dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/unsequence/root.test.g_0/1 
+2024-04-12 11:47:29,984 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:71 - root.test.g_0 [Compaction][Recover] recovering cross compaction 
+2024-04-12 11:47:29,984 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:63 - root.test.g_0 [Compaction][Recover] recovering unsequence inner compaction 
+2024-04-12 11:47:29,984 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:63 - root.test.g_0 [Compaction][Recover] recovering unsequence inner compaction 
+2024-04-12 11:47:29,984 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:86 - root.test.g_0 [Compaction][Recover] recover compaction in data region dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/1 
+2024-04-12 11:47:29,984 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:86 - root.test.g_0 [Compaction][Recover] recover compaction in data region dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/unsequence/root.test.g_0/4 
+2024-04-12 11:47:29,984 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:86 - root.test.g_0 [Compaction][Recover] recover compaction in data region dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/unsequence/root.test.g_0/3 
+2024-04-12 11:47:29,985 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/1/2538 
+2024-04-12 11:47:29,985 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:71 - root.test.g_0 [Compaction][Recover] recovering cross compaction 
+2024-04-12 11:47:29,985 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:71 - root.test.g_0 [Compaction][Recover] recovering cross compaction 
+2024-04-12 11:47:29,985 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:86 - root.test.g_0 [Compaction][Recover] recover compaction in data region dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/3 
+2024-04-12 11:47:29,985 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:86 - root.test.g_0 [Compaction][Recover] recover compaction in data region dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/4 
+2024-04-12 11:47:29,985 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/3/2538 
+2024-04-12 11:47:29,985 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/1/2539 
+2024-04-12 11:47:29,985 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/4/2538 
+2024-04-12 11:47:29,985 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/3/2539 
+2024-04-12 11:47:29,985 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.c.e.r.CompactionRecoverManager:102 - root.test.g_0 [Compaction][Recover] recover compaction in time partition dir /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/sequence/root.test.g_0/4/2539 
+2024-04-12 11:47:30,019 [main] INFO  o.a.i.d.s.d.w.r.WALRecoverManager:100 - Data regions have submitted all unsealed TsFiles, start recovering TsFiles in each wal node. 
+2024-04-12 11:47:30,019 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:170 - new cached thread pool: WAL-Recover 
+2024-04-12 11:47:30,021 [pool-11-IoTDB-WAL-Recover-1] INFO  o.a.i.d.s.d.w.r.WALNodeRecoverTask:82 - Start recovering WAL node in the directory /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/wal/root.test.g_0-1 
+2024-04-12 11:47:30,022 [pool-11-IoTDB-WAL-Recover-2] INFO  o.a.i.d.s.d.w.r.WALNodeRecoverTask:82 - Start recovering WAL node in the directory /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/wal/root.test.g_0-3 
+2024-04-12 11:47:30,022 [pool-11-IoTDB-WAL-Recover-3] INFO  o.a.i.d.s.d.w.r.WALNodeRecoverTask:82 - Start recovering WAL node in the directory /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/wal/root.test.g_0-4 
+2024-04-12 11:47:30,061 [pool-11-IoTDB-WAL-Recover-1] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:137 - new single thread pool: WAL-Serialize(node-root.test.g_0-1) 
+2024-04-12 11:47:30,062 [pool-11-IoTDB-WAL-Recover-1] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:137 - new single thread pool: WAL-Sync(node-root.test.g_0-1) 
+2024-04-12 11:47:30,063 [pool-11-IoTDB-WAL-Recover-1] INFO  o.a.i.d.s.d.w.r.WALNodeRecoverTask:132 - Successfully recover WAL node in the directory /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/wal/root.test.g_0-1, add this node to WALManger. 
+2024-04-12 11:47:30,066 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.DataRegion$DataRegionRecoveryContext:407 - The TsFiles of data region root.test.g_0[1] has recovered 7/7. 
+2024-04-12 11:47:30,068 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.d.DataRegion:585 - The data region root.test.g_0[1] is recovered successfully 
+2024-04-12 11:47:30,070 [pool-10-IoTDB-StorageEngine-1] INFO  o.a.i.d.s.StorageEngine:264 - Data regions have been recovered 1/3 
+2024-04-12 11:47:30,074 [pool-11-IoTDB-WAL-Recover-2] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:137 - new single thread pool: WAL-Serialize(node-root.test.g_0-3) 
+2024-04-12 11:47:30,075 [pool-11-IoTDB-WAL-Recover-2] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:137 - new single thread pool: WAL-Sync(node-root.test.g_0-3) 
+2024-04-12 11:47:30,075 [pool-11-IoTDB-WAL-Recover-2] INFO  o.a.i.d.s.d.w.r.WALNodeRecoverTask:132 - Successfully recover WAL node in the directory /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/wal/root.test.g_0-3, add this node to WALManger. 
+2024-04-12 11:47:30,082 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.DataRegion$DataRegionRecoveryContext:407 - The TsFiles of data region root.test.g_0[3] has recovered 33/33. 
+2024-04-12 11:47:30,083 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.d.DataRegion:585 - The data region root.test.g_0[3] is recovered successfully 
+2024-04-12 11:47:30,084 [pool-10-IoTDB-StorageEngine-3] INFO  o.a.i.d.s.StorageEngine:264 - Data regions have been recovered 2/3 
+2024-04-12 11:47:30,085 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.DataRegion$DataRegionRecoveryContext:407 - The TsFiles of data region root.test.g_0[4] has recovered 31/31. 
+2024-04-12 11:47:30,086 [pool-11-IoTDB-WAL-Recover-3] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:137 - new single thread pool: WAL-Serialize(node-root.test.g_0-4) 
+2024-04-12 11:47:30,086 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.d.DataRegion:585 - The data region root.test.g_0[4] is recovered successfully 
+2024-04-12 11:47:30,087 [pool-11-IoTDB-WAL-Recover-3] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:137 - new single thread pool: WAL-Sync(node-root.test.g_0-4) 
+2024-04-12 11:47:30,087 [pool-10-IoTDB-StorageEngine-2] INFO  o.a.i.d.s.StorageEngine:264 - Data regions have been recovered 3/3 
+2024-04-12 11:47:30,087 [pool-11-IoTDB-WAL-Recover-3] INFO  o.a.i.d.s.d.w.r.WALNodeRecoverTask:132 - Successfully recover WAL node in the directory /data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/wal/root.test.g_0-4, add this node to WALManger. 
+2024-04-12 11:47:30,087 [main] INFO  o.a.i.d.s.d.w.r.WALRecoverManager:140 - Successfully recover all wal nodes. 
+2024-04-12 11:47:30,088 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: TTL-CHECK 
+2024-04-12 11:47:30,089 [main] INFO  o.a.i.d.s.StorageEngine:332 - start ttl check thread successfully. 
+2024-04-12 11:47:30,089 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: Timed-Flush-Seq-Memtable 
+2024-04-12 11:47:30,089 [main] INFO  o.a.i.d.s.StorageEngine:363 - start sequence memtable timed flush check thread successfully. 
+2024-04-12 11:47:30,089 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: Timed-Flush-Unseq-Memtable 
+2024-04-12 11:47:30,090 [main] INFO  o.a.i.d.s.StorageEngine:376 - start unsequence memtable timed flush check thread successfully. 
+2024-04-12 11:47:30,090 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Storage Engine ServerService service is started successfully, which takes 124 ms. 
+2024-04-12 11:47:30,092 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:274 - new thread pool: MPP-Data-Exchange-Task-Executors 
+2024-04-12 11:47:30,099 [main] INFO  o.a.i.d.q.e.e.MPPDataExchangeService:74 - MPPDataExchangeManager init successfully 
+2024-04-12 11:47:30,099 [main] INFO  o.a.i.c.s.ThriftService:110 - IoTDB: start MPP Data exchange manager... 
+2024-04-12 11:47:30,109 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:282 - new SynchronousQueue thread pool: MPPDataExchangeRPC-Processor 
+2024-04-12 11:47:30,110 [MPPDataExchangeRPC-Service] INFO  o.a.i.c.s.AbstractThriftServiceThread:302 - The MPP Data exchange manager service thread begin to run... 
+2024-04-12 11:47:30,210 [main] INFO  o.a.i.c.s.ThriftService:136 - IoTDB: start MPP Data exchange manager successfully, listening on ip 172.20.70.27 port 10740 
+2024-04-12 11:47:30,210 [main] INFO  o.a.i.c.s.RegisterManager:54 - The MPP Data exchange manager service is started successfully, which takes 111 ms. 
+2024-04-12 11:47:30,222 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:170 - new cached thread pool: Driver-Task-Scheduler-Notification 
+2024-04-12 11:47:30,224 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Fragment instance manager service is started successfully, which takes 7 ms. 
+2024-04-12 11:47:30,225 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Temporary Query Data File Service service is started successfully, which takes 0 ms. 
+2024-04-12 11:47:30,227 [main] INFO  o.a.i.c.s.RegisterManager:54 - The UDF Classloader Manager Service service is started successfully, which takes 1 ms. 
+2024-04-12 11:47:30,227 [main] INFO  o.a.i.db.service.DataNode:669 - IoTDB DataNode is setting up, some databases may not be ready now, please wait several seconds... 
+2024-04-12 11:47:30,227 [main] INFO  o.a.i.db.service.DataNode:682 - Wait for all databases ready, which takes 0 ms. 
+2024-04-12 11:47:30,234 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:137 - new single thread pool: Region-Migrate-Pool 
+2024-04-12 11:47:30,234 [main] INFO  o.a.i.d.s.RegionMigrateService$RegionMigratePool:232 - DataNode region migrate pool start 
+2024-04-12 11:47:30,235 [main] INFO  o.a.i.d.s.RegionMigrateService:199 - Region migrate service start 
+2024-04-12 11:47:30,235 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Data Node Region Migrate service service is started successfully, which takes 1 ms. 
+2024-04-12 11:47:30,247 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: Compaction-Worker, thread number: 10 
+2024-04-12 11:47:30,247 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: Compaction-Sub-Task, thread number: 40 
+2024-04-12 11:47:30,251 [main] INFO  o.a.i.d.s.d.c.s.CompactionTaskManager:106 - Compaction task manager started. 
+2024-04-12 11:47:30,251 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Compaction Manager service is started successfully, which takes 4 ms. 
+2024-04-12 11:47:30,252 [main] INFO  o.a.i.d.s.d.m.MigrationTaskManager:78 - tiered storage status: disable 
+2024-04-12 11:47:30,252 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Migration Manager service is started successfully, which takes 0 ms. 
+2024-04-12 11:47:30,260 [main] INFO  o.a.i.c.s.c.SubscriptionConfig:71 - SubscriptionSubtaskExecutorMaxThreadNum: 4 
+2024-04-12 11:47:30,260 [main] INFO  o.a.i.c.s.c.SubscriptionConfig:74 - SubscriptionMaxTabletsPerPrefetching: 16 
+2024-04-12 11:47:30,260 [main] INFO  o.a.i.c.s.c.SubscriptionConfig:76 - SubscriptionPollMaxBlockingTimeMs: 500 
+2024-04-12 11:47:30,260 [main] INFO  o.a.i.c.s.c.SubscriptionConfig:77 - SubscriptionSerializeMaxBlockingTimeMs: 100 
+2024-04-12 11:47:30,260 [main] INFO  o.a.i.c.s.c.SubscriptionConfig:79 - SubscriptionLaunchRetryIntervalMs: 1000 
+2024-04-12 11:47:30,260 [main] INFO  o.a.i.c.s.c.SubscriptionConfig:80 - SubscriptionRecycleUncommittedEventIntervalMs: 240000 
+2024-04-12 11:47:30,260 [main] INFO  o.a.i.c.s.c.SubscriptionConfig:83 - SubscriptionDefaultPollTimeoutMs: 30000 
+2024-04-12 11:47:30,260 [main] INFO  o.a.i.c.s.c.SubscriptionConfig:84 - SubscriptionMinPollTimeoutMs: 500 
+2024-04-12 11:47:30,277 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Subscription Runtime Agent service is started successfully, which takes 18 ms. 
+2024-04-12 11:47:30,277 [main] INFO  o.a.i.c.p.c.PipeConfig:245 - PipeHardlinkBaseDirName: pipe 
+2024-04-12 11:47:30,277 [main] INFO  o.a.i.c.p.c.PipeConfig:246 - PipeHardlinkTsFileDirName: tsfile 
+2024-04-12 11:47:30,277 [main] INFO  o.a.i.c.p.c.PipeConfig:247 - PipeHardlinkWALDirName: wal 
+2024-04-12 11:47:30,277 [main] INFO  o.a.i.c.p.c.PipeConfig:248 - PipeHardLinkWALEnabled: false 
+2024-04-12 11:47:30,277 [main] INFO  o.a.i.c.p.c.PipeConfig:250 - PipeDataStructureTabletRowSize: 2048 
+2024-04-12 11:47:30,277 [main] INFO  o.a.i.c.p.c.PipeConfig:251 - PipeDataStructureTabletMemoryBlockAllocationRejectThreshold: 0.4 
+2024-04-12 11:47:30,277 [main] INFO  o.a.i.c.p.c.PipeConfig:255 - PipeSubtaskExecutorMaxThreadNum: 4 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:256 - PipeSubtaskExecutorBasicCheckPointIntervalByConsumedEventCount: 10000 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:259 - PipeSubtaskExecutorBasicCheckPointIntervalByTimeDuration: 10000 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:262 - PipeSubtaskExecutorPendingQueueMaxBlockingTimeMs: 1000 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:265 - PipeSubtaskExecutorCronHeartbeatEventIntervalSeconds: 20 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:269 - PipeExtractorAssignerDisruptorRingBufferSize: 65536 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:272 - PipeExtractorAssignerDisruptorRingBufferEntrySizeInBytes: 50 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:275 - PipeExtractorMatcherCacheSize: 1024 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:277 - PipeConnectorHandshakeTimeoutMs: 10000 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:278 - PipeConnectorTransferTimeoutMs: 900000 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:279 - PipeConnectorReadFileBufferSize: 8388608 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:280 - PipeConnectorRetryIntervalMs: 1000 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:281 - PipeConnectorPendingQueueSize: 256 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:282 - PipeConnectorRPCThriftCompressionEnabled: false 
+2024-04-12 11:47:30,278 [main] INFO  o.a.i.c.p.c.PipeConfig:285 - PipeLeaderCacheMemoryUsagePercentage: 0.1 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:288 - PipeAsyncConnectorSelectorNumber: 4 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:289 - PipeAsyncConnectorMaxClientNumber: 16 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:291 - SeperatedPipeHeartbeatEnabled: true 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:292 - PipeHeartbeatIntervalSecondsForCollectingPipeMeta: 100 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:295 - PipeMetaSyncerInitialSyncDelayMinutes: 3 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:297 - PipeMetaSyncerSyncIntervalMinutes: 3 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:298 - PipeMetaSyncerAutoRestartPipeCheckIntervalRound: 1 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:301 - PipeAutoRestartEnabled: true 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:303 - PipeAirGapReceiverEnabled: false 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:304 - PipeAirGapReceiverPort: 9780 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:306 - PipeMaxAllowedPendingTsFileEpochPerDataRegion: 2 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:309 - PipeMaxAllowedPinnedMemTableCount: 50 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:310 - PipeMaxAllowedLinkedTsFileCount: 100 
+2024-04-12 11:47:30,279 [main] INFO  o.a.i.c.p.c.PipeConfig:311 - PipeStuckRestartIntervalSeconds: 120 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:313 - PipeMetaReportMaxLogNumPerRound: 10 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:314 - PipeMetaReportMaxLogIntervalRounds: 36 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:315 - PipeTsFilePinMaxLogNumPerRound: 10 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:316 - PipeTsFilePinMaxLogIntervalRounds: 90 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:317 - PipeWalPinMaxLogNumPerRound: 10 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:318 - PipeWalPinMaxLogIntervalRounds: 90 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:320 - PipeMemoryManagementEnabled: true 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:321 - PipeMemoryAllocateMaxRetries: 10 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:322 - PipeMemoryAllocateRetryIntervalInMs: 1000 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:324 - PipeMemoryAllocateMinSizeInBytes: 32 
+2024-04-12 11:47:30,280 [main] INFO  o.a.i.c.p.c.PipeConfig:325 - PipeMemoryAllocateForTsFileSequenceReaderInBytes: 2097152 
+2024-04-12 11:47:30,289 [main] INFO  o.a.i.d.p.a.r.PipePeriodicalJobExecutor:75 - Pipe periodical job PipeTaskAgent#restartAllStuckPipes is registered successfully. Interval: 120 seconds. 
+2024-04-12 11:47:30,290 [main] INFO  o.a.i.d.p.a.r.PipePeriodicalJobExecutor:92 - Pipe periodical job executor is started successfully. 
+2024-04-12 11:47:30,290 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Pipe Runtime Data Node Agent service is started successfully, which takes 13 ms. 
+2024-04-12 11:47:30,290 [main] INFO  o.a.i.db.service.DataNode:608 - IoTDB DataNode has started. 
+2024-04-12 11:47:30,416 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: RatisBgDiskGuardian 
+2024-04-12 11:47:30,502 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.rpc.type = GRPC (default) 
+2024-04-12 11:47:30,507 [main] INFO  o.a.ratis.conf.ConfUtils:53 - raft.grpc.admin.host = null (fallback to raft.grpc.server.host) 
+2024-04-12 11:47:30,508 [main] INFO  o.a.ratis.conf.ConfUtils:53 - raft.grpc.admin.port = 10750 (fallback to raft.grpc.server.port) 
+2024-04-12 11:47:30,508 [main] INFO  o.a.ratis.conf.ConfUtils:53 - raft.grpc.client.host = null (fallback to raft.grpc.server.host) 
+2024-04-12 11:47:30,509 [main] INFO  o.a.ratis.conf.ConfUtils:53 - raft.grpc.client.port = 10750 (fallback to raft.grpc.server.port) 
+2024-04-12 11:47:30,509 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.server.host = null (default) 
+2024-04-12 11:47:30,509 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.server.port = 10750 (custom) 
+2024-04-12 11:47:30,509 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.message.size.max = 512MB (=536870912) (custom) 
+2024-04-12 11:47:30,510 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.log.appender.buffer.byte-limit = 16777216 (custom) 
+2024-04-12 11:47:30,510 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.flow.control.window = 4194304 (custom) 
+2024-04-12 11:47:30,511 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.rpc.request.timeout = 10000ms (custom) 
+2024-04-12 11:47:30,524 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.server.heartbeat.channel = true (default) 
+2024-04-12 11:47:30,527 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.server.async.request.thread.pool.cached = true (default) 
+2024-04-12 11:47:30,527 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.grpc.server.async.request.thread.pool.size = 32 (default) 
+2024-04-12 11:47:30,812 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.datastream.type = DISABLED (default) 
+2024-04-12 11:47:30,814 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.sleep.deviation.threshold = 4000ms (custom) 
+2024-04-12 11:47:30,814 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.close.threshold = 2147483647s (custom) 
+2024-04-12 11:47:30,814 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.leaderelection.leader.step-down.wait-time = 30s (custom) 
+2024-04-12 11:47:30,818 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.storage.dir = [/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/consensus/schema_region] (custom) 
+2024-04-12 11:47:30,818 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.threadpool.proxy.cached = true (default) 
+2024-04-12 11:47:30,819 [main] INFO  o.a.ratis.conf.ConfUtils:46 - raft.server.threadpool.proxy.size = 0 (default) 
+2024-04-12 11:47:30,823 [main] INFO  o.a.r.m.MetricRegistriesLoader:64 - Loaded MetricRegistries class org.apache.iotdb.consensus.ratis.metrics.MetricRegistryManager 
+2024-04-12 11:47:30,833 [main] INFO  o.a.r.s.i.RaftServerProxy:406 - 6: start RPC server 
+2024-04-12 11:47:30,870 [main] INFO  o.a.r.g.s.GrpcService:302 - 6: GrpcService started, listening on 10750 
+2024-04-12 11:47:30,872 [JvmPauseMonitor0] INFO  o.a.r.u.JvmPauseMonitor:146 - JvmPauseMonitor-6: Started 
+2024-04-12 11:47:30,873 [main] INFO  o.a.i.db.service.DataNode:614 - SchemaRegion consensus start successfully, which takes 583 ms. 
+2024-04-12 11:47:30,884 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: IoTConsensusBackgroundTaskExecutor 
+2024-04-12 11:47:30,893 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:245 - new scheduled thread pool: Fragment-Instance-Management 
+2024-04-12 11:47:30,894 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: Fragment-Instance-Notification, thread number: 4 
+2024-04-12 11:47:30,895 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: into-operation-executor, thread number: 2 
+2024-04-12 11:47:30,895 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: model-inference-executor, thread number: 5 
+2024-04-12 11:47:30,900 [main] INFO  o.a.i.c.i.IoTConsensusServerImpl:646 - Recover IoTConsensus server Impl, configuration: [Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.30, port:10760), nodeId=7}, Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}, Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.26, port:10760), nodeId=4}] 
+2024-04-12 11:47:30,909 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:170 - new cached thread pool: LogDispatcher-DataRegion[1] 
+2024-04-12 11:47:30,911 [pool-33-IoTDB-LogDispatcher-DataRegion[1]-1] INFO  o.a.i.c.i.l.LogDispatcher$LogDispatcherThread:330 - Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}: Dispatcher for Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.30, port:10760), nodeId=7} starts 
+2024-04-12 11:47:30,911 [pool-33-IoTDB-LogDispatcher-DataRegion[1]-2] INFO  o.a.i.c.i.l.LogDispatcher$LogDispatcherThread:330 - Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}: Dispatcher for Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.26, port:10760), nodeId=4} starts 
+2024-04-12 11:47:30,913 [main] INFO  o.a.i.c.i.IoTConsensusServerImpl:646 - Recover IoTConsensus server Impl, configuration: [Peer{groupId=DataRegion[3], endpoint=TEndPoint(ip:172.20.70.4, port:10760), nodeId=3}, Peer{groupId=DataRegion[3], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}, Peer{groupId=DataRegion[3], endpoint=TEndPoint(ip:172.20.70.14, port:10760), nodeId=5}] 
+2024-04-12 11:47:30,914 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:170 - new cached thread pool: LogDispatcher-DataRegion[3] 
+2024-04-12 11:47:30,915 [pool-34-IoTDB-LogDispatcher-DataRegion[3]-1] INFO  o.a.i.c.i.l.LogDispatcher$LogDispatcherThread:330 - Peer{groupId=DataRegion[3], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}: Dispatcher for Peer{groupId=DataRegion[3], endpoint=TEndPoint(ip:172.20.70.4, port:10760), nodeId=3} starts 
+2024-04-12 11:47:30,915 [pool-34-IoTDB-LogDispatcher-DataRegion[3]-2] INFO  o.a.i.c.i.l.LogDispatcher$LogDispatcherThread:330 - Peer{groupId=DataRegion[3], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}: Dispatcher for Peer{groupId=DataRegion[3], endpoint=TEndPoint(ip:172.20.70.14, port:10760), nodeId=5} starts 
+2024-04-12 11:47:30,917 [main] INFO  o.a.i.c.i.IoTConsensusServerImpl:646 - Recover IoTConsensus server Impl, configuration: [Peer{groupId=DataRegion[4], endpoint=TEndPoint(ip:172.20.70.30, port:10760), nodeId=7}, Peer{groupId=DataRegion[4], endpoint=TEndPoint(ip:172.20.70.14, port:10760), nodeId=5}, Peer{groupId=DataRegion[4], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}] 
+2024-04-12 11:47:30,920 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:170 - new cached thread pool: LogDispatcher-DataRegion[4] 
+2024-04-12 11:47:30,921 [pool-35-IoTDB-LogDispatcher-DataRegion[4]-1] INFO  o.a.i.c.i.l.LogDispatcher$LogDispatcherThread:330 - Peer{groupId=DataRegion[4], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}: Dispatcher for Peer{groupId=DataRegion[4], endpoint=TEndPoint(ip:172.20.70.30, port:10760), nodeId=7} starts 
+2024-04-12 11:47:30,921 [pool-35-IoTDB-LogDispatcher-DataRegion[4]-2] INFO  o.a.i.c.i.l.LogDispatcher$LogDispatcherThread:330 - Peer{groupId=DataRegion[4], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}: Dispatcher for Peer{groupId=DataRegion[4], endpoint=TEndPoint(ip:172.20.70.14, port:10760), nodeId=5} starts 
+2024-04-12 11:47:30,922 [main] INFO  o.a.i.c.s.ThriftService:110 - IoTDB: start IoTConsensus Service... 
+2024-04-12 11:47:30,929 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:301 - new SynchronousQueue thread pool: IoTConsensusRPC-Processor 
+2024-04-12 11:47:30,930 [IoTConsensusRPC-Service] INFO  o.a.i.c.s.AbstractThriftServiceThread:302 - The IoTConsensus Service service thread begin to run... 
+2024-04-12 11:47:31,030 [main] INFO  o.a.i.c.s.ThriftService:136 - IoTDB: start IoTConsensus Service successfully, listening on ip 172.20.70.27 port 10760 
+2024-04-12 11:47:31,030 [main] INFO  o.a.i.c.s.RegisterManager:54 - The IoTConsensus Service service is started successfully, which takes 108 ms. 
+2024-04-12 11:47:31,030 [main] INFO  o.a.i.db.service.DataNode:620 - DataRegion consensus start successfully, which takes 157 ms. 
+2024-04-12 11:47:31,030 [main] INFO  o.a.i.c.s.m.MetricService:99 - MetricService start to init. 
+2024-04-12 11:47:31,031 [main] INFO  o.a.i.m.AbstractMetricService:93 - Start metric service at level: IMPORTANT 
+2024-04-12 11:47:31,038 [main] INFO  o.a.i.c.s.m.MetricService:61 - Load metric reporters, type: [PROMETHEUS] 
+2024-04-12 11:47:31,351 [main] INFO  o.a.i.m.r.p.PrometheusReporter:91 - PrometheusReporter started, use port 9092 
+2024-04-12 11:47:31,370 [main] INFO  o.a.i.c.s.m.MetricService:102 - MetricService start successfully. 
+2024-04-12 11:47:31,370 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Metrics ServerService service is started successfully, which takes 340 ms. 
+2024-04-12 11:47:31,381 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: MPP-Coordinator-Executor, thread number: 20 
+2024-04-12 11:47:31,381 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:71 - new fixed thread pool: MPP-Coordinator-Write-Executor, thread number: 50 
+2024-04-12 11:47:31,381 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:245 - new scheduled thread pool: MPP-Coordinator-Scheduled-Executor 
+2024-04-12 11:47:31,421 [main] INFO  o.a.i.d.s.m.IoTDBInternalLocalReporter:136 - IoTDBInternalReporter start! 
+2024-04-12 11:47:31,457 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: JVM-GC-Statistics-Monitor 
+2024-04-12 11:47:31,487 [main] INFO  o.a.i.d.p.a.r.PipePeriodicalJobExecutor:75 - Pipe periodical job PipeTsFileResourceManager#ttlCheck() is registered successfully. Interval: 20 seconds. 
+2024-04-12 11:47:31,489 [main] INFO  o.a.i.d.p.a.r.PipePeriodicalJobExecutor:75 - Pipe periodical job PipeMemoryManager#tryExpandAll() is registered successfully. Interval: 180 seconds. 
+2024-04-12 11:47:31,490 [main] INFO  o.a.i.d.p.a.r.PipePeriodicalJobExecutor:75 - Pipe periodical job PipeWALResourceManager#ttlCheck() is registered successfully. Interval: 20 seconds. 
+2024-04-12 11:47:31,493 [main] INFO  o.a.i.c.s.ThriftService:110 - IoTDB: start Internal Service... 
+2024-04-12 11:47:31,499 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:225 - new single scheduled thread pool: ResourceControl-DataRegionDiskStatistics 
+2024-04-12 11:47:31,519 [main] INFO  o.a.i.d.s.r.q.DataNodeSpaceQuotaManager:88 - Space quota limit restored succeeded. {} 
+2024-04-12 11:47:31,525 [main] INFO  o.a.i.d.s.r.q.DataNodeThrottleQuotaManager:149 - Throttle quota limit restored successfully. TThrottleQuotaResp(status:TSStatus(code:200)) 
+2024-04-12 11:47:31,549 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:282 - new SynchronousQueue thread pool: DataNodeInternalRPC-Processor 
+2024-04-12 11:47:31,550 [DataNodeInternalRPC-Service] INFO  o.a.i.c.s.AbstractThriftServiceThread:302 - The Internal Service service thread begin to run... 
+2024-04-12 11:47:31,650 [main] INFO  o.a.i.c.s.ThriftService:136 - IoTDB: start Internal Service successfully, listening on ip 172.20.70.27 port 10730 
+2024-04-12 11:47:31,650 [main] INFO  o.a.i.c.s.RegisterManager:54 - The Internal Service service is started successfully, which takes 157 ms. 
+2024-04-12 11:47:31,651 [main] INFO  o.a.i.c.s.ThriftService:110 - IoTDB: start RPC ServerService... 
+2024-04-12 11:47:31,684 [main] INFO  o.a.i.d.p.t.h.BaseServerContextHandler:49 - Will set ServerContextFactory from com.timecho.iotdb.rpc.WhiteListServerContextFactory  
+2024-04-12 11:47:31,685 [main] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:282 - new SynchronousQueue thread pool: ClientRPC-Processor 
+2024-04-12 11:47:31,687 [ClientRPC-Service] INFO  o.a.i.c.s.AbstractThriftServiceThread:302 - The RPC ServerService service thread begin to run... 
+2024-04-12 11:47:31,786 [main] INFO  o.a.i.c.s.ThriftService:136 - IoTDB: start RPC ServerService successfully, listening on ip 172.20.70.27 port 6667 
+2024-04-12 11:47:31,786 [main] INFO  o.a.i.c.s.RegisterManager:54 - The RPC ServerService service is started successfully, which takes 135 ms. 
+2024-04-12 11:47:31,787 [main] INFO  o.a.i.d.c.r.IoTDBRestServiceDescriptor:65 - Start to read config file file:/data/iotdb/v1321_rc1_0401_mig_da56ef1/sbin/../conf/iotdb-datanode.properties 
+2024-04-12 11:47:31,788 [main] INFO  o.a.i.d.c.r.IoTDBRestServiceDescriptor:65 - Start to read config file file:/data/iotdb/v1321_rc1_0401_mig_da56ef1/sbin/../conf/iotdb-common.properties 
+2024-04-12 11:47:31,789 [main] INFO  o.a.i.d.c.IoTDBStartCheck:424 - Serialize mutable system properties successfully, which takes 0 ms. 
+2024-04-12 11:47:31,793 [main] INFO  o.a.i.db.service.DataNode:234 - IoTDB configuration: 
+	WATERMARK_GROUPED_LSB=GroupBasedLSBMethod;
+	CONFIG_NAME=iotdb-datanode.properties;
+	logger=Logger[org.apache.iotdb.db.conf.IoTDBConfig];
+	MULTI_DIR_STRATEGY_PREFIX=org.apache.iotdb.db.storageengine.rescon.disk.strategy.;
+	CLUSTER_ALLOWED_MULTI_DIR_STRATEGIES=[SequenceStrategy, MaxDiskUsableSpaceFirstStrategy];
+	DEFAULT_MULTI_DIR_STRATEGY=SequenceStrategy;
+	enableMQTTService=false;
+	mqttHost=172.20.70.27;
+	mqttPort=1883;
+	mqttHandlerPoolSize=1;
+	mqttPayloadFormatter=json;
+	mqttMaxMessageSize=1048576;
+	rpcAddress=172.20.70.27;
+	rpcThriftCompressionEnable=false;
+	rpcAdvancedCompressionEnable=false;
+	rpcPort=6667;
+	enableSSL=false;
+	keyStorePath=;
+	keyStorePwd=;
+	rpcSelectorThreadCount=1;
+	rpcMinConcurrentClientNum=8;
+	rpcMaxConcurrentClientNum=65535;
+	allocateMemoryForStorageEngine=6174120345;
+	allocateMemoryForRead=6174120345;
+	allocateMemoryForSchema=2058040115;
+	allocateMemoryForConsensus=2058040115;
+	allocateMemoryForPipe=2058040115;
+	bufferedArraysMemoryProportion=0.6;
+	flushProportion=0.4;
+	rejectProportion=0.8;
+	writeProportionForMemtable=0.76;
+	compactionProportion=0.2;
+	devicePathCacheProportion=0.05;
+	writeMemoryVariationReportProportion=0.001;
+	checkPeriodWhenInsertBlocked=50;
+	maxWaitingTimeWhenInsertBlockedInMs=10000;
+	walMode=ASYNC;
+	maxWalNodesNum=0;
+	walAsyncModeFsyncDelayInMs=1000;
+	walSyncModeFsyncDelayInMs=3;
+	walBufferSize=33554432;
+	walBufferQueueCapacity=500;
+	walFileSizeThresholdInByte=31457280;
+	checkpointFileSizeThresholdInByte=3145728;
+	walMinEffectiveInfoRatio=0.1;
+	walMemTableSnapshotThreshold=8388608;
+	maxWalMemTableSnapshotNum=1;
+	deleteWalFilesPeriodInMs=20000;
+	mlogBufferSize=1048576;
+	syncMlogPeriodInMs=100;
+	tlogBufferSize=1048576;
+	systemDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/system;
+	schemaDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/system/schema;
+	queryDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/systemquery/;
+	extDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/ext;
+	udfDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/ext/udf;
+	udfTemporaryLibDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/ext/udf/tmp;
+	triggerDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/ext/trigger;
+	triggerTemporaryLibDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/ext/trigger/tmp;
+	pipeDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/ext/pipe;
+	pipeTemporaryLibDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/ext/pipe/tmp;
+	extPipeDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/ext/extPipe;
+	mqttDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/ext/mqtt;
+	tierDataDirs=[/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data];;
+	loadTsFileDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/load;
+	multiDirStrategyClassName=org.apache.iotdb.db.storageengine.rescon.disk.strategy.SequenceStrategy;
+	ratisDataRegionSnapshotDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/data/snapshot;
+	consensusDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/consensus;
+	dataRegionConsensusDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/consensus/data_region;
+	invalidDataRegionConsensusDir=data/datanode/consensus/invalid_data_region;
+	schemaRegionConsensusDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/consensus/schema_region;
+	sortTmpDir=/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/tmp;
+	maxMemtableNumber=0;
+	batchSize=100000;
+	flushThreadCount=8;
+	queryThreadCount=8;
+	degreeOfParallelism=4;
+	mergeThresholdOfExplainAnalyze=10;
+	modeMapSizeThreshold=10000;
+	maxAllowedConcurrentQueries=1000;
+	windowEvaluationThreadCount=8;
+	maxPendingWindowEvaluationTasks=64;
+	enableIndex=false;
+	concurrentIndexBuildThread=8;
+	defaultIndexWindowRange=10;
+	indexRootFolder=/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/index;
+	unSeqTsFileSize=0;
+	seqTsFileSize=0;
+	enableTimedFlushSeqMemtable=true;
+	seqMemtableFlushInterval=600000;
+	seqMemtableFlushCheckInterval=30000;
+	enableTimedFlushUnseqMemtable=true;
+	unseqMemtableFlushInterval=600000;
+	unseqMemtableFlushCheckInterval=30000;
+	tvListSortAlgorithm=TIM;
+	avgSeriesPointNumberThreshold=100000;
+	enableSeqSpaceCompaction=true;
+	enableUnseqSpaceCompaction=true;
+	enableCrossSpaceCompaction=true;
+	enableAINodeService=false;
+	sortBufferSize=1048576;
+	innerSequenceCompactionSelector=SIZE_TIERED;
+	innerSeqCompactionPerformer=READ_CHUNK;
+	innerUnsequenceCompactionSelector=SIZE_TIERED;
+	innerUnseqCompactionPerformer=FAST;
+	crossCompactionSelector=REWRITE;
+	crossCompactionPerformer=FAST;
+	compactionPriority=BALANCE;
+	chunkMetadataSizeProportion=0.1;
+	targetCompactionFileSize=2147483648;
+	targetChunkSize=1048576;
+	targetChunkPointNum=100000;
+	chunkSizeLowerBoundInCompaction=10240;
+	chunkPointNumLowerBoundInCompaction=1000;
+	compactionAcquireWriteLockTimeout=60000;
+	fileLimitPerInnerTask=30;
+	fileLimitPerCrossTask=500;
+	totalFileLimitForCompactionTask=5000;
+	maxCrossCompactionCandidateFileSize=5368709120;
+	minCrossCompactionUnseqFileLevel=1;
+	compactionScheduleIntervalInMs=60000;
+	compactionSubmissionIntervalInMs=60000;
+	subCompactionTaskNum=4;
+	compactionScheduleThreadNum=4;
+	enableTsFileValidation=false;
+	candidateCompactionTaskQueueSize=200;
+	innerCompactionTaskSelectionModsFileThreshold=10485760;
+	innerCompactionTaskSelectionDiskRedundancy=0.05;
+	globalCompactionFileInfoCacheSize=1000;
+	metaDataCacheEnable=true;
+	allocateMemoryForBloomFilterCache=6167952;
+	allocateMemoryForTimeSeriesMetaDataCache=1233590478;
+	allocateMemoryForChunkCache=616795239;
+	allocateMemoryForCoordinator=308397619;
+	allocateMemoryForOperators=1233590478;
+	allocateMemoryForDataExchange=1233590478;
+	maxBytesPerFragmentInstance=154198809;
+	allocateMemoryForTimeIndex=1233590478;
+	allocateMemoryForTimePartitionInfo=246964813;
+	enableQueryMemoryEstimation=true;
+	mRemoteSchemaCacheSize=100000;
+	languageVersion=EN;
+	cacheFileReaderClearPeriod=100000;
+	queryTimeoutThreshold=60000;
+	sessionTimeoutThreshold=0;
+	rpcImplClassName=com.timecho.iotdb.service.ClientRPCServiceImplNew;
+	clusterName=defaultCluster;
+	clusterId=489cc5c7-18a5-4f2c-9589-a28093a15edd;
+	dataNodeId=6;
+	chunkBufferPoolEnable=false;
+	enableAutoCreateSchema=true;
+	booleanStringInferType=BOOLEAN;
+	integerStringInferType=DOUBLE;
+	floatingStringInferType=DOUBLE;
+	nanStringInferType=DOUBLE;
+	defaultStorageGroupLevel=1;
+	defaultBooleanEncoding=RLE;
+	defaultInt32Encoding=TS_2DIFF;
+	defaultInt64Encoding=TS_2DIFF;
+	defaultFloatEncoding=GORILLA;
+	defaultDoubleEncoding=GORILLA;
+	defaultTextEncoding=PLAIN;
+	settleThreadNum=1;
+	crossCompactionFileSelectionTimeBudget=30000;
+	mergeIntervalSec=0;
+	compactionWriteThroughputMbPerSec=16;
+	compactionThreadCount=10;
+	continuousQueryThreadNum=4;
+	continuousQueryMinimumEveryInterval=1000;
+	intoOperationBufferSizeInByte=104857600;
+	selectIntoInsertTabletPlanRowLimit=10000;
+	intoOperationExecutionThreadCount=2;
+	tsFileStorageFs=LOCAL;
+	enableHDFS=false;
+	coreSitePath=/etc/hadoop/conf/core-site.xml;
+	hdfsSitePath=/etc/hadoop/conf/hdfs-site.xml;
+	hdfsIp=localhost;
+	hdfsPort=9000;
+	dfsNameServices=hdfsnamespace;
+	dfsHaNamenodes=nn1,nn2;
+	dfsHaAutomaticFailoverEnabled=true;
+	dfsClientFailoverProxyProvider=org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider;
+	useKerberos=false;
+	kerberosKeytabFilePath=/path;
+	kerberosPrincipal=your principal;
+	defaultFillInterval=-1;
+	primitiveArraySize=64;
+	timeIndexLevel=DEVICE_TIME_INDEX;
+	thriftServerAwaitTimeForStopService=60;
+	tagAttributeFlushInterval=1000;
+	enablePartialInsert=true;
+	enable13DataInsertAdapt=false;
+	udfInitialByteArrayLengthForMemoryControl=48;
+	udfMemoryBudgetInMB=30.0;
+	udfReaderMemoryBudgetInMB=10.0;
+	udfTransformerMemoryBudgetInMB=10.0;
+	udfCollectorMemoryBudgetInMB=10.0;
+	thriftMaxFrameSize=536870912;
+	thriftDefaultBufferSize=1024;
+	slowQueryThreshold=30000;
+	patternMatchingThreshold=1000000;
+	enableRpcService=true;
+	ioTaskQueueSizeForFlushing=10;
+	dataRegionNum=1;
+	recoveryLogIntervalInMs=5000;
+	enableSeparateData=true;
+	deviceIDTransformationMethod=Plain;
+	enableIDTableLogFile=false;
+	cachedMNodeSizeInPBTreeMode=-1;
+	minimumSegmentInPBTree=0;
+	pageCacheSizeInPBTree=1024;
+	pbTreeLogSize=16384;
+	maxMeasurementNumOfInternalRequest=10000;
+	internalAddress=172.20.70.27;
+	internalPort=10730;
+	aiNodePort=10780;
+	dataRegionConsensusPort=10760;
+	schemaRegionConsensusPort=10750;
+	seedConfigNode=TEndPoint(ip:172.20.70.5, port:10710);
+	joinClusterRetryIntervalMs=5000;
+	dataRegionConsensusProtocolClass=org.apache.iotdb.consensus.iot.IoTConsensus;
+	schemaRegionConsensusProtocolClass=org.apache.iotdb.consensus.ratis.RatisConsensus;
+	seriesPartitionExecutorClass=org.apache.iotdb.commons.partition.executor.hash.BKDRHashExecutor;
+	seriesPartitionSlotNum=1000;
+	mppDataExchangePort=10740;
+	mppDataExchangeCorePoolSize=10;
+	mppDataExchangeMaxPoolSize=10;
+	mppDataExchangeKeepAliveTimeInMs=1000;
+	connectionTimeoutInMS=60000;
+	selectorNumOfClientManager=2;
+	maxClientNumForEachNode=300;
+	partitionCacheSize=1000;
+	authorCacheSize=100;
+	authorCacheExpireTime=30;
+	triggerForwardMaxQueueNumber=8;
+	triggerForwardMaxSizePerQueue=2000;
+	triggerForwardBatchSize=50;
+	triggerForwardHTTPPoolSize=200;
+	triggerForwardHTTPPOOLMaxPerRoute=20;
+	triggerForwardMQTTPoolSize=4;
+	retryNumToFindStatefulTrigger=3;
+	coordinatorReadExecutorSize=20;
+	coordinatorWriteExecutorSize=50;
+	schemaMemoryProportion=[I@1846ad0f;
+	allocateMemoryForSchemaRegion=1029020057;
+	allocateMemoryForSchemaCache=823216046;
+	allocateMemoryForPartitionCache=205804011;
+	dataNodeSchemaCacheEvictionPolicy=FIFO;
+	readConsistencyLevel=strong;
+	driverTaskExecutionTimeSliceInMs=200;
+	throttleThreshold=53687091200;
+	cacheWindowTimeInMs=10000;
+	dataRatisConsensusLogAppenderBufferSizeMax=16777216;
+	schemaRatisConsensusLogAppenderBufferSizeMax=16777216;
+	dataRatisConsensusSnapshotTriggerThreshold=400000;
+	schemaRatisConsensusSnapshotTriggerThreshold=400000;
+	dataRatisConsensusLogUnsafeFlushEnable=false;
+	schemaRatisConsensusLogUnsafeFlushEnable=false;
+	dataRatisConsensusLogForceSyncNum=128;
+	schemaRatisConsensusLogForceSyncNum=128;
+	dataRatisConsensusLogSegmentSizeMax=25165824;
+	schemaRatisConsensusLogSegmentSizeMax=25165824;
+	dataRatisConsensusGrpcFlowControlWindow=4194304;
+	schemaRatisConsensusGrpcFlowControlWindow=4194304;
+	dataRatisConsensusGrpcLeaderOutstandingAppendsMax=128;
+	schemaRatisConsensusGrpcLeaderOutstandingAppendsMax=128;
+	dataRatisConsensusLeaderElectionTimeoutMinMs=2000;
+	schemaRatisConsensusLeaderElectionTimeoutMinMs=2000;
+	dataRatisConsensusLeaderElectionTimeoutMaxMs=4000;
+	schemaRatisConsensusLeaderElectionTimeoutMaxMs=4000;
+	cqMinEveryIntervalInMs=1000;
+	dataRatisConsensusRequestTimeoutMs=10000;
+	schemaRatisConsensusRequestTimeoutMs=10000;
+	dataRatisConsensusMaxRetryAttempts=10;
+	schemaRatisConsensusMaxRetryAttempts=10;
+	dataRatisConsensusInitialSleepTimeMs=100;
+	schemaRatisConsensusInitialSleepTimeMs=100;
+	dataRatisConsensusMaxSleepTimeMs=10000;
+	schemaRatisConsensusMaxSleepTimeMs=10000;
+	dataRatisConsensusPreserveWhenPurge=1000;
+	schemaRatisConsensusPreserveWhenPurge=1000;
+	ratisFirstElectionTimeoutMinMs=50;
+	ratisFirstElectionTimeoutMaxMs=150;
+	dataRatisLogMax=21474836480;
+	schemaRatisLogMax=2147483648;
+	dataRatisPeriodicSnapshotInterval=86400;
+	schemaRatisPeriodicSnapshotInterval=86400;
+	enableAuditLog=false;
+	auditLogStorage=[IOTDB, LOGGER];
+	auditLogOperation=[DML, DDL, QUERY];
+	enableAuditLogForNativeInsertApi=true;
+	enableWhiteList=false;
+	customizedProperties={};
+	maxLogEntriesNumPerBatch=1024;
+	maxSizePerBatch=16777216;
+	maxPendingBatchesNum=5;
+	maxMemoryRatioForQueue=0.6;
+	maxAllocateMemoryRatioForLoad=0.8;
+	loadTsFileAnalyzeSchemaBatchFlushTimeSeriesNumber=4096;
+	loadTsFileAnalyzeSchemaMemorySizeInBytes=0;
+	loadMemoryAllocateRetryIntervalMs=1000;
+	loadMemoryAllocateMaxRetries=5;
+	loadCleanupTaskExecutionDelayTimeSeconds=1800;
+	pipeReceiverFileDirs=[/data/iotdb/v1321_rc1_0401_mig_da56ef1/data/datanode/system/pipe/receiver];
+	quotaEnable=false;
+	RateLimiterType=FixedIntervalRateLimiter;
+	migrateThreadCount=1;
+	spaceUsageThresholds=[D@5597ca3;
+	tierFullPolicy=NULL;
+	enableObjectStorage=false;
+	objectStorageUploadThroughputBytesPerSec=10485760;
+	osConfig=com.timecho.iotdb.os.conf.ObjectStorageConfig@31b741e2; 
+2024-04-12 11:47:31,793 [main] INFO  o.a.i.db.service.DataNode:235 - Congratulations, IoTDB DataNode is set up successfully. Now, enjoy yourself! 
+2024-04-12 11:47:33,770 [reactor-http-epoll-2] INFO  o.a.i.c.c.IoTDBThreadPoolFactory:137 - new single thread pool: FlushTask-Submit-Pool 
+2024-04-12 11:47:38,494 [Query-Worker-Thread-7$20240412_034737_00003_3.4.0.2] INFO  o.a.i.d.s.b.TimeSeriesMetadataCache:86 - TimeSeriesMetadataCache size = 1233590478 
+2024-04-12 11:47:38,498 [Query-Worker-Thread-2$20240412_034737_00003_3.4.0.3] INFO  o.a.i.d.s.b.BloomFilterCache:56 - BloomFilterCache size = 6167952 
+2024-04-12 11:47:44,118 [pool-43-IoTDB-ClientRPC-Processor-1] INFO  o.a.i.d.p.s.SessionManager:125 - IoTDB: Login status: Login successfully. User : root, opens Session-1-root:172.20.70.3:47846 
+2024-04-12 11:47:44,212 [pool-43-IoTDB-ClientRPC-Processor-1] INFO  o.a.i.d.p.t.i.ClientRPCServiceImpl:1201 - IoTDB server version: 1.3.2-SNAPSHOT (Build: da56ef1) 
+2024-04-12 11:47:44,249 [pool-43-IoTDB-ClientRPC-Processor-1$20240412_034744_00000_6] INFO  o.a.i.c.conf.CommonConfig:495 - Set system mode from Running to ReadOnly. 
+2024-04-12 11:47:44,249 [pool-43-IoTDB-ClientRPC-Processor-1$20240412_034744_00000_6] WARN  o.a.i.c.conf.CommonConfig:501 - Change system status to ReadOnly! Only query statements are permitted! 
+2024-04-12 11:48:08,678 [pool-36-IoTDB-IoTConsensusRPC-Processor-1] INFO  o.a.i.c.i.IoTConsensusServerImpl:566 - [IoTConsensus] build sync log channel to Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.4, port:10760), nodeId=3} with initialSyncIndex 2000020 
+2024-04-12 11:48:08,678 [pool-36-IoTDB-IoTConsensusRPC-Processor-1] INFO  o.a.i.c.i.IoTConsensusServerImpl:574 - [IoTConsensus] persist new configuration: [Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.30, port:10760), nodeId=7}, Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}, Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.26, port:10760), nodeId=4}, Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.4, port:10760), nodeId=3}] 
+2024-04-12 11:48:08,679 [pool-33-IoTDB-LogDispatcher-DataRegion[1]-3] INFO  o.a.i.c.i.l.LogDispatcher$LogDispatcherThread:330 - Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.27, port:10760), nodeId=6}: Dispatcher for Peer{groupId=DataRegion[1], endpoint=TEndPoint(ip:172.20.70.4, port:10760), nodeId=3} starts 
+2024-04-12 11:48:29,980 [pool-9-IoTDB-Compaction-Schedule-1] INFO  o.a.i.d.s.d.c.s.i.RewriteCrossSpaceCompactionSelector:346 - InsertionCrossSpaceCompaction [root.test.g_0-1] Total source files: 5 seqFiles, 0 unseqFiles. Candidate source files: 5 seqFiles, 0 unseqFiles. Cannot select any files because they do not meet the conditions or may be occupied by other compaction threads. 
+2024-04-12 11:48:29,980 [pool-9-IoTDB-Compaction-Schedule-2] INFO  o.a.i.d.s.d.c.s.i.RewriteCrossSpaceCompactionSelector:346 - InsertionCrossSpaceCompaction [root.test.g_0-3] Total source files: 31 seqFiles, 0 unseqFiles. Candidate source files: 31 seqFiles, 0 unseqFiles. Cannot select any files because they do not meet the conditions or may be occupied by other compaction threads. 
+2024-04-12 11:48:29,980 [pool-9-IoTDB-Compaction-Schedule-3] INFO  o.a.i.d.s.d.c.s.i.RewriteCrossSpaceCompactionSelector:346 - InsertionCrossSpaceCompaction [root.test.g_0-4] Total source files: 29 seqFiles, 0 unseqFiles. Candidate source files: 29 seqFiles, 0 unseqFiles. Cannot select any files because they do not meet the conditions or may be occupied by other compaction threads. 

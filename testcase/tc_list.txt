@@ -1,0 +1,5 @@
+tc1_TIMECHODB_388_wal_stop_dn.sh
+tc2_TIMECHODB_456_466_system_reject.sh
+tc3_iotdb_5878_add_cn_fail.sh
+tc4_query_ip_iotdb_5878_add_cn_fail.sh
+tc5_timecho_499_show_query_processlist.sh

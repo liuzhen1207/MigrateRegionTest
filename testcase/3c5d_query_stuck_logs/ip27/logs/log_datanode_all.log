@@ -1,0 +1,36 @@
+2024-08-29 00:27:24,812 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-1 Start ttl checking. 
+2024-08-29 00:27:24,814 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-1 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 00:27:24,814 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-3 Start ttl checking. 
+2024-08-29 00:27:24,814 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-3 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 00:27:24,814 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-4 Start ttl checking. 
+2024-08-29 00:27:24,814 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-4 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 02:27:24,814 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-1 Start ttl checking. 
+2024-08-29 02:27:24,815 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-1 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 02:27:24,815 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-3 Start ttl checking. 
+2024-08-29 02:27:24,815 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-3 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 02:27:24,815 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-4 Start ttl checking. 
+2024-08-29 02:27:24,815 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-4 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 04:27:24,815 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-1 Start ttl checking. 
+2024-08-29 04:27:24,816 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-1 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 04:27:24,816 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-3 Start ttl checking. 
+2024-08-29 04:27:24,816 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-3 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 04:27:24,816 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-4 Start ttl checking. 
+2024-08-29 04:27:24,816 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-4 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 06:27:24,817 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-1 Start ttl checking. 
+2024-08-29 06:27:24,817 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-1 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 06:27:24,817 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-3 Start ttl checking. 
+2024-08-29 06:27:24,817 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-3 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 06:27:24,817 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-4 Start ttl checking. 
+2024-08-29 06:27:24,817 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-4 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 08:27:24,817 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-1 Start ttl checking. 
+2024-08-29 08:27:24,818 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-1 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 08:27:24,818 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-3 Start ttl checking. 
+2024-08-29 08:27:24,818 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-3 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 08:27:24,818 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-4 Start ttl checking. 
+2024-08-29 08:27:24,818 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-4 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 10:27:24,819 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-1 Start ttl checking. 
+2024-08-29 10:27:24,819 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-1 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 10:27:24,819 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-3 Start ttl checking. 
+2024-08-29 10:27:24,819 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-3 Totally select 0 all-outdated files and 0 partial-outdated files. 
+2024-08-29 10:27:24,819 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2713 - [TTL] root.test.g_0-4 Start ttl checking. 
+2024-08-29 10:27:24,820 [pool-12-IoTDB-Compaction-Schedule-5] INFO  o.a.i.d.s.d.DataRegion:2735 - [TTL] root.test.g_0-4 Totally select 0 all-outdated files and 0 partial-outdated files. 

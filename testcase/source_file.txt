@@ -1,0 +1,24 @@
+function set_sys_conf()
+{
+   local v_ip=$1
+   local db_dir=$2
+   # 定义远程机器的地址、用户名和要操作的文件
+   local remote_host="${u_name}@${v_ip}"
+   local remote_file="${db_dir}/conf/iotdb-system.properties"
+   local search_str=$3
+   local content=$4
+
+# 定义远程命令
+   remote_grep="ssh $remote_host grep -q '$search_str' '$remote_file'"
+   remote_sed="ssh $remote_host \"sed -i 's|$search_str|$content|g' '$remote_file'\""
+   remote_echo="ssh $remote_host 'echo \"$content\" >> \"$remote_file\"'"
+
+# 检查文件是否包含字符串
+        if eval $remote_grep; then
+            # 如果字符串存在，则使用sed命令进行更新
+            eval $remote_sed
+        else
+            # 如果字符串不存在，则追加内容
+            eval $remote_echo
+        fi
+}

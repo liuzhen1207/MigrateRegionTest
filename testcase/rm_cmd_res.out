@@ -1,0 +1,1 @@
+Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 1006: TSStatus(code:1006, message:Submit RemoveDataNodesProcedure failed, because when there are other unknown or readonly nodes in the consensus group that are not remove nodes, the remove operation cannot be performed for security reasons. Please check the status of the node 5 and ensure it is running.)

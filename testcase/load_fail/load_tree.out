@@ -1,0 +1,282 @@
+---------------------
+Start Loading TsFile
+---------------------
+Starting...
+Load remotely.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Successfully transferred file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739781754979-749-9-2.tsfile
+Imported [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739781754979-749-9-2.tsfile ] file successfully!
+Processed success file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739781754979-749-9-2.tsfile ] successfully!
+Successfully transferred file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739775221765-160-11-7.tsfile
+Imported [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739775221765-160-11-7.tsfile ] file successfully!
+Processed success file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739775221765-160-11-7.tsfile ] successfully!
+Successfully transferred file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739780533653-667-8-2.tsfile
+Imported [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739780533653-667-8-2.tsfile ] file successfully!
+Processed success file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739780533653-667-8-2.tsfile ] successfully!
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739776258106-324-12-3.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739776258106-324-12-3.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739776258106-324-12-3.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739785080092-1120-12-6.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739785080092-1120-12-6.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739785080092-1120-12-6.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739775473527-198-12-5.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739775473527-198-12-5.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739775473527-198-12-5.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739782057470-784-11-5.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739782057470-784-11-5.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739782057470-784-11-5.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739790131443-1438-12-1.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739790131443-1438-12-1.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739790131443-1438-12-1.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739784715621-1088-12-6.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739784715621-1088-12-6.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739784715621-1088-12-6.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739790940995-1470-12-1.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739790940995-1470-12-1.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739790940995-1470-12-1.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739786458851-1210-12-6.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739786458851-1210-12-6.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/7/0/1739786458851-1210-12-6.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739792784688-1542-6-1.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739792784688-1542-6-1.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739792784688-1542-6-1.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739785559274-1156-13-5.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739785559274-1156-13-5.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739785559274-1156-13-5.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739775032843-131-10-6.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739775032843-131-10-6.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739775032843-131-10-6.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739775472839-198-10-7.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739775472839-198-10-7.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739775472839-198-10-7.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739785797781-1187-13-5.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739785797781-1187-13-5.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739785797781-1187-13-5.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739782480530-835-12-7.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739782480530-835-12-7.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739782480530-835-12-7.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739791702821-1495-10-4.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739791702821-1495-10-4.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739791702821-1495-10-4.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739794816454-1665-2-0.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739794816454-1665-2-0.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739794816454-1665-2-0.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739788385504-1345-10-4.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739788385504-1345-10-4.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739788385504-1345-10-4.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739780717359-681-11-7.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739780717359-681-11-7.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739780717359-681-11-7.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Connect is abort, try to reconnect, max retry count: 3
+The 1th retry will after 2 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 1th reconnect failed
+The 2th retry will after 4 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 2th reconnect failed
+The 3th retry will after 6 seconds.
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739780289711-651-11-6.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739780289711-651-11-6.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739780289711-651-11-6.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+The 3th reconnect failed
+Failed to import [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739783073286-896-12-6.tsfile ] file: Network error when seal file /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739783073286-896-12-6.tsfile, because java.net.SocketTimeoutException: Read timed out.
+Processed fail file [ /data_bk/load_mig_backup/data/datanode/data/sequence/root.test.g_0/6/0/1739783073286-896-12-6.tsfile ] successfully!
+Handshake success. Target server ip: 172.20.70.4, port: 6667
+Successfully load 3 tsfile(s) (--on_success operation(s): 3 succeed, 0 failed)
+Failed to load 20 file(s) (--on_fail operation(s): 20 succeed, 0 failed)
+Unprocessed 0 file(s), due to unexpected exceptions
+For more details, please check the log.
+Total operation time: 40279632 ms.
+Work has been completed!

@@ -1,0 +1,9 @@
++ for i in '{1..10}'
++ sh -x tc1_v1361_2bm_remove_dn_20251112.sh
++ sleep 3
++ for i in '{1..10}'
++ sh -x tc1_v1361_2bm_remove_dn_20251112.sh
+run_10_tc1.sh: line 2:  1077 Killed                  sh -x tc1_v1361_2bm_remove_dn_20251112.sh > 1125_v1342rc4_tc${i}.out 2>&1
++ sleep 3
++ for i in '{1..10}'
++ sh -x tc1_v1361_2bm_remove_dn_20251112.sh

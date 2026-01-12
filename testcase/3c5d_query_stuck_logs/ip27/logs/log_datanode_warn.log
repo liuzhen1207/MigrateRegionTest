@@ -1,0 +1,140 @@
+2024-08-28 18:29:13,793 [pool-24-IoTDB-MPP-Data-Exchange-Task-Executors-3$20240828_102911_00050_3.5.0] WARN  o.a.i.d.q.e.e.s.SinkChannel$SendNewDataBlockEventTask:517 - Failed to send new data block event, attempt times: 1 
+org.apache.thrift.TException: Error in calling method onNewDataBlockEvent, because: Error in calling method recv_onNewDataBlockEvent, because: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.onNewDataBlockEvent(<generated>)
+	at org.apache.iotdb.db.queryengine.execution.exchange.sink.SinkChannel$SendNewDataBlockEventTask.run(SinkChannel.java:514)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: org.apache.thrift.TException: Error in calling method recv_onNewDataBlockEvent, because: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.recv_onNewDataBlockEvent(<generated>)
+	at org.apache.iotdb.mpp.rpc.thrift.MPPDataExchangeService$Client.onNewDataBlockEvent(MPPDataExchangeService.java:134)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$onNewDataBlockEvent$23(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 7 common frames omitted
+Caused by: org.apache.thrift.TException: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.receiveBase(<generated>)
+	at org.apache.iotdb.mpp.rpc.thrift.MPPDataExchangeService$Client.recv_onNewDataBlockEvent(MPPDataExchangeService.java:147)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$recv_onNewDataBlockEvent$9(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 13 common frames omitted
+Caused by: org.apache.thrift.TApplicationException: Internal error processing onNewDataBlockEvent
+	at org.apache.thrift.TServiceClient.receiveBase(TServiceClient.java:79)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$receiveBase$26(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 19 common frames omitted
+2024-08-28 18:29:13,794 [pool-24-IoTDB-MPP-Data-Exchange-Task-Executors-4$20240828_102911_00050_3.5.0] WARN  o.a.i.d.q.e.e.s.SinkChannel$SendNewDataBlockEventTask:517 - Failed to send new data block event, attempt times: 1 
+org.apache.thrift.TException: Error in calling method onNewDataBlockEvent, because: Error in calling method recv_onNewDataBlockEvent, because: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.onNewDataBlockEvent(<generated>)
+	at org.apache.iotdb.db.queryengine.execution.exchange.sink.SinkChannel$SendNewDataBlockEventTask.run(SinkChannel.java:514)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: org.apache.thrift.TException: Error in calling method recv_onNewDataBlockEvent, because: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.recv_onNewDataBlockEvent(<generated>)
+	at org.apache.iotdb.mpp.rpc.thrift.MPPDataExchangeService$Client.onNewDataBlockEvent(MPPDataExchangeService.java:134)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$onNewDataBlockEvent$23(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 7 common frames omitted
+Caused by: org.apache.thrift.TException: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.receiveBase(<generated>)
+	at org.apache.iotdb.mpp.rpc.thrift.MPPDataExchangeService$Client.recv_onNewDataBlockEvent(MPPDataExchangeService.java:147)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$recv_onNewDataBlockEvent$9(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 13 common frames omitted
+Caused by: org.apache.thrift.TApplicationException: Internal error processing onNewDataBlockEvent
+	at org.apache.thrift.TServiceClient.receiveBase(TServiceClient.java:79)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$receiveBase$26(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 19 common frames omitted
+2024-08-28 18:29:13,796 [pool-24-IoTDB-MPP-Data-Exchange-Task-Executors-8$20240828_102911_00050_3.5.0] WARN  o.a.i.d.q.e.e.s.SinkChannel$SendNewDataBlockEventTask:517 - Failed to send new data block event, attempt times: 1 
+org.apache.thrift.TException: Error in calling method onNewDataBlockEvent, because: Error in calling method recv_onNewDataBlockEvent, because: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.onNewDataBlockEvent(<generated>)
+	at org.apache.iotdb.db.queryengine.execution.exchange.sink.SinkChannel$SendNewDataBlockEventTask.run(SinkChannel.java:514)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: org.apache.thrift.TException: Error in calling method recv_onNewDataBlockEvent, because: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.recv_onNewDataBlockEvent(<generated>)
+	at org.apache.iotdb.mpp.rpc.thrift.MPPDataExchangeService$Client.onNewDataBlockEvent(MPPDataExchangeService.java:134)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$onNewDataBlockEvent$23(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 7 common frames omitted
+Caused by: org.apache.thrift.TException: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.receiveBase(<generated>)
+	at org.apache.iotdb.mpp.rpc.thrift.MPPDataExchangeService$Client.recv_onNewDataBlockEvent(MPPDataExchangeService.java:147)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$recv_onNewDataBlockEvent$9(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 13 common frames omitted
+Caused by: org.apache.thrift.TApplicationException: Internal error processing onNewDataBlockEvent
+	at org.apache.thrift.TServiceClient.receiveBase(TServiceClient.java:79)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$receiveBase$26(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 19 common frames omitted
+2024-08-28 18:29:13,796 [pool-24-IoTDB-MPP-Data-Exchange-Task-Executors-5$20240828_102911_00050_3.5.0] WARN  o.a.i.d.q.e.e.s.SinkChannel$SendNewDataBlockEventTask:517 - Failed to send new data block event, attempt times: 1 
+org.apache.thrift.TException: Error in calling method onNewDataBlockEvent, because: Error in calling method recv_onNewDataBlockEvent, because: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.onNewDataBlockEvent(<generated>)
+	at org.apache.iotdb.db.queryengine.execution.exchange.sink.SinkChannel$SendNewDataBlockEventTask.run(SinkChannel.java:514)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: org.apache.thrift.TException: Error in calling method recv_onNewDataBlockEvent, because: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.recv_onNewDataBlockEvent(<generated>)
+	at org.apache.iotdb.mpp.rpc.thrift.MPPDataExchangeService$Client.onNewDataBlockEvent(MPPDataExchangeService.java:134)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$onNewDataBlockEvent$23(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 7 common frames omitted
+Caused by: org.apache.thrift.TException: Error in calling method receiveBase, because: Internal error processing onNewDataBlockEvent
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:58)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.receiveBase(<generated>)
+	at org.apache.iotdb.mpp.rpc.thrift.MPPDataExchangeService$Client.recv_onNewDataBlockEvent(MPPDataExchangeService.java:147)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$recv_onNewDataBlockEvent$9(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 13 common frames omitted
+Caused by: org.apache.thrift.TApplicationException: Internal error processing onNewDataBlockEvent
+	at org.apache.thrift.TServiceClient.receiveBase(TServiceClient.java:79)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed.CGLIB$receiveBase$26(<generated>)
+	at org.apache.iotdb.commons.client.sync.SyncDataNodeMPPDataExchangeServiceClient$$EnhancerByCGLIB$$c2c073ed$$FastClassByCGLIB$$ec041362.invoke(<generated>)
+	at net.sf.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:228)
+	at org.apache.iotdb.commons.client.sync.SyncThriftClientWithErrorHandler.intercept(SyncThriftClientWithErrorHandler.java:54)
+	... 19 common frames omitted

@@ -263,7 +263,7 @@ function stop_coord_dn()
                             fi
                             t2=`date +%s`
                             t_elp=$((t2-t1))
-                            if [[ ${t_elp} -gt 300 ]];then
+                            if [[ ${t_elp} -gt 600 ]];then
                                let fail_flag++
                                return 0
                             fi

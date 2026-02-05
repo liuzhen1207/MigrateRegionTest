@@ -4,7 +4,8 @@ conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
 u_name=`cat ${conf_file}|grep u_name|awk -F '=' '{print $2}'`
 db_sys_admin=root
-db_sec_admin=security_admin
+db_sec_admin=root
+res_root_pw=TimechoDB@2021
 db_dir=`cat ${conf_file}|grep ^db_dir|awk -F '=' '{print $2}'`
 iotdb_host=`cat ${conf_file}|grep test_ip|awk -F '=' '{print $2}'`
 v_cur_db=`cat ${conf_file}|grep v_cur_db|awk -F '=' '{print $2}'`
@@ -15,9 +16,15 @@ prepare_env_dir="${cur_dir}/../prepare_env"
 check_res_dir="${cur_dir}/../check_res"
 SCRIPT_NAME=$(basename "$0")
 seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
+v_seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
-bm_dir=`cat ${conf_file}|grep bm_v13_dir|awk -F '=' '{print $2}'`
+readonly_dn_ip=`tail -1 ${nodeinfo_dir}/datanode.txt`
+remove_dn_ip=${readonly_dn_ip}
+bm_dir=`cat ${conf_file}|grep bm_ssl_dir|awk -F '=' '{print $2}'`
+bm_conf_name=tree_table
+bm_conf="${cur_dir}/../bm_conf_backup/v20/${bm_conf_name}"
+bm_conn_pw=TimechoDB@2021
 cn_num=3
 dn_num=5
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode.txt > ${nodeinfo_dir}/datanode.txt
@@ -30,6 +37,9 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+# tc1:all Running
+# tc2:1 unknown
+# tc3:1 read only
 function clean_env()
 {
    #clean env
@@ -65,13 +75,15 @@ function set_sys_conf()
 }
 function set_conf()
 {
+v_seed_cn_name=`ssh ${u_name}@${v_seed_cn_ip} "hostname"`:10710
   exec 3<${nodeinfo_dir}/confignode.txt
   while read line <&3
   do
      ssh ${u_name}@${line} "sed -i 's/#ON_HEAP_MEMORY=.*/ON_HEAP_MEMORY=\"2G\"/g' ${db_dir}/conf/confignode-env.sh"
      ssh ${u_name}@${line} "sed -i 's/#OFF_HEAP_MEMORY=.*/OFF_HEAP_MEMORY=\"1G\"/g' ${db_dir}/conf/confignode-env.sh"
-set_sys_conf ${line} ${db_dir} ".*cn_seed_config_node=.*" "cn_seed_config_node=${seed_cn_ip}"
-set_sys_conf ${line} ${db_dir} ".*cn_internal_address=.*" "cn_internal_address=${line}"
+v_line_hostname=`ssh ${u_name}@${line} "hostname"`
+set_sys_conf ${line} ${db_dir} ".*cn_seed_config_node=.*" "cn_seed_config_node=${v_seed_cn_name}"
+set_sys_conf ${line} ${db_dir} ".*cn_internal_address=.*" "cn_internal_address=${v_line_hostname}"
 set_sys_conf ${line} ${db_dir} ".*cn_metric_reporter_list=.*" "cn_metric_reporter_list=PROMETHEUS"
 set_sys_conf ${line} ${db_dir} ".*cn_metric_level=.*" "cn_metric_level=IMPORTANT"
 set_sys_conf ${line} ${db_dir} ".*cn_metric_prometheus_reporter_port=.*" "cn_metric_prometheus_reporter_port=9081"
@@ -79,8 +91,8 @@ set_sys_conf ${line} ${db_dir} ".*schema_replication_factor=.*" "schema_replicat
 set_sys_conf ${line} ${db_dir} ".*data_replication_factor=.*" "data_replication_factor=2"
 set_sys_conf ${line} ${db_dir} ".*schema_region_group_extension_policy=.*" "schema_region_group_extension_policy=CUSTOM"
 set_sys_conf ${line} ${db_dir} ".*data_region_group_extension_policy=.*" "data_region_group_extension_policy=CUSTOM"
-set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=1"
-set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=5"
+set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=5"
+set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=10"
   done
 
   exec 3<${nodeinfo_dir}/datanode.txt
@@ -88,9 +100,10 @@ set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*"
   do
      ssh ${u_name}@${line} "sed -i 's/#ON_HEAP_MEMORY=.*/ON_HEAP_MEMORY=\"20G\"/g' ${db_dir}/conf/datanode-env.sh"
      ssh ${u_name}@${line} "sed -i 's/#OFF_HEAP_MEMORY=.*/OFF_HEAP_MEMORY=\"2G\"/g' ${db_dir}/conf/datanode-env.sh"
-set_sys_conf ${line} ${db_dir} ".*dn_seed_config_node=.*" "dn_seed_config_node=${seed_cn_ip}"
-set_sys_conf ${line} ${db_dir} ".*dn_internal_address=.*" "dn_internal_address=${line}"
-set_sys_conf ${line} ${db_dir} ".*dn_rpc_address=.*" "dn_rpc_address=${line}"
+v_line_hostname=`ssh ${u_name}@${line} "hostname"`
+set_sys_conf ${line} ${db_dir} ".*dn_seed_config_node=.*" "dn_seed_config_node=${v_seed_cn_name}"
+set_sys_conf ${line} ${db_dir} ".*dn_internal_address=.*" "dn_internal_address=${v_line_hostname}"
+set_sys_conf ${line} ${db_dir} ".*dn_rpc_address=.*" "dn_rpc_address=${v_line_hostname}"
 set_sys_conf ${line} ${db_dir} ".*dn_metric_reporter_list=.*" "dn_metric_reporter_list=PROMETHEUS"
 set_sys_conf ${line} ${db_dir} ".*dn_metric_level=.*" "dn_metric_level=IMPORTANT"
 set_sys_conf ${line} ${db_dir} ".*dn_metric_prometheus_reporter_port=.*" "dn_metric_prometheus_reporter_port=9091"
@@ -98,9 +111,12 @@ set_sys_conf ${line} ${db_dir} ".*schema_replication_factor=.*" "schema_replicat
 set_sys_conf ${line} ${db_dir} ".*data_replication_factor=.*" "data_replication_factor=2"
 set_sys_conf ${line} ${db_dir} ".*schema_region_group_extension_policy=.*" "schema_region_group_extension_policy=CUSTOM"
 set_sys_conf ${line} ${db_dir} ".*data_region_group_extension_policy=.*" "data_region_group_extension_policy=CUSTOM"
-set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=1"
-set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=5"
-     set_sys_conf ${line} ${db_dir} ".*datanode_memory_proportion=.*"  "datanode_memory_proportion=1:5:1:1:1:1"
+set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=5"
+set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=10"
+#if [[ ${line} = ${remove_dn_ip} ]];then
+#v_disk_value=$(ssh ${u_name}@${line} "df -P \"${db_dir}\" | awk 'NR==2{if(\$2>0) printf \"%.2f\n\", (\$4/\$2); else print \"0.00\"}'")
+#set_sys_conf ${line} ${db_dir} ".*disk_space_warning_threshold=.*" "disk_space_warning_threshold=${v_disk_value}"
+#fi
   done
  
 }
@@ -114,260 +130,6 @@ function start_db()
    #start cluster
    head -n $cn_num ${nodeinfo_dir}/total_node.txt > ${nodeinfo_dir}/confignode.txt 
    set_conf
-exec 3<${nodeinfo_dir}/confignode.txt
-while read line<&3
-do
-v_check=`grep ${line} ${nodeinfo_dir}/datanode.txt |wc -l`
-if [[ ${v_check} = 0 ]];then
-ssh ${u_name}@${line} "sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"";
-fi
-done
-
-   sh -x ${prepare_env_dir}/start_cluster_v13.sh "1" "${total_node_num}"
 
 }
-function check_res()
-{
-   exp_res=$1
-   exp_num=$2
-   tc_desc=$3
-   v_act_num=`cat ${cur_dir}/tmp.out|grep "${exp_res}"|wc -l`
-   if [[ ${v_act_num} = ${exp_num} ]];then
-      echo "${tc_desc} PASS."
-      let succ_flag++
-   else
-      echo "${tc_desc} FAIL."
-      let fail_flag++
-      cat ${cur_dir}/tmp.out
-   fi
-}
-function check_npe()
-{
-   tc_desc=$1
-exec 3<${nodeinfo_dir}/confignode.txt
-while read line<&3
-do
-   v_npe_num=`ssh ${u_name}@${line} "grep NullPointer ${db_dir}/logs/*confignode*all*|wc -l"`
-   if [[ ${v_npe_num} -gt 0 ]];then
-      let fail_flag++
-      echo "${SCRIPT_NAME} CN NullPointer : ${v_npe_num}"
-      # backup logs
-      t=`date +%Y_%m_%d_%H_%M_%S`
-      ssh ${u_name}@${line} "cp -rp ${db_dir}/logs ${db_dir}/logs_npe_${t}_${tc_desc}"
-   fi
-done
-exec 3<${nodeinfo_dir}/datanode.txt
-while read line<&3
-do
-   v_npe_num=`ssh ${u_name}@${line} "grep NullPointer ${db_dir}/logs/*datanode*all*|wc -l"`
-   if [[ ${v_npe_num} -gt 0 ]];then
-      let fail_flag++
-      echo "${SCRIPT_NAME} DN NullPointer : ${v_npe_num}"
-      # backup logs
-      t=`date +%Y_%m_%d_%H_%M_%S`
-      ssh ${u_name}@${line} "cp -rp ${db_dir}/logs ${db_dir}/logs_npe_${t}_${tc_desc}"
-   fi
-done
-
-}
-function wait_bm_finish()
-{
-local max_wait_time=$1
-local bm_res1=$2
-local bm_res2=$3
-local t1=`date +%s`
-   while true
-   do
-      v_bm=`jps|grep App|wc -l`
-      v_bm1_finish=`cat ${bm_res1}|grep throughput|wc -l`
-      v_bm2_finish=`cat ${bm_res2}|grep throughput|wc -l`
-      if [[ ${v_bm} -gt 0 ]];then
-         sleep 60
-      else
-         break
-      fi
-      if [[ ${v_bm1_finish} = 1 ]] && [[ ${v_bm2_finish} = 1 ]];then
-         echo "benchmark finish."
-         jps|grep App|awk '{print "kill -9 "$1}'|sh 
-      fi
-      t2=`date +%s`
-      t_elp=$((t2-t1))
-      if [[ ${t_elp} -gt ${max_wait_time} ]];then
-         let fail_flag++
-         echo "Benchmark running too long."
-         break
-      fi
-      
-   done
-       ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;"
-       ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;"
-       ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;"
-#       check_res "success" 1 "${SCRIPT_NAME}"
-}
-function wait_rm_finish()
-{
-local v_rm_ip=$1
-local max_wait_time=$2
-local t1=`date +%s`
-  while true
-   do
-       ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
-       v_rm_succ=`cat ${cur_dir}/tmp.out |grep "${v_rm_ip}|"|wc -l`
-       if [[ ${v_rm_succ} -gt 0 ]];then
-          sleep 1
-       else
-          break
-       fi
-      t2=`date +%s`
-      t_elp=$((t2-t1))
-      if [[ ${t_elp} -gt ${max_wait_time} ]];then
-         let fail_flag++
-         let rm_fail_flag++
-         echo "Removing takes too long."
-         break
-      fi
-
-   done
-
-}
-function check_dn_jps()
-{
-   local v_dn_ip=$1
-   local max_wait_time=$2
-local t1=`date +%s`
-while true
-do
-   v_dn_str=`ssh ${u_name}@${line} "sudo jps|grep DataNode"`
-   v_dn_pid=`echo ${v_dn_str}|awk '{print $1}'`
-   if [[ ${v_dn_pid} -gt 0 ]];then
-      sleep 1
-   else
-      break
-   fi
-      t2=`date +%s`
-      t_elp=$((t2-t1))
-      if [[ ${t_elp} -gt ${max_wait_time} ]];then
-         let fail_flag++
-         echo "Stopping takes too long."
-# kill -9 
-         ssh ${u_name}@${line} "sudo kill -9 ${v_dn_pid}."
-         break
-      fi
-
-done
-}
-function wait_sync_done()
-{
-local max_wait_time=$1
-   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;">${cur_dir}/tmp.out
-check_res "success" 1 "${SCRIPT_NAME}"
-   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
-   cat ${cur_dir}/tmp.out |grep Running|awk -F "|" '{gsub(" ","");print $4}'>${cur_dir}/tmp1.out
-   mv ${cur_dir}/tmp1.out ${cur_dir}/tmp.out
-   exec 3<${cur_dir}/tmp.out
-   while read line<&3
-   do
-   while true
-   do
-   ssh ${u_name}@${line} "grep \"create a new\" ${db_dir}/logs/log_datanode_all.log|grep root.test">${cur_dir}/tmp1.out
-   ssh ${u_name}@${line} "grep \"create a new\" ${db_dir}/logs/log_datanode_all.log|grep test_g_0">${cur_dir}/tmp2.out
-   last_time_str1=$(tail -n 1 "${cur_dir}/tmp1.out" | awk -F',' '{print $1}')
-   last_time_str2=$(tail -n 1 "${cur_dir}/tmp2.out" | awk -F',' '{print $1}')
-   last_timestamp1=$(date -d "$last_time_str1" +%s 2>/dev/null)
-   last_timestamp2=$(date -d "$last_time_str2" +%s 2>/dev/null)
-   if [[ ${last_timestamp1} -gt ${last_timestamp2} ]];then
-      last_timestamp=${last_timestamp1}
-   else
-      last_timestamp=${last_timestamp2}
-   fi
-current_timestamp=$(date +%s)
-
-# 计算时间差（秒）
-time_diff=$((current_timestamp - last_timestamp))
-# 判断是否超过1分钟（120秒）
-if [ $time_diff -gt ${max_wait_time} ]; then
-    echo "最后一条日志距离现在已超过1分钟（${time_diff}秒）"
-    break
-else
-    v_sleep=$((max_wait_time-time_diff+1))
-    sleep ${v_sleep}
-#    echo "最后一条日志距离现在未超过1分钟（${time_diff}秒）"
-fi
-   done
-   done
-
-}
-function check_data_consistent()
-{
-wait_sync_done 180
-   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
-   cat ${cur_dir}/tmp.out |grep Running|awk -F "|" '{gsub(" ","");print $4}'>${cur_dir}/tmp1.out
-   mv ${cur_dir}/tmp1.out ${cur_dir}/tmp.out
-   sql1="select count(s_0) from root.test.g_0.** align by device;" 
-   # all online
-   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -timeout 3600 -e "${sql1}" >${cur_dir}/q_all_online_tree.out 
-   # stop dn
-   exec 3<${cur_dir}/tmp.out
-   while read line<&3
-   do
-   query_ip=`head -1 ${cur_dir}/tmp.out`
-   query_ip2=`tail -1 ${cur_dir}/tmp.out`
-
-      # stop dn
-      ssh ${u_name}@${line} "source /etc/profile;cd ${db_dir};sudo ./sbin/stop-datanode.sh"
-      check_dn_jps ${line} 60
-      if [[ ${query_ip} = ${line} ]];then
-         query_ip=${query_ip2} 
-      fi
-      v_ip=`echo ${line}|awk -F '.' '{print $4}'`
-      ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip}  -timeout 3600 -e "${sql1}" >${cur_dir}/q_stop_ip${v_ip}_tree.out
-      v_diff_tree=`diff ${cur_dir}/q_all_online_tree.out ${cur_dir}/q_stop_ip${v_ip}_tree.out|grep "root."|wc -l`
-      if [[ ${v_diff_tree} -gt 0 ]];then
-         let fail_flag++
-         echo "${v_diff_tree}"
-      fi
-      # restart
-      v_start_time=`date +%s`
-      ssh ${u_name}@${line} "source /etc/profile;cd ${db_dir};sudo ./sbin/start-datanode.sh -H ${db_dir}/dn_${v_start_time}_heapdump.hprof > /dev/null 2>&1 &"
-      while true
-      do
-      v_start_ok=`${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${line}  -timeout 3600 -e "show datanodes;"|grep "${line}|"|grep Running|wc -l`
-      if [[ ${v_start_ok} -gt 0 ]];then
-         break
-      else
-         sleep 1
-      fi
-      v_cur_time=`date +%s`
-      v_elp_time=$((v_cur_time-v_start_time))
-      if [[ ${v_elp_time} -gt 120 ]];then
-         let fail_flag++
-         echo "restart ${line} failed."
-         return
-      fi  
-      done 
-   done 
-}
-function remove_dn()
-{
-   check_data_consistent 
-   check_npe "${SCRIPT_NAME}"
-test_end_sec=`date +%s`
-test_elp_sec=$((test_end_sec-test_begin_sec))
-tc_res=true
-
-  if [[ ${fail_flag} = 0 ]];then
-     tc_res=true
-     echo "${SCRIPT_NAME} : pass" 
-  else
-     tc_res=false
-     echo "${SCRIPT_NAME} : fail"
-  fi
-echo "${tc_num}"
-echo "${SCRIPT_NAME}"
-echo "${tc_res}"
-echo "${test_elp_sec}"
-res_root_pw=TimechoDB@2021
-${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -pw ${res_root_pw} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
-
-}
-remove_dn
+start_db

@@ -172,6 +172,7 @@ function start_bm()
     # 3. 检查配置文件是否存在
     if [[ -f "$bm_conf_file1" ]]; then
         # 替换密码：变量加双引号，检查 sed 执行结果
+        sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file1"
         sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file1"
         ret_code=$?
         if [[ $ret_code -ne 0 ]]; then
@@ -210,6 +211,7 @@ function start_bm()
             fi
 
             # 拷贝后重新替换密码（避免配置文件是新的，密码未替换）
+            sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file1"
             sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file1"
             sed -i "s/^HOST=.*/HOST=${query_ip}/g" "$bm_conf_file1"
         else
@@ -269,6 +271,8 @@ do
    v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
    v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "create user kevin 'TimechoDB@2021';"
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "grant all ON root.** TO USER kevin WITH GRANT OPTION;"
    sleep 2
    if [[ ${v_del_flag} -gt 0 ]];then
       echo "have been executed delete timeseries;"
@@ -278,7 +282,17 @@ do
      start_bm 
       let v_del_flag++
    fi
+for v_f_cn_l in  {1..60}
+do
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
+   if [ -n "${v_cn_leader_ip}" ]; then
+      echo "cn leader : ${v_cn_leader_ip}"
+      break
+   else
+      sleep 1
+   fi 
+done
+if [ -n "${v_cn_leader_ip}" ]; then
    while true
    do
       ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
@@ -294,7 +308,10 @@ do
 
    done
    v_mig_to_dn_id=${v_mig_from_dn_id}
-
+else
+   let fail_flag++
+   echo "cn leader is empty."
+fi
 done
 while true
 do
@@ -310,7 +327,10 @@ done
   v_check_res=`cat ${cur_dir}/q_act.out|grep "There is not enough memory to execute current fragment instance"|wc -l`
 
  if [[ ${v_check_res} = 0 ]];then
-    let fail_flag++
+    v_exp_num=`grep root.test ${cur_dir}/q_act.out|awk -F '|' '{gsub(" ","");print $3","$4","$5","$6","$7}'|grep "100000,100000,100000,100000,100000"|wc -l`
+    if [[ ${v_exp_num} != 20000 ]];then
+       let fail_flag++
+    fi
  fi
 
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8) from root.** where time>=1990-1-1T08:00:00+08:00 align by device;">${cur_dir}/q_act2.out

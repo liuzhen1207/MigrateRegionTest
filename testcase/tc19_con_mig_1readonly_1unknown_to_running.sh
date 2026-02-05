@@ -239,7 +239,8 @@ function pre_and_exec_mig_region()
          sleep 2
       fi
   done
-  mig_region "${v_mig_id}" "${v_mig_from_dn_id1}" "${v_mig_dest_dn_id1}" "Msg: The statement is executed successfully" & 
+  mig_region "${v_mig_id}" "${v_mig_from_dn_id1}" "${v_mig_dest_dn_id1}" "Msg: The statement is executed successfully" &
+  sleep 1 
   mig_region "${v_mig_id}" "${v_mig_from_dn_id2}" "${v_mig_dest_dn_id2}" "has some other region operation procedures in progress"
   wait
   # restart unknown

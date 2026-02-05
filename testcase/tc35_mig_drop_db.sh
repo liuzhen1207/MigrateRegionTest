@@ -180,6 +180,7 @@ do
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
    v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
+   sleep 1
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
    sleep 2
    if [[ ${v_del_flag} -gt 0 ]];then
@@ -211,7 +212,7 @@ do
               if [[ ${v_Adding_num} = 0 ]] && [[ ${v_Removing_num} = 0 ]];then
                  let loop++
               fi
-              if [[ ${loop} -gt 10 ]];then
+              if [[ ${loop} -gt 60 ]];then
                  let fail_flag++
                  echo "Adding num is 0 ,Removing num is 0 ,and log is not expected."
                  break

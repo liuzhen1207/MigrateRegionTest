@@ -91,7 +91,7 @@ function set_conf()
             set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*"  "default_schema_region_group_num_per_database=1"
             set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*"  "default_data_region_group_num_per_database=5"
             set_sys_conf ${line} ${db_dir} ".*datanode_memory_proportion=.*"  "datanode_memory_proportion=1:5:1:1:1:1"
-
+        set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"
      fi 
   done
 
@@ -120,6 +120,7 @@ function set_conf()
      set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*"  "default_schema_region_group_num_per_database=1"
      set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*"  "default_data_region_group_num_per_database=5"
      set_sys_conf ${line} ${db_dir} ".*datanode_memory_proportion=.*"  "datanode_memory_proportion=1:5:1:1:1:1"
+     set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"
   done
  
 }

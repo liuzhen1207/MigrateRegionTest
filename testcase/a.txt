@@ -1,0 +1,717 @@
+树表模型在查询的过滤条件中需要将整形和浮点型进行对比时的表现不一致现象
+【Python TsFile】to_dataframe查询表模型Boolean类型数据，在行数超过30行之后，部分查询结果和实际不一致
+【Python TsFile】tablet不支持BLOB类型数据写入
+[master][table]使用同一个jar创建2个pipeplugin时，第二个创建成功，但是show pipeplugins时不显示
+【Python TsFile】to_dataframe输出DATE类型数据输出存在问题
+【python TsFile】TIMESTAMP类型注册元数据存在问题，提示不支持，当前发版预期需要支持新数据类型
+1.3.6.1 RC5 发送端空指针需处理： Cannot invoke "String.contains(java.lang.CharSequence)" because "exceptionMessage" is null
+[1.3.6.1]drop pipeplugin时，插件名称大小写敏感，期望不敏感
+【Python TsFile】to_dataframe接口树模型大写的测点无法查询
+[master][write-back-sink] 多个pipe存在时，使用非 root 用户 alter pipe 执行后1107: ProcedureId 33: Fail to ALTER_PIPE because Cannot invoke "org.apache.iotdb.commons.pipe.agent.task.meta.PipeTaskMeta.isNewlyAdded()" because "currentPipeTaskMeta" is null
+【 2.0 load 】 启动干净集群，如果数据库目录下ext/load/pending/ 下有tsfile会自动load（上一环境 load 过程中，中止load，只清理了data目录，未清理ext/load目录）
+【Python TsFile】to_dataframe接口未处理路径不存在的异常，需要优化下
+1.3.6.1 RC4 验证RN ：发送端NPE Cannot invoke "org.apache.iotdb.db.queryengine.plan.planner.plan.node.write.InsertNode.getDevicePath()" because "this.insertNode" is null （3条）
+[1.3.6.1 load ] 启动干净集群，如果数据库目录下ext/load/pending/ 下有tsfile会自动load（上一环境 load 过程中，中止load，只清理了data目录，未清理ext/load目录）
+[master]drop pipeplugin时，插件名称大小写敏感，期望不敏感
+【Python TsFile】to_dataframe接口对于表模型TsFile查询指定表名和列名没有转小写处理
+【Python TsFile】to_dataframe接口单独查询表模型TAG列返回结果为空，预期需要输出实际值
+【V2.0.7.1-三权分立】三权分立关闭状态下，超级管理员授予普通用户SYSTEM权限，没有转授权限的普通用户，却仍可以对其他用户授予SYSTEM权限
+1.3.6.1 RC4 无故障 并发读写+extend / remove region , DataRegion(IoT) Removing 卡死
+[1.3.6.1]使用benchmark 做 last查询P90和AVG性能变差
+[1.3.6.1][readonly] 磁盘满了的情况下启动iotdb,清理磁盘后，写入报错NPE:Cannot invoke "org.apache.iotdb.db.storageengine.rescon.disk.FolderManager.getNextFolder()" because "this.folderManager" is null
+1.3.6.1 pipe 日志优化: 接收端"WARN Failed to check authority for statement MULTI_BATCH_INSERT" 会打印写入batch中的所有序列名（1万序列*batchsize为2），导致一行日志过大(555KB)，10分钟44GB日志
+[1.3.6.1]schema cache,在占满内存后，连续两次执行clear schema cache, 监控变为负数
+【表模型-修改表】重命名属性列暂不支持的功能，报305服务内部异常
+1.3.6.1 RC3 接收端空指针 Failed to estimate size for InsertNode: Cannot invoke "org.apache.tsfile.write.schema.MeasurementSchema.getType()" because "measurementSchemas[i]" is null
+[ 1.3.6.1 session ] 3C5D2副本，4bm(共40用户）并发读写，间隔几分钟循环重启NODE1 ，其余4 DN 线程有泄漏导致客户端读写有失败（Fail to reconnect to server. Please check server status）（同2.0
+[1.3.6.1 和 master] 2 bm并发读写+缩容1DN（上面有SR 0, DR 1和5），写入无失败，DR 5的副本数据不一致（复现概率50%）
+[JDBC] ResultSet.findColumn()树模型和表模型的处理不一致，按照JDBC说明当ResultSet为空时，应该抛出SQL异常
+[JDBC] prepareStatement不支持Blob类型
+监控面板“IoTConsensus Used Memory” 显示负值：1.3.6.1 RC2 并发读写 + 单用户多次RECONSTRUCT REGION 场景
+remove region : 从ReadOnly或Unknown的DataNode上remove region 失败：Target DataNode x is not in Running status
+1.3.6.1 reconstruct REGION 语句中region list 重复，提交成功（预期：successfully submitted: x, failed to submit: x) 客户端有查询失败：SchemaRegion[3] doesn't exist
+[ratis 空指针] 1.3.6.1 并发读写过程中 删除tsfile模拟误删数据，再重建region，insertTablet failed , ratis 空指针 "org.apache.ratis.statemachine.StateMachine.getLastAppliedTermIndex()" is null
+Timechodb 1.3.2.1 到 2.0.6.1版本存在数据订阅安全问题
+1.3.6.1 TierManager 可能返回错误的 tier 导致合并生成的文件直接进入最高层级
+1.3.6.1 从不存在的DN ID 上remove region  成功，可以返回：Source DataNode XX not found
+1.3.6.1 RC2 并发读写+单用户间隔一段时间extend/remove region , SR 4 (ratis) Removing卡死 ，且查询元数据 失败：The consensus group SchemaRegion[4] doesnt exist
+1.3.6.1 磁盘满 合并空指针 NullPointerException
+1.3.6.1 RC2 并发读写+单用户在节点间循环extend region 、remove region， 运行17小时 DN OOM （给DN 22G ，dump 30GB），采用研发建议：UseParallelGC 无OOM
+1.3.6.1 缩容DN 过程中，stop Adding 节点 ，removing region卡住，此region的destDataNode节点一直刷WARN ：Can not send Batch（可复现）
+[1.3.6.1]申请删除log_datanode_pipe.log，它的内容在log_datanode_all.log内都有，徒占空间
+【1.3.6.1】对于非法的数据再次执行异步加载，会一直刷错误日志
+[1.3.6.1]接收端readonly后，pipe依然不断打印日志，占满所有磁盘空间
+[ 异步load 并发问题]1.3.6.1 RC2 SQL load  数据 ext/load/pending/下的tsfile 报 IOException: The end of stream has been reached（源tsfile 没问题）
+1.3.6.1 RC2 执行SQL LOAD ：load 当前路径的tsfile不指定./ 失败, DN 空指针NullPointerException: Cannot invoke "java.io.File.getAbsoluteFile()" because "sourceDirectory" is null，且报错信息中的tsfile name是r
+[1.3.6.1]1.3.x系列和2.x系列的snapshot和双活模式的配置方式不同
+【2.0.6.4】修改序列的压缩和编码后插入数据，使用查询写回存在问题
+1.3.6.1RC1 load+region迁移：Load: Failed to convert to tablets from TsFile 因为 Cannot invoke "org.apache.iotdb.db.protocol.session.IClientSession.getId()" because "session" is null（开发：region迁移需要转Tablet，
+1.3.6.1rc1 1C1D 并发读写+delete 数据或delete 某个设备的timeseries ，DN 空指针（运行约13小时开始出现）：WARN  o.a.i.d.q.e.e.RegionWriteExecutor:168 - null
+1.3.6.1 RC1验证load+并发迁移region：约4分钟合并线程刷1600多条NoSuchFileException ERROR 日志（相同tsfile）
+[1.3.6.1]调用java session.close()后，datanode打印ERROR日志：TTransportException: java.net.SocketException: Connection reset
+1.3.6.1RC1 验证load+并发迁移region：合并线程 Device PlainDeviceID{deviceID='xx'} has overlapped data
+【1.3.6.1】慢查询配置参数默认值与实际值不符
+【2.0.6.4】并发写入+修改序列编码和压缩（开启合并）出现死锁问题
+[stopping DN 过程中的合并日志优化] DN stop 过程中合并有一些WARN/ERROR 日志可以优化：Exception null happened while reading data of /../.tsfile
+【tsfile dev/1.1】tsfile api 实现中未正确处理空chunk吗，导致生成的tsfile有问题
+1.3.6.1 接收端有190多条空指针需要处理：NullPointerException: Cannot invoke "org.apache.tsfile.enums.TSDataType.ordinal()" because "this.dataTypes[measurementIndex]" is null （发送端没有空指针）
+【2.0.6.4】修改序列编码和压缩，IF PERMITTED语句实现存在问题，使用会报错 Invalidate schemaEngine cache failed
+[1.3.6.1 load ] SQL方式执行load tsfile 指定 'async'='false' ，Analysis Stage 越来越慢（3个小时解析1个tsfile），只好中止（594/35101 tsfiles have been analyzed, progress: 1.692%）
+[1.3.6.1]元数据同步，使用template，后创建pipe(snapshot模式)，同步后会丢失元数据
+[ 1.3.6.1 import-data.sh ] import-data.sh -ft tsfile 导入tsfile 会读取指定目录下的所有文件，invalid tsfile会打印堆栈建议去掉堆栈 如WARN 日志BufferUnderflowException: null 
+慢查询配置参数默认值与实际值不符
+修改不支持的编码方式，报错信息存在ERROR，且返回的内容不友好，需优化下
+修改单个序列的编码和压缩存在语法错误
+[缩容优化]1.3.6.1 RC1 缩容Unknown节点，有1个SR迁移失败（ratis 切主），CN 可以考虑优化：重新选择 coordinator
+[1.3.6.1][pipe]树模型 sink鉴权失败，remove sink user或者接收端用户密码，同步依然进行
+[1.3.6.1][pipe]带mods文件的数据同步，pipe因进度出错被stop:NPE
+[1.3.6.1][pipe]3w设备10 sensor batch模式，数据同步少点
+[元数据 空指针] 1.3.6.1 rc1 并发读写 + 并发remove region, 写入失败Fetch Schema failed, because null
+[ async load ] 'database-level'='2' 创建出来的database-level 是默认值1
+[缩容日志] RegionMigrationPlan 中的toDataNode 和fromDataNode相同
+[ 异步load ] 1.3.6.1 RC1 并发异常需处理:NoSuchFileException
+[extend region ] 1.3.6.1 rc1 目标节点不存在（为CN ID） ，报错信息不正确，且CN 空指针 NullPointerException: Cannot invoke "org.apache.iotdb.common.rpc.thrift.TDataNodeLocation.getDataNodeId()" because "targe
+【异步加载】异步加载带mods的tsfile，会忽略mods自动补全数据
+[1.3.6.1]创建对齐序列后，使用写入创建，查询结果为空，日志报错：ClassCastException
+【数据删除】WHERE子句后使用and连接两个原子表达式情况，时间的最小值大于最大值报错信息为305，需要优化
+当前某个 table 正在执行的流程和 DataNode 的重启并发时，可能导致 DataNode 清除缓存中 procedure 设置的特定状态，从而导致一致性算法失效，可能导致 table 一直不一致
+GROUP BY + ORDER BY + LIMIT 时，查询结果错误
+【表模型】date_bin执行时间过滤查询时报301异常
+[2.0.7.1][table]insertNodeQueue达到最大然后start pipe，同步少点
+[2.0.7.1][用户连接数限制]顺序使用普通用户连接700次，反直觉：2.0.7.1的耗时比2.0.6.1更少，约10~30%
+[2.0.6.3][table]100 table 1w列 带pattern batch模式，拆分tsfile转tablet后写入接收端时获取table schema太慢，导致同步卡住
+[日志优化] 创建已存在用户，WARN 日志不需要打印详细堆栈
+[三权分立] security_admin 执行 list privileges of user  who_is_not_exist; 报错信息不对301: Failed to connect to config node. 且CN 空指针
+【AINode】树模型推理参数，predict_length参数为非法值时需要明确的报错
+[报错信息优化] 2.0.7.1 安全包 开启SSL，CLI 登录集群不指定SSL 的ERROR信息可优化（更明确）
+[2.0.7.1][用户连接数限制]1c1d 多用户配置，有几率实际连接数大于最大连接数
+[2.0.7.1][用户连接数限制]配置rpc连接总数<最大连接数，重启后有warn信息，但是实际连接数不符合预期
+[2.0.7.1][用户连接数限制]集群部署,重启后所有用户配置被初始化，未被保留
+[2.0.7.1][用户连接数限制]集群部署，单用户最大连接数没有被限制住
+[2.0.7.1][用户连接数限制]修改datanode rpc连接总数，重启后，使用普通用户连接，>50%会侵占其他用户的最小连接数
+[2.0.7.1]不开三权分立，给普通用户设置最小连接数NPE
+【审计日志】3C3D集群，关闭审计日志会出现负载不均衡现象，需要优化
+2.0.7.1 ssl 空指针（目前看影响不大）: NullPointerException: Cannot invoke "String.contains(java.lang.CharSequence)" because the return value of "java.lang.Throwable.getMessage()" is null
+【审计日志埋点】主动剔除连接缺少记录审计日志
+2.0.7.1 RC10 安全包 7*24 同步卡死，写入几乎降为0，Unexpected error when loading a wal segment：IOException: net.jpountz.lz4.LZ4Exception: Error decoding offset 380280 of input buffer
+【V2.0.7.1_RC10_三权分立】历史版本数据升级到V2.0.7.1后，通过show configuration查看enable_separation_of_powers应该为false而不是true
+2.0.7.1 安全包：enforce_strong_password参数默认值是true，但是代码写的false，所以不显式设置为true，强密码不生效。预期：安全包默认值是true，且代码与配置参数应该一致
+[2.0.7.1]当接收端无权限写入数据时，不会忽略，而是无限重试
+2.0.7.1 RC9 防止口令暴力破解：failed_login_attempts=5 ，failed_login_attempts_per_user=-1 预期：failed_login_attempts_per_user被重置为默认值1000，实际： User-level attempts=disabled
+[2.0.7.1][table]数据同步inclusion=all, 接收端用户没有system权限，但database会被创建成功
+[2.0.7.1]safe包执行数据写入通过stop脚本正常停止后重启遇到报错
+[2.0.7.1][tree]接收端关闭自动创建且已经创建database，数据同步load tsfile仍然会尝试创建层级不同的database，使pipe卡住
+【V2.0.7.1_RC9】表模型中，拥有SECURITY权限的用户1，授予用户6关于__audit权限范围内INSERT或SELECT权限应该有个CHECK
+使用模式匹配函数查询会出现索引越界的报错
+ [2.0.7.1][tree][table]接收端有写权限，load tsfile: No permissions for this operation, please add privilege SYSTEM，数据没有被同步
+[2.0.7.1][table]数据同步，对于实时和历史的判定有误，实时少点，历史多点
+[2.0.7.1]数据同步，如果没有权限，会一直打印日志，导致日志很大
+【V2.0.7.1-RC7_三权分立】三权分立开起后，安全管理员登录，查询到root仍有全部权限
+[2.0.7.1]数据同步，打开防暴力破解，如果修改了密码，很容易使用户被锁定
+多D环境下MQTT插入时，日志中不断输出 warn 日志
+[2.0.7.1]数据/元数据同步，审计数据库不应该被同步
+两表JOIN后使用last聚合函数会报错
+[2.0.7.1][table][元数据同步]写入数据含有负数时间戳、空值、乱序时，Cannot get the newest snapshot after triggering one
+[2.0.7.1][table]数据同步source指定的用户有select权限，解析tsfile鉴权错误：Parse TsFile XXX when checking privilege error. Because: Cannot parse null string\njava.lang.NumberFormatException: Cannot parse null s
+ [2.0.7.1][table][tree]mark-as-pipe-request=true,仍然有少量数据被同步
+【审计日志】审计日志spaceTL实现不当，因为多级存储默认关闭，若只开启审计日志，则spaceTL功能不生效
+[tree][table]数据同步，alter pipe后进度并未精确上报，会多传数据
+【V2.0.7.1_RC5_WAL加密】开起WAL加密，写入一批数据，Log中有ERROR报错java.lang.RuntimeException: Invalid wal file name
+[ 黑名单日志 ] enable_black_list=true ,不设置black_ip_list （默认值black_ip_list=），用户登录数据库，会打印1条ERROR：ERROR c.t.iotdb.rpc.IPFilter:174 - The IP format configuration for blacklist  is inco
+【审计日志】审计日志加密和合并适配存在问题，合并时会出现解码输入缓冲区偏移量错误
+【V2.0.7.1_RC5_WAL加密】WAL加密设置由AES128修改为UNENCRYPTED，重启服务后，写入数据，WAL仍加密
+[2.0.7.1][元数据同步]mark-as-pipe-request=false与inclusion=all共同使用，C->A<->B,在节点C上创建的元数据，不能在B节点创建元数据
+【V2.0.7.1_RC5_权限文件加密】拷贝V2.0.6.1生成的data数据到V2.0.7.1中，启动CN失败
+【安可】【通信加密】【rc5】证书不可访问时，CN报错会显示证书路径，建议隐藏掉路径
+[防止口令暴力破解] failed_login_attempts=0 被重置为默认值 5，且日志无警告，建议 0 与 -1 等价，均代表IP-level attempts=disabled
+[ WIN start-cli-table.bat ] 2.0.7.1 RC4 start-cli-table.bat 指定-e 执行sql失败（start-cli.bat 无此问题）
+【V2.0.7.1-RC3_配置文件加密_权限文件加密】关于加密配置参数未在template模板中，导致show configuration查询不到
+[2.0.7.1][tree]select * from root.__audit.password_history._0有密码明文，显示格式与其他用户不同
+[ 防止口令暴力破解 ] benchmark 读写 + bm用户CLI连续登录失败被锁定，DN 空指针需处理：NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "java.util.Deque.peekFi
+[防止口令暴力破解] 开启三权分立，安全管理解锁自己失败 :  [INTERNAL_SERVER_ERROR(305)] Exception occurred: "alter user security_admin @ bbbbbbbbbbbbbbbxxxbbbbbbbbbbbbbbb account unlock". executeStatement f
+[ 防止口令暴力破解 ] 表模型解锁用户IP 锁，语法解析失败（树模型成功）
+【安可】【通信加密】证书过期后依然可以使用，预期不可使用 && 组建集群后更改CN密钥后报错
+【审计日志】树模型没有权限操作，审计日志记录的result字段还是true，应该为false
+【审计日志】开启三权分立后树模型的list user语句审计日志不记录，表模型的privilege_type字段值为null，以及树模型无论是否开启LIST PRIVILEGES OF USER/ROLE语句都不记录
+【审计日志】开启三权分立后 DROP ROLE 语句的operation_type字段值为QUERY，应该为与三权分立开启前是DDL保持一致
+【审计日志】树模型开启三权分立后部分查询语句会记录多次，未开启只记录一次
+[ audit 系统表] 2.0.7.1 RC3 删除用户后”root.__audit.password_history.用户“里的数据被自动清理，再创建同名用户，”root.__audit.password_history.用户“ 又可以查询到删除前的历史信息
+2.0.7.1 RC3 benchmark 多用户并发读写+ 间隔一段时间给bm中的连接用户改名，CN 空指针及异常：IOException: unknown PhysicalPlan configPhysicalPlanType: 2104；Cannot invoke "org.apache.iotdb.consensus.com
+[ 口令定期更换提示 ] 修改用户名后，CLI 没有口令定期更换提示（改名前有）
+【V2.0.7.1-RC3_配置文件加密】开起配置文件加密，通过set configuration修改配置项失败
+ 2.0.7.1 RC3 开启三权分立，security_admin 给不存在的用户赋 security 权限，CN 有空指针：NullPointerException: Cannot invoke "org.apache.iotdb.commons.auth.entity.User.checkSysPrivilege(org.apache.iotdb.commo
+[ 修改用户名 ] 2.0.7.1 RC3 开启三权分立，security_admin 修改用户名失败：Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 701: Unsupported author type.
+2.0.7.1 RC3 root 是普通用户，给它system权限失败：Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 803: Invalid operation, administrator already has all privileges
+2.0.7.1 RC3 普通包，不存在的用户名通过CLI 登录数据库，DN 有空指针: NullPointerException: Cannot invoke "String.contains(java.lang.CharSequence)" because the return value of "org.apache.iotdb.db.protocol.ses
+切换强制访问控制配置参数enable_grant_option首次启动后依旧可以修改并通过重启生效，不符合需求中首次启动不可修改定义
+[ 2.0.7.1 RC3 安全包 ] 开启三权分立  sys_admin 执行 show cluster Version 显示UNKNOWN
+【安可】【master】建议删掉start-activate.sh
+修复存储引擎对于某个表结构正在修改的 table，刷盘后文件中的 tableSchema 还是以最开始的 table schema 为准的 bug
+老版本的存储引擎会生成文件内部 tableSchema 和部分 tag 列不对应的情况，针对这种情况，load 需要有方法禁止这类数据的 tableSchema 校验
+在表模型数据同步成功同步了某个 db 下的数据时，如果该 db 被删除，且数据库不重启，则接下来数据的自动创建 db 功能会失效
+[ 数据升级 ] 2.0.6.1 RC8 的数据，copy 到 2.0.7.1 RC2  , ConfigNode 启动失败：IOException: Secret key is not ready
+Pipe 带有 table / path / pattern 参数时，可能会拆 tsFile，部分 chunk 内存没有统计，可能导致 OOM
+Pipe 带有 pattern / path 的参数，可能会拆 tsFile，chunk 内存没有统计可能导致 OOM
+ [ 用户名修改 ] 普通用户有security 权限，可以更改 超管 root 的名字，不符合预期。预期：超管的名字只有自己能改。
+[ 用户名修改 ] alter user rename  没有对新名字进行合法校验 (create user 对username有合法校验）
+ [ 用户名修改 ] root 给自己改名后，再创建 root 用户，语法解析失败：Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 700: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input bbbbbbbb
+【审计日志】缺少记录COUNT DATABASES语句的操作信息
+【安可】【通信加密】DN的ks or ts 密码错误时， 不会报密码错误，反而会报连不上CN
+【审计日志】操作失败的语句审计日志无法正常记录
+insertMultiTablets时，部分设备的自动创建，不应该影响无需自动创建的设备的写入（这些设备的对齐属性与真实的对齐属性不一致）
+在一个已存在的设备下，创建新的序列时，忽略创建语句指定的对齐和非对齐属性，使用当前设备的对齐和非对齐属性，而非报错
+在一个已存在的设备下，创建新的序列时，忽略创建语句指定的对齐和非对齐属性，使用当前设备的对齐和非对齐属性，而非报错
+insertMultiTablets时，部分设备的自动创建，不应该影响无需自动创建的设备的写入（这些设备的对齐属性与真实的对齐属性不一致）
+Load 时，如果碰到转 tablet 等特殊情况，需要将真实异常返回至接收端
+Load 时，如果碰到转 tablet 等特殊情况，需要将真实异常返回至接收端
+2.0.7.1 RC2  CMD ，start-cli.bat 第一次执行指定-h 环境变量不正确，类加载失败 (环境变量不正确导致：start-cli-table.bat 登录后CurrentSqlDialect显示 TREE ，预期TABLE）
+Pipe 配置 pattern 的时候，如果存在 mod 文件，会导致这部分已被删除的数据又同步给接收端
+Load 在某些特殊情况下（aligned 类型不同，tableSchema 不同时）等，会忽略 mods 导入
+Pipe 配置 pattern 的时候，如果存在 mod 文件，会导致这部分已被删除的数据又同步给接收端
+Load 在某些特殊情况下（aligned 类型不同，tableSchema 不同时）等，会忽略 mods 导入
+【安可】【通信加密】10720、10750 没有加密
+[1.3.5.12][2.x][tree][load]单个tsfile内有很多device时,load失败,报错time series under this device is aligned, please use createAlignedTimeseries or change device
+【表模型】插入数据后，若使用UPDATE更新表属性列为FIELD列会出现NPE
+list user 和create user 或 drop user 并发有报错：301: Ratis request failed Unknown，CN 日志Caused by: java.util.ConcurrentModificationException: null
+[ CN 空指针 ] IoTV2 3C3D3副本循环运行表模型sql 覆盖用例，约14天 开始出现空指针10多条：NullPointerException: Cannot invoke "org.apache.iotdb.confignode.procedure.Procedure.isSuccess()" because "procedu
+[2.0.6.1]table 1pipe, table匹配，batch模式，同步比2.0.5.2慢4+倍
+IoTDB 的 MQTT 服务在解析 不合规的JSON 消息时，空指针异常：NullPointerException: Cannot invoke "com.google.gson.JsonElement.getAsString()" because the return value of "com.google.gson.JsonObject.get(String)" is null
+[ 接收端 CN OOM ] 'inclusion'='all' ,source 和 sink 是普通用户，用户名不同，sink 用户无任何权限，接收端 CN OOM  ON_HEAP_MEMORY="4G" （可复现）
+发送端 ERROR 日志 ClosedChannelException 需要处理
+【强密码】在干净的服务中，当普通用户设置密码后，再次重置为使用过的密码，预期失败，但是实际上更新成功了
+【ainode】stop-ainode.sh无法停止ainode
+日志优化：sink.username是普通用户且没有被赋予任何权限，发送端WARN 日志刷的太多，30分钟30GB ，WARN  o.a.i.c.p.r.PipeReceiverStatusHandler:191 - No permission: will retry forever.希望控制日志
+【表模型】表名含有中文长度为2个字符时，通过接口InsertTablet接口写入异常，提示"XX" is not a legal path
+【表模型】表名包含大于等于4个长度的中文，通过接口InsertTablet写入数据，此时写入不会报错，但表名会变成 【root."】
+2.0.6.1 RC6 发送端 空指针：NullPointerException: Cannot invoke "org.apache.iotdb.commons.pipe.sink.client.IoTDBSyncClient.getEndPoint()" because the return value of "org.apache.tsfile.utils.Pair.getLeft()" is null
+2.0.6.1 RC6 IoTV2协议stop DN 过程中异常日志可处理：TProtocolException: Required field pipeMetaList was not present! Struct: TPipeHeartbeatResp(pipeMetaList:null)
+2.0.6.1 RC6 发送端：IllegalStateException: Client is currently executing another method ，开发分析：在网络延迟高的情况下发送handshake请求时Client 被外部提前放回对象池 （可复现）
+清除DN上的缓存参数为on local时出现空指针异常报错
+IoTV2 3C3D2副本 2.0.6.1 RC5 RN 验证有新问题：并发读写+delete + stop 1 DN , 被stop的DN 进程一直不退出
+PipeTsFileEpochProgressIndexKeeper 持有5万多个TsFileResource , DN OOM （IoTV2 3C3D2副本 2.0.6.1 RC5 RN 新问题：并发读写+delete + stop 1 DN , 测试 54 小时 1 DN OOM dump 23GB ON_HEAP_MEMORY="20G"）
+2.0.6.1 RC4 IoTV2 3C3D3副本，DN OFF_HEAP_MEMORY="2G" ，循环运行表模型的sql test用例，大概70小时 java.lang.OutOfMemoryError
+2.0.6.1 RC5 IoT 3C3D3副本 循环运行表模型用例，DN ShowVariablesTask 有空指针需要处理: NullPointerException: Cannot invoke "org.apache.iotdb.confignode.rpc.thrift.TClusterParameters.getClusterName()" because "cl
+2.0.6.1 RC4 缩容场景 重启集群 show regions 大部分DataRegion的CompressionRatio 字段值是NaN （ 重启前CompressionRatio 是有值的）
+2.0.6.1 RC5 IoTV2 3C3D3副本 循环运行sql覆盖 20小时 DN 有10多条空指针：NullPointerException: Cannot invoke "org.apache.iotdb.commons.schema.table.TsTable.getColumnSchema(String)" because "table" is null
+[2.0.6.1][aggregate-processor]历史数据，stop pipe后再次start, 进度停止不再聚合
+[2.0.6.1][元数据同步]实时模式，非对齐序列，使用select into生成的同db的数据，没有被同步
+[ 建议 ] show regions 结果中 CompressionRatio 字段 保留2位小数
+2.0.6.1 RC4 缩容场景 Adding 状态的DataRegion ，show regions CompressionRatio 字段显示负值
+[ IoT 优化项 ] 缩容场景，dn_data_dirs 配置为多块盘，根据日志：Cannot create link from /data2/... to /data1/... fallback to copy , 可优化：在同一块盘打硬链接（跨盘不支持）
+【Python 客户端】树模型带推断类型的写入，接口insert_string_records_of_one_device和insert_aligned_string_records_of_one_device，没有处理过滤为空值对应的物理量和值，而insert_str_record和insert_aligned_str_record只过滤了物理量，保留了值
+[2.0.6.1][aggregate-processor]效率不高，长时间处理大量聚合，会影响写入，且有可能oom
+2.0.6.1 RC4 查询写回遇到空指针 Cannot invoke "com.google.common.util.concurrent.ListenableFuture.isDone()" because "blocked" is null
+[2.0.6.1][aggregate-processor]会处理已经删除的原始数据序列，预期不要处理
+[2.0.6.1][aggregate-processor]output.database最好有校验，当指定非法值时，错误日志不明确，需评审
+[2.0.6.1][aggregate-processor]负数时间戳没有被处理
+循环create db/写入一些数据/删除db，datanode/system/compression_ratio/下的文件没有清理，越积越多
+ IoTV2 3C3D3副本 循环运行表模型 SQL 覆盖用例，运行4天，每个DN 有6万多个deleted 文件句柄未释放
+[2.0.6.1][aggregate-processor]视图不能被aggregate-processor捕获处理
+[2.0.6.1][aggregate-processor]创建pipe后，创建了聚合序列，删除聚合数据库，然后重建，会报错：PipeException: The aggregate processor does not support progressIndexType IOT_PROGRESS_INDEX
+[2.0.6.1][aggregate-processor]不指定source.path过滤,会导致循环聚合,设备数量不确定
+[2.0.6.1]保留字应该添加:path
+[2.0.6.1]pipe因为error被stop后，重新变为正常的running后，show pipes仍然显示原来的error message,需要产品介入评审
+[2.0.6.1][write-back-sink]一个pipe因sink出错，会把所有复用该sink的pipe都stop
+[2.0.6.1][aggregate-processor]使用write-back-sink但不指定output.database时，创建Pipe应该报错，不让创建
+[2.0.6.1][aggregate-processor]关于写入7分钟数据时间，聚合窗口2分钟，聚合输出条数的定义，需要评审
+[2.0.6.1][aggrate-processor]sliding.interval.seconds设置无效
+IoTV2 IoTDB-PIPE_CONSENSUS_EXECUTOR_POOL线程数过多（7*24环境 1DN 上有1500+)，需要控制（开发：改成全局唯一）
+在Session中使用无MAINTAIN权限用户（表模型中为非root用户）时，server连接数不断增加
+[2.0.6.1]2.0.6.1 rc4 表模型 10个匹配table的pipe, 写入结束后同步5分钟，pipe stopped(rc3没有这个问题)
+tryReadLock 可能有空指针NullPointerException: Cannot invoke "org.apache.iotdb.db.storageengine.dataregion.memtable.TsFileProcessor.tryReadLock(long)" because "tsFileProcessor" is null（测试2次均能复
+[2.0.6.1]数据同步,stream模式，sink.format=tsfile时，接收端tsfile数量为2.0.5.2的10+倍
+【位操作函数】对于null值处理和trino不一致，部分函数之间也不一致
+[2.0.6.1]mqtt-source, 停止datanode后，再次启动datanode, mqtt broker不会再次被启动
+2.0.6.1 RC3 PIPE source 和 sink 均指定普通用户，用户名不同，ALL 权限，接收端关闭自动创建元数据，表元数据同步失败（树的元数据和数据可正常同步）
+[2.0.6.1]在3c3d的iotdb集群上使用mqtt-source, mqtt broker并不能构成集群，负载并不能分担在其他节点上
+[2.0.6.1]关于pipe内存分配，insertnode queue的内存固定占一半，在tsfile同步时，这一半内存基本闲置，并不合理
+[2.0.6.1] 表模型，batch模式，1pipe table正则匹配，rc1可以同步完成，rc3不能在预计时间内完成
+[2.0.6.1]mqtt-source,3c3d 表模型写入1小时，mqtt连接节点OOM
+【v2.0.6.1】MATCH_RECOGNIZE DEFINE不支持字符串过滤
+【V2.0.5.2】企业版IoTDB启动3C3D服务，通过工具Workbench端插入数据报301异常
+[2.0.6.1]mqtt外部source, 在stop-datanode.sh后会少点，应该在shutdown hook中增加对mqtt的处理，mqtt broker对于iotdb的readonly状态应该有感知
+[2.0.6.1]mqtt外部source,mqtt client发送的数据达到上限后，抛出PipeRuntimeOutOfMemoryCriticalException，会导致少点
+[2.0.6.1]mqtt外部source，如果stop pipe而mqtt发送的数据量比较大时，将insert node queue的内存吃满，抛出OOM,会使之后的metric 指标全部丢失
+[2.0.6.1]mqtt外部source, 没有纳入metric监控
+[2.0.6.1]mqtt外部source, 使用alter pipe时会再次启动一个mqtt broker,  期望修改成功
+树转表元数据/数据同步场景，接收端enable_auto_create_schema=false ，接收端10几秒有100多条空指针（后面没再出现）：NullPointerException: Cannot read the array length because "measurementSchemas" 
+表模型中只有树转表视图，创建pipe，查看pipe 状态的异常信息不对（显示的tree的异常信息）：code:516, message:Cannot set device template [temp1] to path [root.test1.g_0] since 
+[2.0.6.1]mqtt外部source, 如果mqtt client端使用的用户没有权限，pipe会被stop,期望不会影响接下来的正常数据处理
+[2.0.6.1][1.3.5.9] 1000pipe pattern=ts 对齐非对齐序列，stream/batch模式,影响发送端写入，越写越慢
+[2.0.6.1]mqtt外部source,如果mqtt客户端写入了数据不兼容的数据，pipe会被停止，不再接收处理数据
+【v2.0.6.1】查询写回报错“Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 301: org.apache.tsfile.read.common.block.column.BooleanColumn”
+[2.0.6.1]alter 接收端root密码，重启datanode后修正pipe，有可能多上报进度
+【EXTRACT 时间函数】设置IoTDB的timestamp_precision=ns时，ms、us和ns所截取时间的精度不正确
+[ConfigNode 空指针] 树转表 元数据/数据同步 发送端 cn leader ：NullPointerException: Cannot invoke "org.apache.iotdb.confignode.procedure.Procedure.getProcType()" because the return value of "java.util.concurrent.
+[2.0.6.1]外部mqtt source, pipe默认参数需要评审：mqtt.host，mqtt.data-path的默认参数
+pipe CN 日志优化：1天产生2.9GB 的日志 ，pipe 占98.3% ,如 PipeHeartbeat 有100多万行，占总行数的29%，
+-StateMachineUpdater] 日志占总行数41% ，某些可改为debug？
+[pipe 监控] 需要增加一个进度监控项 （需求背景：CN日志中 pipeHeartbeat log 打印太多了，没有必要，可通过这个监控项解决）
+树转表 元数据/数据同步场景，2 pipe 被数据库 长时间STOPPED ，show pipes ExceptionMessage 中  打印的regionIds: [-2147483648] 是负值
+【数据库配置参数】data_region_consensus_protocol_class 设置错误的参数值，DN 进程启动不成功，也不退出，卡住 , DN 空指针 NullPointerException: Cannot invoke "String.contains(java.lang.CharSequenc
+[sql 覆盖] 2.0.6.1 RC2 3C3D3副本 DN 有空指针：NullPointerException: Cannot invoke "java.util.Iterator.hasNext()" because "this.dbIterator" is null(此环境CN 线程有泄漏，cli 连2 DN 报错 ，可能有关）
+[1.3.5.9]100pipe pattern=device 对齐序列，batch模式，发送端写入延迟达到10min,remainig event 不变似乎卡住
+[2.0.6.1][mqtt]不能正确处理使用反引号括起来的特殊字符的设备和TS名称
+[2.0.6.1] mqtt外部source, 因为表模型和树模型发送的fomat不一样，应该通过sql_dialect自动获取format的默认值
+[2.0.6.1] aggregate-processor 创建pipe失败
+ [2.0.6.1] 打开iotdb的mqtt服务，使用外部 mqtt作为source, 创建pipe成功，但不可用；期望创建时报错
+[1.3.5.7]多pipe带pattern, tsfile传输，有丢点现象
+[ 安全 ] [ 建议 ] drop user 后 , root.__system下的元数据(数据) 能够被级联删除
+[2.0.6.1] iotdb-system.properties.template 中compressor相关的配置需要改为大写
+[2.0.6.1]aggregate-processor 在show pipeplugins内没有显示
+修改发送端用户密码，pipe 同步失败（期望不影响同步）,发送端刷大量日志：PipeConnectionException: Failed to handshake.接收端刷大量日志：status is TPipeConfigTransferResp(status:TSStatus(code:801, message:Authentication failed.)，另：刷日志的频率希望能优化
+未激活或ReadOnly的企业版，可以操作数据库，可能存在安全隐患
+pipe 接收端 1分钟刷出1万多条 WARN  o.a.i.d.s.l.m.LoadTsFileDataCacheMemoryBlock:63 - LoadTsFileDataCacheMemoryBlock{limitedMemorySizeInBytes=304881402, usedMemoryInBytes=306331114} has exceed total memory size
+[ OOM ] 2.0.6.1 RC2 树转表元数据/数据同步场景，2 pipe ，无故障，发送端 1 DN OOM  (可能原因：查询 & flush 死锁）
+[1.3.5.7] 数据同步实际已经完成，但是remaining event 不归零
+[2.0.6.1][tree][table] remaining event 归零时刻明显落后实际进度
+pipe 发送端3C4D 运行41小时有 1DN OOM，共2个pipe 1树1表  (同 TIMECHODB-0489 场景 发送端大量java.lang.ArithmeticException: / by zero， 同步全部失败 )
+[pipe] 2.0.6.1 RC1 强密码场景 pipe 发送端2天刷3TB多的日志: ClientManagerException: java.lang.ArithmeticException: / by zero (同步全失败）
+[ 死锁 ] 2.0.6.1 RC1 3C5D2副本 并发读写树数据+并发查询树转表 + pipe  发送端 出现死锁，表现：cli 连不上集群 （开发分析查询和flush 死锁）
+【数据同步 高可用】tree 1c1d->3c3d，一般数据（1000设备100测点），接收端1个datanode down之后，即使写入完毕pipe指标一直降不下来会卡住在一个区间，一直在重试写入
+【数据同步】tree 1c1d->3c3d，3设备5万测点，接收端1个datanode down之后，过一段时间会导致其他DN也挂掉
+(1.3) compaction 中部分地方未使用 PatternTreeMap 管理 mods
+compaction 中部分地方未使用 PatternTreeMap 管理 mods
+[ 安全 ][高可用场景] 开启强密码 password_expiration_days=1 ，3C3D2副本，stop 1 DN ，修改普通用户密码，再次用这个用户登录集群 没有密码过期的信息
+创建分区，写入 raft log 失败时报错信息不明确：Write partition allocation result failed because: TSStatus(code:200)
+[ 安全 ] 第一次登录集群的过期时间 与 后续不一致（比后续晚 秒级）
+2.0.5.1 RC3 测试通过的场景：TIMECHODB-0360  1C4D2副本 缩容1 DataNode ，1 DataNode OOM
+[ 安全 ] 2.0.6.1 RC1 drop user 成功应该断开它的连接，否则它还可以继续执行操作，若再创建同名用户，此僵尸用户又复活了
+[ ratis ] 2.0.6.1 RC1 树转表 pipe 同步环境 ,发送端 偶现空指针：NullPointerException: Cannot invoke "org.apache.ratis.util.Timestamp.elapsedTimeMs()" because "previous" is null
+[status code][ QUERY ] 2.0.6.1 RC1 MemoryNotEnoughException  返回 INTERNAL_SERVER_ERROR(305) 预期 719
+[ 安全 ] 2.0.6.1 RC1 循环运行：串行创建1万用户，串行登录，串行删除1万用户，DataNode OOM dump + hs_err 
+[2.0.5.2][tree]1000pipe pattern=ts(等于整个库),stream 模式，发送端oom
+[2.0.5.2][tree]多个带pattern pipe, 传输由tsfile降级为insertNode，tsfile和insertNode的transfer time监控为空
+[2.0.5.2][tree][table] 对齐序列 batch模式，1pipe pattern=device, 同步时间是2.0.3.1的1~8倍
+[2.0.5.2][优化]pipe 同步insertNodeQueue队列长时间为full状态，后到的event 的transfer time 很大
+[2.0.5.2][tree]1pipe-device-aligned  3device 每个10w sensor, insertNode模式, 接收端oom
+[ 安全 ] 密码过期后，用户无法登录，所有用户密码过期，没有任何用户可以登录集群。预期：用户密码过期可以登录集群修改密码，或者有别的方法修改密码
+没有设置ttl，但是在合并schedule时会打印ttl检查相关info日志，期望不设置ttl不检查
+[ 安全 ] 开启强密码 指定password_reuse_interval_days=1，license没有激活，客户端cli连集群报错：Cannot create password history for root，预期：不激活也能连上集群，且 "Cannot create password hi
+[ 高可用 ] 3C5D2副本，kill -9 2 DN （root.__system DR 在这2个节点） ，客户端cli 连不上集群
+[2.0.5.2][metric] Pipe Average Transfer Time 和 Average Pipe TsFile Transfer Time 统计值并不一致 
+[2.0.5.2][table][tree][pipe]重启接收端(stop receiver 5 分钟)，发送端未 flush 时，接收端查询不到完整数据
+[2.0.5.2][table][pipe]kill-receiver 5 分钟，发送端OOM
+2.0.5.2 RC4 3C3D3副本 sql覆盖，drop database DN 空指针: NullPointerException: Cannot invoke "java.util.List.iterator()" because "status.subStatus" is null
+[2.0.5.2]pipe同步完成但是remaining event会停留在某个值不变，不归零
+[2.0.5.2][metric]当某region得写入停止了，Pipe Extractor TsFileEpoch State这个指标的值不会改变
+[2.0.5.2][tree]双活，分别写入表和树，写入过程中，将树模型的pipe修改，修改后树模型数据不能同步完成
+【表模型-权限】创建用户失败后，再次修改未创建成功的用户密码，报305内部服务异常
+compaction 的 chunk metadata 内存估计可能不准确
+[2.0.5.2]pipe有一些metric指标，会在source中统计，然后在sink时丢掉，希望这种在source中就不要统计
+[2.0.5.2][tree]1000pipe-ts1-aligned-1w-10-1-10w 发送端oom,pipe memory统计为负数
+[2.0.5.2][table]东北管网模拟测试，运行1小时，d节点的transfer time中间一段时间超过10s，其他节点正常
+[2.0.5.2][table]表模型实时模式数据同步的transfer time是树模型的4~5倍
+[2.0.5.2][没有设置ttl，但是在合并schedule时会打印ttl检查相关info日志，期望不设置ttl不检查
+[ 高可用 ] 3C3DIoT2副本，并发读写+ kill -9 1DN ,运行5天（kill -9 35次 ) 出现1次 查询失败NPE ： NullPointerException: Cannot read field "next" because "this.next" is null
+[ 高可用 ] 3C5D2副本 并发读写+kill -9 IP 2.11 , 10几分钟后 2.12 机器故障(私有云,ping不通2.12，其上iotdb无日志输出) , 2.5h 后重启2.11 成功后，其他DN 出现几千条查询失败 NPE ：NullPoi
+【表模型SQL】CASE WHEN执行查询时，报305服务内部错误异常
+【Cpp Session】TimeStamp类型为空值使用DataIterator的getTimestampByIndex或getTimestamp方法查询会报初始化错误
+[ IoTV2 ] 3C5D2副本 并发读写场景 （有磁盘满ReadOnly) Follower  tsfile 不完整 查询空指针 : NullPointerException: Cannot invoke "org.apache.tsfile.file.metadata.statistics.Statistics.getEndTime()" because "this
+load 遇到跨时间分区且为空的 value chunk 时会生成 chunk 不对齐的 tsfile
+TIMESTAMP 类型聚合查询结果错误
+load 遇到跨时间分区且为空的 value chunk 时会生成 chunk 不对齐的 tsfile
+[ 树转表 ] alter view view_not_exist add column col from col; CN 空指针需要处理
+【树模型SQL】同一表达式在case when子句中与子句外，其对应结果不一致
+[ 表模型 - 高可用场景] 3C5DIoT2副本 stop 1 DN 后聚合查询SQL 指定的时间范围无数据 报错：IoTDBSQLException: 721: Root FragmentInstance placement error: [TRegionReplicaSet(regionId:null, dataNodeLocations
+【async load】异步加载表模型40个同名的表模型tsfile，出现树模型的 load 调了表模型的方法，导致自动创建元数据失败
+【load】同步加载表模型跨时间分区的tsfile，特殊表结构和值数据，会导致导致DN挂掉
+[ 树转表 ] 元数据同步 rename view ，接收端1DN OOM 后 有NPE ：Internal error processing updateTable
+[ 新需求 ]  集群中多了一个127.0.0.1的DataNode ，却无法追溯它的来源(而且它的作用只是僵尸节点，stop dn进程后依然显示Running，remove 它的DNID 实际remove的是remove命令所在机器的D
+树转表 - 元数据同步 ，接收端有1个DN OOM 生成了dump （可复现）
+【树模型】BLOB数据类型，执行last查询，返回的结果集中，Value对应的值显示乱码
+【ainode】【激活】【v2.0.5.1-rc6】ainode启动失败时，报错信息不明
+【ainode】【激活】【v2.0.5.1-rc6】已经加入集群的ainode 不会受集群自身变化影响
+【ainode】【v2051-rc6】表模型cli不支持自定义模型的创建/删除
+[ 树转表 ] 并发读写树模型，并发查询视图 部分查询视图SQL失败，DN : DeviceIteratorScanOperator NoSuchElementException: null
+【树模型-RESTAPI】FastLastQuery需要增加统计延迟监控项
+高精度时间戳取余结果不符合预期
+【树模型-V2.0.5.1 】通过聚合函数max_by或min_by查询时间戳差值报301: Index 2 out of bounds for length 2
+进1.3.5.6 [ query mem leak ] 查询报内存不足后有 MemoryLeakException
+[ query mem leak ] 查询报内存不足后有 MemoryLeakException
+【V1.3.5.5-树模型SQL】普通用户拥有WRITE_DATA和WRITE_SCHEMA权限，创建view报305内部服务错误异常
+[ 树转表 ] [ 语法解析 ] viewColumnDefinition 省略dataType 创建视图报错，期望成功
+[ tsfile ][ 树转表 ] 查询视图 flush前可以查询到对齐序列的2条null，flush后查询不到 
+ [ 树转表 ] tree 的db 与device 名称相同，创建view成功，查询view报错: 301: tree db name should at least be two level: root (预期查询成功）
+【树模型-RESTAPI】DATE数据类型，返回结果建议以分隔符隔开显示
+【树模型-RESTAPI】通过接口/rest/v2/query查询BLOB数据类型，返回结果显示乱码
+【v2051-rc5】【ainode】创建的错误模型，show models不显示，再次创建不成功，可以删除
+【v2051-rc5】【ainode】show models + 指定模型 不生效
+[ 查询 ] 查询遇到 Not enough memory for sorting 产生的临时文件夹没有删除，期望清理干净
+【树模型-SQL】执行最新点查询数据丢失1条数据信息
+【树模型-SQL】普通用户拥有WRITE_DATA和WRITE_SCHEMA权限，创建view报305内部服务错误异常
+[status code] [ QUERY ] 执行 "select 2"  :[INTERNAL_SERVER_ERROR(305)] Exception occurred:
+大TEXT对象 + align by device + order by time 查询报内存不足
+[ 树转表 元数据同步 ] 创建视图/重命名视图 同步成功，删除视图中的1列同步失败，CN Leader 一直刷异常日志：Transfer config region write plan RenameView error
+[2.0.5.2][1.3.5.5fix][pipe]重启 iotdb 后一些pipe的监控指标为负数
+【Cpp TsFile】使用默认的编码和压缩，Cpp的FLOAT类型的值与Java不一致
+cross join : 2个树转表视图cross join 结果集太大 报错 301: positionCount is negative，需要做溢出处理
+【树模型-RESTAPI】通过RESTAPI工具执行查询时，log中有UNKNOWN
+[ 树转表 ] 2.0.5.1 RC4 多个相同视图隐式连接查询报错：301: Measurement value_5 does not exist ( 期望成功）
+缩容1个DN，出现SR Adding卡死，kill -9 Adding卡死的DN（因为stop不掉），重启此DN 失败，且此SR 比预期多了一个副本，希望能够remove此副本，但是remove失败：has some other region operation procedures in progress,  state=WAITING:CHECK_ADD_REGION_PEE
+[ 树转表 ] 查询视图失败（where不指定field列，指定time和tag）：ArrayIndexOutOfBoundsException
+【Cpp TsFile】在构建Tablet时，列名都会被转小写，导致使用大写列名构建的Tablet无法添加值，与Java不一致
+【AINode】使用表值函数进行推理，允许设置output_length参数为取值的最大值（2880），这会导致IoTDB的DN挂掉，需要设置保护措施
+【Cpp TsFile】当TAG和FIELD列全空（只有时间戳，没有数据），无法写入
+[status code][ QUERY ] Correct status code from 301 to 719 while memory not enough
+confignode 线程泄漏 2.0.5.1 RC3 IoTV2 3C3D3副本 运行sql覆盖树模型用例，ConfigNodeRPC-Processor 线程有3000个，且连不上集群（CN/DN 有NPE）
+【窗口函数】查询空值，一次性执行多遍完整流程，会出现java.lang.IndexOutOfBoundsException: Index out of Partition's bounds!报错
+remove confignode leader 成功（所在机器无故障），重新设置cn seed 作为新节点启动，有ERROR 需处理：Load ../data/confignode/consensus/47474747-4747-4747-4747-000000000000/sm/1_4144/procedures/procedure_info.bin.md5 failed, it will be deleted. IOException: unrecognized log type 25652
+[ confignode 空指针 ] 2.0.5.1 RC3 3C3DIoT 并发读写过程中 stop 1DN 与1CN ，CN 空指针，客户端连不上集群
+Limit 在查询时被不正确消除
+2.0.5.1 RC3 树转表 高可用场景 3C5D2副本 对node-1多次kill -9 ，查询失败异常信息是：[INTERNAL_SERVER_ERROR(305)] Fetch Table Device Schema failed(田原: 抛CANNOT_FETCH_FI_STATE(722))
+[ 新功能支持 ] select null from table 报错 ：301: org.apache.tsfile.read.common.block.column.NullColumn 
+1.3.5.2版本引入降级算法的统计错误，导致线上降级速度较慢
+[ 查询优化项 ] 3个相同的表/视图 做LEFT JOIN  指定using(device_id,time) 预期没有sort 操作，实际报sort 内存不足：719: Not enough memory for sorting
+[2.0.5.1][regression]10 database 写入报错，不够内存创建新region, 当前版本region数107,之前版本32
+2.0.5.1 RC1 验证RN: 缩容场景 有delete 数据操作， 遇到removing卡死 （及监控IoTConsensus Used Memory的IoTConsensusQueue是负值 另一issue)，研发已定位： IoTV1 没有考虑到删除匹配不到任何
+[树转表] 2.0.5.1 RC3 3个视图join 查询 指定了where time <= , DN java.lang.StackOverflowError: null
+[2.0.5.1][regression][table]pipe接收端异步加载报错：UnsupportedOperationException: should call the concrete visitXX() method
+【AINode】内置表值函数，timecol参数对大小写time列，有不同情况
+【AINode】内置表值函数的推理，若timecol参数为空白字符会报错305
+1.3.5.4 RC1 1C4D 缩容 1 Unknown DN ，缩容成功，wal 同步卡住，卡住DN 日志 显示一直向缩容节点发batch （Can not send Batch），需重启此节点才能完成同步
+1.3.5.4 RC1 1C4D2副本缩容1 Unknown DN （SYSTEM SR 仅有的1副本在此节点上），在缩容期间和缩容回滚后CN 日志有很多：ERROR Create SchemaPartition failed 需要分析什么操作会触发反复Create S
+1.3.5.4 RC1 缩容 1 Unknown DN  1分钟后 stop 另一 DN ，stop 过程中 NPE：NullPointerException: Cannot invoke "java.util.Map.get(Object)" because "this.schemaRegionMap" is null
+[1.3.5.2]修改root密码后，修改pipe，有NPE
+[1.3.5.4 RC1 ] 注册元数据阶段160秒内 DN 刷2800多条WARN ：[grpc-default-executor-7] WARN  o.a.r.g.s.GrpcLogAppender$AppendLogResponseHandler:519 - 3@group-000200000000->2-AppendLogResponseHandler: received INCONSISTEN
+[1.3.5.4 RC1 ] 干净环境启动集群每个DN 都打一条ERROR ： [main] ERROR o.a.i.m.utils.MetricInfo:54 - The size of metric tags should be even, but was region.
+[ 树转表 ] 2.0.5.1 RC2 树模型有多个设备，多个TTL ，查询表视图 可以查询到部分设备的过期数据
+多·设备跨region，聚合查询 order by time+align by device 报错
+单·设备跨region，聚合查询 order by time+align by device 报错
+精确 BinaryColumn 对象的内存计算
+【树模型】跨 Region 聚合 align by device 查询出现数组越界异常 
+root.__system 默认创建副本数跟随用户参数设置（不强行绑定为 1）
+DN 被错误删除后，原 DN 残留的 region 需要支持手动清除
+待移除的 DN ，可能会出现 region 未完整迁移完，但该 DN 被移除
+[树转表] view 没有 FIELD列 查询视图报错：301: Cannot invoke "org.apache.iotdb.db.queryengine.execution.operator.Operator.calculateMaxPeekMemory()" because "this.child" is null
+[树转表][2.0.5.1 RC2 ] 元数据导出适配 export-schema.sh 导出的视图定义不正确，生成的sql是创建表的
+[session]不断创建连接不上的session，很快OOM
+[树转表][2.0.5.1 RC2]  alter view old_name rename to  new_name 成功，但是查询 old 视图成功（show tables是看不到的old 视图的）
+[IoTV2 ] [ 2.0.5.1 RC2 3C21D  验证RN ] 重启集群 show regions 卡住, 最后返回失败信息Fail to connect to any config node.(研发：Procedure 框架)
+【ainode】外置模型无法导入
+[ IoTV2 ] [2.0.5.1 RC2 ] 像新引入的问题, DN 空指针 NullPointerException: Cannot invoke "java.util.concurrent.ForkJoinTask.cancel(boolean)" because "this.asyncTask" is null
+1C4D2副本 缩容1 DataNode，CN ERROR ArrayIndexOutOfBoundsException: Index 4 out of bounds for length 4，缩容节点一直是Removing状态，region是Running
+3C5D2副本，并发读写过程中 对NODE-1 间隔3分钟 循环重启 ，NODE-1 有OOM （dump 31G）
+[ IoTV2 ] 3C5D 有1个节点故障，同步卡住 （俊植分析到：priorityQueue 问题） 
+[东北管网]配置datanode_memory_proportion=3:1:1:1:3:1, 启动成功后不久，confignode进程丢失，datanode NPE
+[ 树转表 ] create view  树路径中包含中文，创建view失败
+【Pipe 内存控制】写入过程Pipe内存不足导致引起写入失败
+【2051 rc2】windows环境 使用表模型示例数据 测试 LEFT JOIN 出现中文乱码 
+【表模型V2.0.5.1-RC2】MATCH_RECOGNIZE执行查询，遇到301: Source handle is blocked异常
+【C++ 客户端】C++客户端查询接口TsBlock反序列化不支持查询空值的Date类型
+【表模型V2.0.5.1-RC2】MATCH_RECOGNIZE执行查询过程中遇到time out 超时
+2.0.5.1 rc2 验证RN 遇到新问题 DR ratis协议 迁移1个DR Adding卡住，DN 日志1小时刷11万多条WARN   o.a.r.g.s.GrpcLogAppender:466 - 3@group-00010000003A->6-GrpcLogAppender: Timed out appendEntries
+[ 树转表 ] select * from 视图 报错 Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 301: origin(3) > fence(2)
+【表模型V2.0.5.1-RC2】MATCH_RECOGNIZE校验信息中，状态码以及message信息需优化
+[ 树转表 ]  3C3D IoT 3副本 在node1创建元数据写入数据（树db有对齐/非对齐/视图，表db有树转表的视图），连另2个DN 查询报错：Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 305: [INTERNAL_SERV
+2.0.5.1 RC1 验证RN  监控面板IoTConsensus Used Memory中的IoTConsensusQueue  是负值
+【窗口函数】窗口函数查询带有空值的数据会有多种问题
+[ratis npe] 2.0.5.1 RC1 验证并发读写+缩容 ratis NullPointerException: Cannot invoke "org.apache.ratis.server.raftlog.segmented.LogSegment.getLastTermIndex()" because "this.openSegment" is null
+【窗口函数】在窗口函数中单独使用ORDER BY对多个列进行排序，会报错null
+[ 树转表 ] 3C5D2副本 对node-1多次kill -9 ，视图查询有空指针异常：error when create FragmentInstanceExecution .NullPointerException: Cannot invoke "java.util.List.get(int)" because the return value of "java.uti
+【窗口函数】窗口函数offset PRECEDING和offset FOLLOWING中的允许offset为负值而不报错，与MySQL不一致
+【树模型】跨 Region 聚合 align by device 查询出现数组越界异常 
+device id 中有 null 时合并报错
+[ IoTV2 ] 3C5D2副本，有1个节点频繁在ReadOnly 和 Running之间切换， 测试完成，同步完成，Cached Request 大于 0 （期望event传输成功）
+【窗口函数】窗口函数参数一个都不用则会出现305异常
+[ session ] 3C3D2副本，benchmark 20用户并发读写 频繁重启同一个节点，另2个DN 有1000个IoTDB-ClientRPC-Processor 线程 （默认参数dn_rpc_max_concurrent_client_num=1000）
+[树转表] 2.0.5.1 RC1 memtable 中时间序列的部分数据类型与视图定义不一致，查询视图 结果集为空（预期可以查询到，flush后可以查询到）
+[2.0.5.1 RC1] IoTV2 3副本 sql覆盖树模型（循环运行）IoTDB-PipeConsensus-TsFileWriter-Checker 线程有泄漏（DR数并不多约1-2个）
+[pipe]3个device每个10w测点，历史数据带pattern同步，不能同步
+【表模型V2.0.5.1-RC1】approx_most_frequent第2个参数为浮点数时，报301异常报错
+【表模型V2.0.5.1-RC1】approx_most_frequent函数所需参数为空时，报305内部服务异常
+【窗口函数】若窗口函数执行了排序，则写在表名后面的ORDER BY TAG列会失效
+[TO dev/1.3 ] 与 TIMECHODB-0328 2.0版本相对应： 3C5DIoT 2副本, 有1个节点处在storage engine 恢复期间，此时查询报Device {xxxx} is not in tsFileMetaData
+[树转表][2.0.5.1RC1] 树模型对应的表视图 可以查询到树模型中(设置TTL)已过期数据
+[树转表][2.0.5.1 RC1] 2个视图JOIN 查询, where 的device_id不存在,报错信息不对：701: Given queried database: null is not exist!
+[IoTV2 NPE ] 3C3D3副本 ，循环运行某个树转表用例，DN 空指针需处理（可复现）： Cannot invoke "org.apache.iotdb.db.pipe.receiver.protocol.pipeconsensus.PipeConsensusReceiver.handleExit()" because the retur
+drop 树db，会清理掉表db的cache：在表模型查询存在的表却报错表不存在(IoTDBSQLException: 550: Table 'xx' does not exist.)
+【ainode】缺少remove-ainode的sql
+[2.0.4.1][table]使用export-tsfile.sh导出某个表的数据，少点
+【封装订阅tsfile的脚本】按照测点、设备导出耗时过长、不可控
+export-tsfile.sh 脚本，限制时间范围（跨分区），导出指定数据库，非完整分区的数据会丢失
+多层 Join Using 嵌套使用时消除不必要的 SortNode
+【表模型】对于不支持ASOF RIGHT JOIN查询时，报305异常内部错误
+[2.0.4.1][pipe] processor 报错:Invalid data format
+【C++ TsFile】由于global.h中set_datatype_encoding的code变量未使用，导致出现编译警告
+[Simple协议]激活失败-系统Readonly时操作查询语句系统报错
+[2.0.4.1 RC1] 3C21D集群读写完成后，多次停止/重启整个集群，出现集群重启失败（可复现，不是每次都失败），研发：cn 共识层不可用，现象是选不出 leader
+[2.0.4.1 RC2 ] 3C3DIoT3副本，1用户set system to readonly /running 前后执行写入与查询单个表数据，DN 出现空指针 NullPointerException: Cannot invoke "org.apache.iotdb.commons.schema.table.TsTable.getTableNam
+[2.0.4.1 RC1] IoTV2 3C5D2副本并发读写过程中有1个DN 反复ReadOnly(DiskFull) （约4小时），提供充足磁盘空间，客户端读写完成，同步卡住
+设置系统状态SET SYSTEM TO 操作应该保证原子性（当前多节点状态更新是秒级延迟 2.0.4.1 RC2）
+【async load】异步加载未能正确获取Session中的database
+[2.0.4.1][rc1][tree]10pipe-blendin-aligned-10-100-2-2kw-batch 数据同步，接收端合并报错，有个文件的time列和value列的chunk数量不一致
+[2.0.4.1 RC2 高可用 多盘存储部分故障]3C3DIoT2副本 data/wal dir 配置3块盘，其中1块盘故障chattr immutable  , create region / tsfile 失败（有空指针），会一直使用这块故障盘
+Join + 聚合下推 查询场景出现异常
+【表模型V2.0.4.1-RC1】通过不支持的转义字符进行设置配置参数时，报305异常
+[高可用参数] failure_detector_phi_threshold 参数名称和注释缺少单位信息，建议与failure_detector_fixed_threshold_in_ms 参数名称格式统一
+【表模型-V2.0.4.1_RC1】表模型全量查询时，报301异常
+[ 配置参数 ]CN 节点间的disk_space_warning_threshold 参数值不一致，会导致Follower CN 启动失败，表现不合理，若CN 和 DN 在相同机器（使用同一份配置文件），想对某DN 设置不同的报
+[2.0.4.1][tree]带有50%乱序的场景，Sink内配置format=tsfile的数据同步，接收端文件数量大大增加
+[2.0.4.1 RC1 ] 普通用户 树模型 写入性能 比 表模型慢了 63%，可优化
+StreamAggOperator 处理 Empty Block 时发生异常
+UDAF  group by 查询执行异常
+【UDTF】内置表值函数SESSION的TIMECOL参数缺少默认值，导致使用时不写TIMECOL会报错
+配置项 meta_data_cache_enable=false 时，使用了未赋值的 memory manager ， datanode 启动报错
+【UDF】无法正常使用内置表值函数HOP的ORIGIN参数
+【表模型】delete devices + where 条件，所有的devices均被删除了
+【master】sql-testcase-ainode，SQLSTATE : 301: Error occurred while executing inference:[object of type NoneType has no len()]
+[2.0.4.1 RC1 ] 并发读写+缩容，高可用新增线程TopologyService 需要处理空指针Cannot invoke "java.util.Set.add(Object)" because the return value of "java.util.Map.get(Object)" is null
+[2.0.4.1][表模型]tsfile导出，小于1G的tsfile，导出其中一个table共10个table，3天未完成
+【Load】Load SQL中使用async load加载表模型TsFile，若不存在database-name指定的数据库，则异步加载失败，报Unknown database警告
+【表模型V2.0.4.1-RC1】APPROX_COUNT_DISTINCT指定标准误差最小值时，执行查询结果报异常
+[ 2.0.4.1 RC1 高可用 - 非对称网络分区 ] 3C3DIoT2副本，故障期间写入吞吐下降严重（>50%）
+[2.0.3.1][IoTv2]非对齐序列 10pipe-root场景，IoTv2 比IoT协议表现差，同步时间1.5~2倍
+[ 2.0.4.1 RC1 load 高可用 ] 1C2D元数据1副本 IoT 2副本 load tsfile过程中1节点磁盘满，之后写入吞吐降为0，还有1副本可用，预期自动转 tablets继续写入
+[2.0.3.1][IoTv2]表模型列很多,10pipe-device的场景,IoTv2和IoT处理效率比较差:写入不到半小时，5小时未能同步完成【日志丢失】
+[ 2.0.3.1 RC3] sql 覆盖 IoTV2 3副本 CN 空指针：NullPointerException: Cannot invoke "java.util.Map$Entry.getValue()" because the return value of "java.util.TreeMap.firstEntry()" is null
+[2.0.3.1 RC3] sql覆盖 IoTV2 3副本 DN 空指针：NullPointerException: Cannot invoke "org.apache.tsfile.write.schema.MeasurementSchema.serializeTo(java.io.OutputStream)" because "this.measurementSchemas[i]" is null
+【sql-test】【表模型】【3C3D】【IoTV2】v2031-rc3执行时，删除database卡住
+【Cpp TsFile】TsFile 2.1.0 查询接口无法查询IoTDB的data目录中的TsFile数据
+【Python TsFile】若全部TAG列的值相同，则load到IoTDB中查询无数据
+【Cpp TsFile】一次写入大于255数量的FIELD列会生成一个空数据的TsFile
+【树模型&表模型SQL】通过SQL工具依次运行两个SQL用例文件，生成结果中含有ERROR
+stop datanode 一直是ReadOnly状态，stop 不掉（wal size > (  wal_throttle_threshold_in_byte * 0.8 )  会不停尝试删除 wal ）
+【Python-TsFile】python-tsfile写入接口add_value_by_index方法在使用_check_numeric_range缺少是否数值的判断，导致字符值无法使用add_value_by_index方法进行写入
+【dbeaver】【树模型】【5群】Status code: 700, Query Statement: "xxxxxx". executeStatement failed because Error occurred while parsing SQL to physical plan
+【【预研性功能】TsFile数据文件加密功能（AES + 国密 SM4）】启用再关闭不生效 & 更换key之后报错301且不可读 & IoTV2报错且不可读
+[2.0.3.1 RC2 ] IoTV2 3C3D2副本 并发读写+delete数据/drop column + stop 1 DN , 测试完成，同步卡住（2个Index）
+[2.0.3.1 RC2] IoTV2 3C3D3副本 20用户并发delete /create /insert timeseries ，CN 空指针:NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because the return value of "java.util.Map.getOrDefault(Object, Ob
+【Cpp TsFile】Cpp TsFile查询接口没有把查询的原始列名保留下来，导致在构建query时，即使columns的列名为大写，也无法使用大写列名进行查询
+[2.0.3.1 RC2] 3C5D5副本  IoTV2  循环执行 sql 覆盖树模型用例 ，执行35轮后（约24小时），看起来卡死（regionID 没有变动）；CN error 刷了2000多万条Failed to CREATE_SCHEMA_REGION on DataNode；
+[2.0.3.1 RC2] IoTV2 sql 覆盖 3C5D5副本 CN NPE：NullPointerException: Cannot invoke "org.apache.iotdb.confignode.persistence.partition.DatabasePartitionTable.createRegionGroups(java.util.List)" because the return value of "ja
+[2.0.3.1 RC2 ] IoTV2 3C5D元数据和数据都是5副本 SQL覆盖： DN 空指针 NullPointerException: Cannot invoke "org.apache.iotdb.db.schemaengine.template.Template.isDirectAligned()" because "template" is null
+【Cpp TsFile】Cpp TsFile查询接口query方法缺少对不存在的列名的检查，与Java TsFile效果不一致
+【Cpp TsFile】Cpp TsFile查询接口的query设定了起止时间但是查询还是查询超出范围的数据
+[ 2.0.3.1 RC2 ] 验证issue 0228 遇到新问题：重启集群有1个节点一直是Unknown 且没有enjoy 日志（新宇看到main线程阻塞），另外它能正常合并
+【Cpp TsFile】Cpp TsFile写入缺少乱序时间戳检查，而Java TsFile写入有这个检查，两者功能不一致
+[benchmark]写入增加模式：严格将当前时间作为数据时间，方便测试延迟
+【Cpp TsFile】第二个TAG列若为空白，则无法查询到数据
+[ 高可用 ] 查询卡住 ( 3C5D IoTV2 2副本 查询 + stop 1 DN )  , 田原：查询分片被发到了正在stop的节点上
+【spark-iotdb-table-connector】使用spark-sql写iotdb时，类型转换错误
+【Cpp TsFile】c++ tsfile缺少对重复列的判断导致可以两个同名英文字母列（一个大写一个小写）
+[ 2.0.3.1 RC1 高可用 ] 3C5D IoTV2 2副本：客户端完成并发读写+stop 1 DN 的测试，验证副本一致性阶段，出现3类查询报错（IoTDBSQLException: 306: cannot connect to node TEndPoint；Execu
+[2.0.3.1][table]inclusion=schema.table.create,表结构没有被同步
+【Cpp TsFile】缺少对列名为空白的判断，导致可以生成包含空白列名的TsFile
+【多语言TsFile】多语言TsFile，允许设置空白的表名并可以成功Load，而IoTDB无法创建空白的表名
+【Load TsFile】两次load tsfile，只更改表名，若第二次生成的tsfile目录中存在第一次load tsfile生成resource文件，会导致第二次load tsfile后查询无数据
+【Cpp TsFile】CppTsFile 2.1.0 写入和查询接口对于null值存在多种异常情况
+【表模型-SQL】distinct查询中，非法格式校验状态码需要优化
+CI last 查询报查询结果不一致错误
+SortNode 在分布式规划时被不正确消除
+【表模型-Load Tsfile】普通用户拥有table范围的create+insert权限，load tsfile 异常
+key不再有16位的强制限制 && 重启后修改key但tsfile依然可读
+【to dev/1.3 】树模型SQL-3C3D，运行pattern_match自定义函数，报301关于"tsDataType" is null
+【表模型】普通用户拥有INSERT权限，通过export-schema.sh导出元数据异常
+【to master】树模型SQL-3C3D，运行pattern_match自定义函数，报301关于"tsDataType" is null
+【Go Client】Go 客户端树模型查询接口，查询时缺少对 Time 列的判断，导致获取 Time 列数据时会报 index out of range [-1] 错误
+[ SQLSTATECODE ] 2.0.3.1 RC1 3C5D2副本  并发读写 +  kill -9 2 DN ,  客户端查询错误信息 INTERNAL_SERVER_ERROR(305) 需要处理为更准确的异常码；写入失败异常码EXECUTE_STATEMENT_ERROR(301)
+【表模型V2.0.3.1-RC1】Not Exists查询结果不正确
+ [ 1.3 ] 设备级 ttl 从顺序区选择 settle 任务时会选出不连续的顺序文件导致执行时报 overlap（ 1C1D 并发读写+delete 数据 运行4天多，合并ERROR Device t1_0.d_21 has overlapped data..)
+[ 2.0 ] 设备级 ttl 从顺序区选择 settle 任务时会选出不连续的顺序文件导致执行时报 overlap（ 1C1D 并发读写+delete 数据 运行4天多，合并ERROR  Device t1_0.d_21 has overlapped data..)
+【opc-da】在macos or linux上执行create pipe，报错不可读，305，Unable to load library Ole32
+[ sql 覆盖 ] 相同db 没有设置 comment 的表可以查看到comment 信息（别的表设置过）
+【C++ TsFile】缺失TEXT类型值的写入，需要完善
+[2.0.3.1][IoTV2]接收端多盘,元数据树模型同步，写入表数据，snapshot模式报错java.lang.IndexOutOfBoundsException: Index 5 out of bounds for length 0
+【表模型-V2.0.3.1-RC1】BOOLEAN数据类型执行GREATEST和LEAST查询结果集不正确
+ [ 2.0.3.1 RC1 高可用 ] IoTV2 3C3D 并发读写+delete/drop column+stop 1 dn  ，stop dn 几个小时进程不退出
+[2.0.3.1 rc1 RN 验证遇到的问题] IoTV2 3C5D2副本并发读写+kill -9 1 DN , DN NPE : NullPointerException: Cannot invoke "org.apache.iotdb.db.pipe.receiver.protocol.pipeconsensus.PipeConsensusReceiver.handleExit()" becaus
+[ 2.0.3.1 RC1 ] delete TimeSeries CN 和 DN 都有NPE：CN  Internal error processing deleteTimeSeries NullPointerException: Cannot invoke "org.apache.iotdb.commons.path.PartialPath.getNodes()" because "rPath" is null
+[ 2.0.3.1 rc1 RN测试遇到的问题 ] 无故障load+迁移region，DR 迁移成功，但源端tsfile有残留(监控面板可以看到); 重启集群，残留tsfile也没被清除(metric 看不到了）
+[ 2.0.3.1 RC1  高可用 ] IoTV2 3C3D 并发读写+delete/drop column+stop 1 dn 运行30多小时开始出现100多条查询失败报空指针 ：NullPointerException: Cannot invoke "java.util.List.stream()" because the return va
+[2.0.3.1]数据订阅，虽然订阅成功，但是客户端有exception
+[2.0.3.1]数据订阅，消费完成，但是remain event count不归零
+[2.0.3.1][tree]对于view的操作，create 序列报错:There are no available SchemaRegionGroup RegionGroups currently
+[ sql 覆盖 DN NPE ] 2.0.3.1 RC1 IoTV2 3C3D3副本 DN ERROR o.a.i.c.r.ApplicationStateMachineProxy:157 - application statemachine throws a runtime exception: NPE
+[2.0.3.1][table]带pattern format=tsfile，没有任何数据同步成功
+[ IoTV2 2.0.2.1 RC6 ] 3C3D3副本 10用户并发各自串行delete ts/create ts/insert ts (ts name 不同）运行4天，DN 出现大量 ERROR : java.nio.channels.ClosedChannelException: null
+建议 .iotdb_history 文件有行数上限限制
+设定rpc最大并发客户端数小于CPU线程数会导致dn启动失败
+[2.0.2.1 RC5 ] IoTV2 3C3D 并发读写+delete数据+drop column+间隔重启1 DN ，有2 DN OOM（-XX:+UseParallelGC，RPC 线程过多），客户端退出后重启2DN，同步卡住
+【表模型V2.0.2.1-RC7】通过接口RESTAPI，列出用户列表或角色列表时，必填请求参数database校验不通过
+【mqtt】【表模型】【权限】please add privilege WRITE_DATA on xxx
+[2.0.2.1 RC6 ] IoTV2 3C5D 元数据3副本数据2副本，并发读写+同时stop 2 DN ,客户端退出，同步完成，查询失败因为tsfile有问题
+[ 补记 2.0.2.1 RC2 ] 复测RN 【Migrate Region】写入+节点间循环迁移：把1个节点上的所有SR/DR 迁移到另一个节点 , 有丢元数据的现象，出现SchemaRegion Adding卡住，阻塞此项验证
+ 聚合查询 distinct 命中聚合下推优化且与 group by date_bin 联用时执行异常
+[ 2.0.2.1 RC6 ] 10用户并发反复delete /create timeseries（10 ts） cn 异常需要处理：Internal error processing deleteTimeSeries java.util.ConcurrentModificationException: null
+[ 2.0.2.1 RC6 ] 1C1D IoTV2 表数据 ，并发读写+ delete devices/delete from DN 出现1处NPE ：Error in executing plan node: RelationalDeleteDataNode
+[2.0.2.1][table]元数据同步，pattern需要兼容大些英文
+[ 2.0.2.1 RC6 异常日志优化 ] 3C5D 元数据3副本数据IoTV2 2副本 并发读写+同时 stop 2 DN ，DN 空指针日志可优化
+【树模型SQL】普通用户仅有WRITE_DATA权限，select into目标序列的所属数据库不存在时，对应的Check信息中状态码301需优化
+[2.0.2.1][table]创建pipe时, inclusion=schema.table.create/drop/alter时，报错：The string contains illegal path
+【鉴权】使用root创建多个普通用户并给第一个用户赋予全部权限，然后使用第一个用户给其他用户赋予权限会报305异常：Cannot invoke "java.util.Set.iterator()" because the return value of 
+[2.0.2.1 RC6] region迁移自动化用例，新增失败：迁移过程中，kill source node，迁移成功,重启节点,继续迁移此region的其他副本到此node，迁移失败，预期成功（RC3通过）。
+[2.0.2.1][table]历史模式，source 用户仅有manage_user权限，role信息会被同步
+[2.0.2.1][数据同步][权限]sink中指定的用户，如果权限不足，会反复重试，使同步停止，其他有权限的也不会同步 (数据同步 sink skip-if 选项)
+[2.0.2.1][table]inclusion=auth,当sink指定非root用户时，新创建的用户和无权限的用户，不会被同步
+【表模型V2.0.2.1-RC5】修改不存在的DB时，报305: String index out of range: -1
+[2.0.2.1][table]元数据同步，发送端drop 的 table的元数据，仍然会同步到接收端
+[2.0.2.1][table]表模型元数据同步，sink中指定的用户，修改密码后，元数据依然可以同步
+【C++】C++表模型session，使用tablet.bitMaps[].mark()标记多个类型空值，写入后并不会为空
+【对象存储】windows开启对象存储后，导入tsfile失败
+[2.0.2.1]合并读取 value page reader 时可能使用错误的 encoding
+【C#】C#表模型客户端，写入的Tablet值超过7行，且其中三行及以上为null值时，该列写入的数据全会转为null
+[2.0.2.1][数据同步]alter pipe时，修改source/sink内的user时，报错：Authentication failed，希望优化信息
+[2.0.2.1][WriteBackSink]sink用户鉴权，无任何权限，但是database会创建
+[2.0.2.1][WriteBackSink]使用source用户鉴权，有select权限，却不能同步
+[2.0.2.1][数据同步]WriteBackSink插件还不支持元数据同步，不会报错
+[ 2.0.2.1 RC3 ] IoTV2 1C1D 并发读写+串行delete devices , delete 偶有失败（ CN ERROR: Unexpected null procedure parameters for waitingProcedureFinished ）
+[ 2.0.2.1 RC4 ] IoTV2 3C3D3副本，SQL 覆盖（树模型用例）测试，WAL-Serialize 和 AsyncDataNodePipeConsensusServiceClientPool-selector 这2类线程在持续增长
+insert null 值 不会覆盖当前结果
+[数据订阅]1pipe-root 35w设备2sensor，10个pull consumer订阅，datanode oom
+group 超过 1024，部分聚合函数（First、Last、Sum、Extreme）查询报 BigArrary NPE
+[pipeplugin]创建插件时，应检查插件本身是否和连接类型相符
+[数据同步]3device 10w sensor 双活之一改单树模型匹配，metric丢失，datanode OOM
+[数据同步]alter pipe replace source时，如果用户未指定用户名和密码，需要默认指定为当前session的用户
+【对象存储】从OSS下载的tsfile，load到iotdb查询报错
+【对象存储】写入表模型报警，warn, Failed to select shared stroage compaction task.
+[ SQLSTATECODE ] SQL 报错信息：IoTDBSQLException: 305: [INTERNAL_SERVER_ERROR(305)]，需要处理
+【OPC-UA】表模型支持 NPE && 多一层空级
+[2.0.2.1 RC3] DataRegion ratis 协议，并发读写+stop dn ,stop 期间的NPE 需要处理
+ [1.3.4.2 RC3] region迁移自动化用例：迁移过程中stop 1 dn 和 cn leader，恢复后，再次正常迁移失败，期望成功
+[2.0.2.1RC3] region迁移自动化用例：迁移过程中stop 1 dn 和 cn leader，恢复后，再次正常迁移失败，期望成功
+[table]1 table 匹配 pipe，batch模式同步，少点 
+[1.3.4.2 ] region迁移自动化用例，迁移DR ID 到不存在的DN ID，报错信息不对，CN 空指针 Internal error processing migrateRegion
+[table]带有50%乱序的场景，Sink内配置format=tsfile的数据同步，接收端文件数量大大增加
+[2.0.2.1 RC3] region迁移自动化用例，迁移DR ID 到不存在的DN ID，报错信息不对，CN 空指针 Internal error processing migrateRegion
+[pipeplugin]在树表分别创建自定义pipeplugin，重启后都在sql_dialect=tree显示
+export-tsfile.sh
+ [2.0.2.1 RC3] 并发读写+drop column  DN有很多空指针：NullPointerException: Cannot invoke "org.apache.tsfile.utils.BitMap.markAll()" because the return value of "java.util.List.get(int)" is null 
+[2.0.2.1 RC3] 并发读写+drop column 有写入失败: DN 日志 WriteProcessException: java.lang.ArrayStoreException: arraycopy: type mismatch: can not copy int[] into boolean[]
+[table]load时，没有create database权限，却能够创建database
+【export-tsfile】导出文件变多
+ [1.3.4.2 RC3] “循环缩容CN Leader，修改seed为新Leader再加回集群”，几次后缩容失败：IoTDBSQLException: 305: Remove ConfigNode failed: Remove ConfigNode failed because there is only one ConfigNode in curre
+[2.0.2.1 RC3] “循环缩容CN Leader，修改seed为新Leader再加回集群”，几次后缩容失败：IoTDBSQLException: 305: Remove ConfigNode failed: Remove ConfigNode failed because there is only one ConfigNode in curren
+[table]元数据同步，指定接收端用户:create,insert权限，写入10条，接收端9条，漏掉time=-1的一条
+[权限]使用非root用户，有database的create,insert权限，却看不到该database，创建不了表
+【对象存储】启动datanode目录会在iotdb目录下创建os:文件夹
+flush 遇到ERROR （查询 MemoryNotEnoughException） 节点ReadOnly
+【表模型】非关联标量子查询 not in查询结果集不正确
+【set sql_dialect】使用表模型的cli创建表模型的数据库并use后，使用set sql_dialect切换为树模型，使用树模型的自动创建语句，会报错说表模型的数据库不存在且不支持自动创建
+ [ 1.3.4.2 迁移场景CN NPE ] NullPointerException: Cannot invoke "org.apache.iotdb.confignode.procedure.state.RegionTransitionState.ordinal()" because "regionTransitionState" is null
+[ 2.0.2.1 迁移场景CN NPE ] NullPointerException: Cannot invoke "org.apache.iotdb.confignode.procedure.state.RegionTransitionState.ordinal()" because "regionTransitionState" is null 
+【表注释列】指定注释为''时，查询报错301: Ratis request failed Unknown
+【表模型 UDF】在iotdb创建用户自定义的函数后，卸载该函数，再次使用该函数进行查询发现是成功的，预期是报错，与树模型不一致
+【2.0.2.1】【rc2】TsFile数据文件加密功能（AES + 国密 SM4），企业版配置文件.template里缺少参数
+【Java Session 树模型】往对齐序列写入值全为空的 Tablet，flush后发现在data目录下生成broken文件
+【TIMECHODB-0150】region 数量改为和CPU绑定后，未考虑异构CPU集群场景的负载均衡
+【GO客户端】多次使用ClusterTableSession建立连接，会让第一次成功连接的节点地址为全局的，导致后面的连接都为第一次的节点地址
+[table]元数据同步，sink接收端用户无任何权限，database意外被同步，接收端NPE
+[1.3.4.2 rc2] 1C1D 并发读写+串行delete 21小时出现IndexOutOfBoundsException: Index: 10000, Size: 10000 （偶现）
+【表模型-FULL JOIN】表达式全连接查询报305内部服务错误异常
+[table]source指定的用户，在创建pipe成功后被删除，再有同步event会NPE
+[table]元数据同步，source指定用户无权限，但是同步成功
+[table]元数据同步,带有attribute，接收端NPE
+ [1.3.4.2 rc2] remove 不存在的confignode ID , 报错不对（实际报错信息：IoTDBSQLException 1001: no detailed failure reason in QueryStateMachine）
+[2.0.2.1 rc2] remove 不存在的confignode ID , 报错不对（实际报错信息：IoTDBSQLException 1001: no detailed failure reason in QueryStateMachine）
+[1.3.4.2 rc2]3C5D 缩容CN Leader，原样加回/seed改为新Leader IP 再加回,都不成功，一直刷日志:WARN  o.a.i.c.r.RatisConsensus:816 - fetch division info for group ConfigRegion[0] failed due to:GroupMismatchExce
+[table]元数据同步，指定的接收端用户没有insert权限，元数据仅同步了1个table,pipe同步停止
+[2.0.2.1 rc2 ] 3C5D 缩容CN Leader，原样加回/seed改为新Leader IP 再加回,都不成功，一直刷日志:WARN  o.a.i.c.r.RatisConsensus:816 - fetch division info for group ConfigRegion[0] failed due to:GroupMismatchExce
+[1.3 ]remove 不存在的DataNode ID 不报错，期望报错
+[2.0 master] 3C5D 并发读写+循环缩扩容1DN ，seq 0层tsfile内有overlap（wal恢复导致） 
+【1.3.3.2 rc2】【OPC DA】datanode异常退出
+[2.0.2.1 rc2] remove 不存在的DataNode ID ，不报错，预期报错
+[2.0.2.1 RC2] 双活环境，2个1C1D， stop datanode 40多分钟才停止成功（哲涵分析: drop 和 sink 抢锁)
+[table]元数据同步，inclusion=all, user和role的信息没有同步到接收端
+[1.3 合并]插入合并发生异常，重启节点后合并报overlap ，此场景的异常需处理
+[1.3.4.2 rc2] 1c1d DN 空指针需处理:Cannot invoke "org.apache.iotdb.mpp.rpc.thrift.TDataNodeActivation.isActivated()" because the return value of "org.apache.iotdb.mpp.rpc.thrift.TDataNodeHeartbeatReq.getActivation()" is nul
+【表模型SQL】偶发-INT32+DATE求值时，返回的状态码一会儿301一会儿752
+[2.0.2.1 合并]插入合并发生异常，重启节点后合并报overlap ，此场景的异常需处理
+[IoTV2] 节点ReadOnly 后，还在以较快的固定频率刷：Transfer file日志（研发：Retry with power-increasing interval ）
+【表模型SQL】数据类型DATE与INT32求和时，其返回状态码需更改
+load tsfile后删除数据库都会出现内存相关警告
+Cannot invoke "org.apache.tsfile.utils.Binary.toString()" because "column[rowIndex]" is null
+load时间戳Long.MIN_VALUE的tsfile，执行flush后，过一段时间，数据被删除
+[2.0.2.1 rc1] 并发读写+delete IoTV2 DN NPE 需要处理：Cannot invoke "java.io.RandomAccessFile.length()" because "writingFileWriter" is null
+[2.0.2.1 rc1] copy 1.3.3.2_rc3 (2024-07-22) 的data到2.0.2.1 ，启动成功，有报错 : 查询不到元数据
+[tree]创建view，show timeseries 时会出现 非用户创建的序列
+Format函数中参数数量与pattern中格式化描述的不匹配当查询空表时不会报错，而Java.format执行同样操作会报错，实现效果不一致
+Format函数中参数数量与pattern中格式化描述的不匹配报错会有两种信息
+[tree]元数据同步，template 后创建pipe，show timeseries 时序列翻倍
+[2.0.2.1 rc1 ] 生成的resource文件有问题：IOException: Intend to read 2 bytes but 1 are actually returned 
+配置文件中有关端口和目录地址参数首尾带有空白字符会存在问题
+[master 20250304_4a6df5a] 并发读写+drop column,flush 线程遇到ERROR 节点ReadOnly：ArithmeticException: / by zero
+[高可用 - 模拟断网] 客户端有写入失败
+[master 20250306_5f193ce] 报错信息处理[INTERNAL_SERVER_ERROR(305)] Exception occurred: "insert into t1 values(null,null,null)". executeStatement failed
+[master_20250228_f636c6f] 3C5D IoT 2 副本，并发读写+delete 数据+缩容，同步卡住
+[master_20250304_4a6df5a]并发读写+5用户并发alter table drop column , alter 操作卡死
+树模型的delete timeseries root.db.dev.* 很慢返回超时信息(此设备下10万序列，此db下1000万序列），有其他用户并发读写[rc/1.3.4.2 rc1测试期间]
+【表模型】多个聚合函数执行查询报301异常
+flush 报错 MemoryNotEnoughException 节点ReadOnly
+[IoTV2 ] 并发读写 + 间隔24小时 delete devices ，Follower data region size 远大于 Leader，Follower上应该被删除的tsfile，没有删
+[table][jdk17]100 table/device 1w sensor , 只有写入  12G off heap 4G  datanode OOM
+[IoTV2] iot_consensus_v2_receiver_file_dirs 设置为多盘 sequence 策略，receiver数据只接收到1块盘上（导致磁盘使用率不均）
+[master 20250221_0082955]并发读写+1用户delete数据: Schema Engine 中的schema_cache_total_usage 在持续增长（哲涵已修复2个泄漏点，给的版本也测试通过,但此master还有泄漏现象）
+[table]多条批量写入，有错误数据，则多行都为null，正确的值也为null
+DB与Table反复设置TTL后，导致插入数据查询不到，返回空列表
+kill -9 DN 偶现写入失败：EXECUTE_STATEMENT_ERROR(301), operation: insertTablet failed,RuntimeException: Fetch Table Device Schema failed
+[master 2025-02-17_efac93e] ConfigNode :ERROR o.a.i.c.p.ProcedureExecutor:427 - CODE-BUG:pid=220, state=RUNNABLE, locked=true; org.apache.iotdb.confignode.procedure.impl.pipe.runtime.PipeMetaSyncProcedure NPE (场景 IoTV2 load +
+[企业版master 2025-02-17_efac93e]只有load和迁移，完成后，副本数据不一致（116个设备的点全丢）
+date和timestamp类型的数据，02-29和04-31写入会成功: 02-28,04-30，期望报错
+[master 2025-02-17_c0618ea] IoTV2 协议ConfigNode ：NullPointerException: Cannot invoke "org.apache.iotdb.confignode.procedure.state.pipe.task.OperatePipeTaskState.ordinal()" because "state" is null
+float类型数据，当数值超过21亿时，写入值不符合预期
+[tree]实时数据同步,delete data和delete timeseries 操作没有同步到接收端
+[tree][view]使用delete timeseries 删除view和使用 drop view 不能同步到接收端 
+[master 20250213] 多用户并发读写+1用户delete数据，delete 很多失败, DataNode NPE："org.apache.iotdb.db.queryengine.plan.planner.plan.node.write.RelationalDeleteDataNode.getDatabaseName()" is null
+[rc/2.0.1.2 发布版] 多用户并发读写+1用户delete数据，schema mem泄漏，导致运行196小时（8d+）查询卡住，写入/同步完成，flush卡住
+[rc/2.0.1.2发布版] 1C4D ，并发读写+循环“缩容1DN 5分钟后stop 此DN”，缩容失败，原因是SchemaRegion迁移失败，Unknown 状态的 SchemaRegion一直是Leader
+[tree]使用template, 激活后写入扩展列，后创建pipe时，设备下的序列翻倍
+[tree]发送端为aligned序列，接收端为view,写入后创建pipe，接收端show devices 显示IsAligned为true
+[rc/2.0.1.2 rc5] 并发读写+delete数据场景：NullPointerException: Cannot invoke "org.apache.tsfile.utils.TsPrimitiveType.getSize()" because "this.value" is null （此版本last cache 默认开启）
+[rc/2.0.1.2]RC4 监控面板 Storage Engine -> File Count 中mods文件数大于实际文件数
+alter pipe 修改sink 用户名密码不生效
+[rc/2.0.1.2 ]region迁移自动化用例：偶现bug，迁移 和 create view 并发，迁移完成，count timeseries  元数据结果少于预期（DN有空指针）
+[tree]发送端partial insert 后为null, 但是接收端为0
+删除数据后，触发合并时会导致已删除数据再次被查询
+[table]100 table的数据同步速度，受合并影响，会大大变慢
+[rc/2.0.1.2rc3][ratis] org.apache.ratis.server.raftlog.RaftLogIOException: java.lang.NullPointerException
+没有 mods 和 ttl 也选出了 settle 任务
+[rc/2.0.1.2rc3]IoT 协议 读写+delete数据：NullPointerException: Cannot invoke "org.apache.iotdb.db.storageengine.dataregion.memtable.TsFileProcessor.getFlushQueryLock()" because the return value of "org.apache.iotdb.db.storageengine.dataregion.tsfile.TsFileResource.getProcessor()" is null
+[table]3c3d 使用write back sink 100table 1w fields 13分钟左右, 一个datanode OOM
+[table]3c3d,1个datanode down, 创建table失败
+[rc/2.0.1.2RC3]在开始运行benchmark的2分钟左右的时间内刷了4k多条WARN日志：WARN  o.a.r.g.s.GrpcLogAppender$AppendLogResponseHandler:519 - 1@group-000200000003->3-AppendLogResponseHandler: received INCONSISTENCY reply with nextIndex （RC2 没这个现象）
+[table]attribute归属于元数据，仅数据同步，不应该被同步
+[table]对于仅有tag列,仅有time列，数据同步未处理
+[rc/2.0.1.2rc2][IoTConsensus] 3C3D2副本读写+delete 数据+stop 某DN , 有一个DN 进程退出，生成了dump文件（25G） 
+write back sink这里面指定目标db为大写（NEWDB）时,会直接创建 NEWDB的database, 不能使用
+[tree]1c1d->3c3d,接收端1个datanode down，某些场景数据同步不能继续
+【企业版激活】通过cli激活，当使用大写activate激活时，会把大写的activate和激活码合一起。导致生成非法的激活码
+[alter table ttl 日志优化][rc/2.0.1.2 rc2] 1个设备有20万序列，1条TTL 日志有16M，需优化
+[rc/2.0.1.2rc2]读写+delete数据，有DN ReadOnly（flush导致）：Unrecoverable error occurs! Change system status to read-only because handle_system_error is CHANGE_TO_READ_ONLY. 
+[合并]1C2D元数据1副本数据IoTV2 两副本1个设备，Follower节点的data size 是Leader 的约7倍多
+[tree]kill/stop leader datanode,写入数据，报错 There are no available DataRegionGroup RegionGroups
+[rc/2.0.1.2rc2  SQL 适配] cli -sql_dialect table -e 'start repair data;' 需要支持
+[IoTConsensusV2][rc/2.0.1.2rc2]3C21D2副本 并发读写+delete from table_0 where device_id='device_name' 顺序空间内0层tsfile has wrong time statistics
+[IoTConsensus][rc/2.0.1.2rc2]并发读写+delete数据+stop dn ,DataNode 有很多：java.lang.IllegalArgumentException: PlanNodes in IndexedConsensusRequest are not InsertNode and the size of requests are larger than 1
+[table] 只有时间列的table可以创建，但是不能只写入时间列
+[table]没有数据的元数据不会被同步到接收端
+[table]1c1d->3c3d,接收端一个datanode被停止，实时创建的数据和元数据不再被同步
+合并遇到NullPointerException，需处理（IoTConsensusV2+delete 数据）
+[air_gap]使用网闸sink插件，创建pipe时，没有对接收端用户鉴权，用户信息不正确可以创建成功
+【元数据模板】需要优化下Java Session中createTimeseriesUsingSchemaTemplate方法的源码，其中存在一个无用处的异常处理
+[table] 1pipe-db-aligned-10-100-1-2kw-batch 同步时间变长是2.0.0.1 的10+倍
+[IoTConsensusV2 读写+delete 数据+stop 某DN][rc/2.0.1.2rc2] WARN  o.a.i.d.p.r.p.p.PipeConsensusReceiver : Failed to write file piece from req TPipeConsensusTransferReq...NullPointerException
+[rc/2.0.1.2 rc2] load+迁移region，dest dn 单个tsfile内有乱序数据（need to repair because it has internal unsorted data）
+3c3d 集群的 show cluster显示的commitId在重启前后会改变
+【pipe】在表模型session中，使用alter pipe replace可以把树模型的pipe修改为表模型
+[pipe]with sink时指定user,修改时使用username,则会报错连接错误
+[rc/2.0.1.2rc1 复测遇到新问题] 客户端有读写，DataNode 缩容 + stop 此DN，有DN OOM 生成dump文件193G（必现）
+[tree]实时元数据同步，select into产生的序列，同步数据错位
+[tree]元数据同步，使用 load 方式在发送端写入数据，部分数据没有同步
+[tree][回归]后创建pipe, 元数据同步,view 同步有NPE
+[IoTConsensusV2 监控项] Storage Engine -> File Count/Size 展示data/pipe文件夹中的tsfile count/size（可否）
+[IoTConsensusV2] 3C21D 多用户并发读写1个表（有乱序）+ stop DataNode， 客户端读写没有失败，重启整个库，1DR长时间Unknown，并且有的DN data下的pipe size 达到300多G，长时间不下降
+[pipe 元数据同步日志优化] 数据库使用模板，接收端有很多WARN日志：TSStatus(code:515, message:Template is in use on "DevicePath")15小时300多万条，未压缩大小为4G，打开非常慢
+[table]100设备(table)每个1w列，写入10分钟合并导致OOM
+rc/2.0.1.2 rc1 [region迁移自动化用例] 迁移+delete 数据，部分序列的数据在删除后还能查询到（1.3.4.1 rc4 不存在这个问题）
+cli 指定 -sql_dialect table 迁移表region失败 : Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 700: This operation type is not supported
+【合并】load 用户数据，使用flush等待数据在data\\datanode\\data\\sequence目录下出现即可在dn日志中出现合并相关error
+[IoTConsensusV2+deletion 适配] delete 数据 : ClassCastException: org.apache.iotdb.db.queryengine.plan.planner.plan.node.write.RelationalDeleteDataNode cannot be cast to org.apache.iotdb.db.queryengine.plan.planner.plan.node.write.DeleteDataNode
+[优化项] cli查询指定超时时间30秒，fetch 元数据执行了105秒才返回超时信息
+【表模型V2.0.1.2】USE DB，然后删除该DB，CLI会话中却仍显示该DB名称
+【IT】IoTDB源码中Java部分表模型IT代码未重命名
+[IoTConsensusV2高可用]3C5D2副本读写表数据 + stop 2个DataNode ，测试结束同步完成，12h后验证副本一致性（flush后查询）又出现Total Sync Lag 大于0的情况，副本不一致，相同序列的点数差异较大
+rc/2.0.1.2 rc1 [region迁移自动化用例] 迁移+delete 数据，Deletion日志每条日志120K（此场景日志刷了16G还未结束）
+【TsFIle2.0】 Tablet问题合集
+[合并]1C2D元数据1副本数据IoTV2 两副本 只有1个用户DataRegion，Follower节点只执行了InsertionCrossSpaceCompaction，没有空间内合并（Follower data size 大）
+读写表数据+stop 1 dn/cn , IoT 和 IoTV2 都有副本不一致的现象

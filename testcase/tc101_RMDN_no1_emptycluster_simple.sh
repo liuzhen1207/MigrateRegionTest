@@ -227,6 +227,35 @@ function remove_datanode()
 
 }
 
+function check_npe()
+{
+   tc_desc=$1
+exec 3<${nodeinfo_dir}/confignode.txt
+while read line<&3
+do
+   v_npe_num=`ssh ${u_name}@${line} "grep NullPointer ${db_dir}/logs/*confignode*all*|wc -l"`
+   if [[ ${v_npe_num} -gt 0 ]];then
+      let fail_flag++
+      echo "${SCRIPT_NAME} CN NullPointer : ${v_npe_num}"
+      # backup logs
+      t=`date +%Y_%m_%d_%H_%M_%S`
+      ssh ${u_name}@${line} "cp -rp ${db_dir}/logs ${db_dir}/logs_npe_${t}_${tc_desc}"
+   fi
+done
+exec 3<${nodeinfo_dir}/datanode.txt
+while read line<&3
+do
+   v_npe_num=`ssh ${u_name}@${line} "grep NullPointer ${db_dir}/logs/*datanode*all*|wc -l"`
+   if [[ ${v_npe_num} -gt 0 ]];then
+      let fail_flag++
+      echo "${SCRIPT_NAME} DN NullPointer : ${v_npe_num}"
+      # backup logs
+      t=`date +%Y_%m_%d_%H_%M_%S`
+      ssh ${u_name}@${line} "cp -rp ${db_dir}/logs ${db_dir}/logs_npe_${t}_${tc_desc}"
+   fi
+done
+
+}
 
 function exec_remove_on_cn()
 {
@@ -234,6 +263,7 @@ function exec_remove_on_cn()
 last_dn_ip=`tail -1 ${nodeinfo_dir}/datanode.txt`
 last_dn_ip2=`tail -2 ${nodeinfo_dir}/datanode.txt|head -1`
 remove_datanode ${last_dn_ip} ${last_dn_ip2}
+check_npe ${SCRIPT_NAME}
 test_end_sec=`date +%s`
 test_elp_sec=$((test_end_sec-test_begin_sec))
 tc_res=true

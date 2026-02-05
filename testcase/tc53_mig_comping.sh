@@ -176,6 +176,7 @@ function start_bm()
     # 3. 检查配置文件是否存在
     if [[ -f "$bm_conf_file1" && -f "$bm_conf_file2" ]]; then
         # 替换密码：变量加双引号，检查 sed 执行结果
+        sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file1"
         sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file1"
         ret_code=$?
         if [[ $ret_code -ne 0 ]]; then
@@ -183,6 +184,7 @@ function start_bm()
             let fail_flag++
             return $ret_code
         fi
+        sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file2"
 
         sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file2"
         ret_code=$?
@@ -223,6 +225,8 @@ function start_bm()
             fi
 
             # 拷贝后重新替换密码（避免配置文件是新的，密码未替换）
+            sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file1"
+            sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file2"
             sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file1"
             sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file2"
             sed -i "s/^HOST=.*/HOST=${query_ip}/g" "$bm_conf_file1"
@@ -469,5 +473,8 @@ ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "i
 } 
 clean_env
 start_db
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "create user kevin 'TimechoDB@2021';"
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "grant all ON root.** TO USER kevin WITH GRANT OPTION;"
+
 start_bm
 mig_when_comping

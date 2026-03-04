@@ -184,6 +184,7 @@ do
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
    sleep 10
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
+   local check_num=0
    while true
    do
       ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
@@ -194,9 +195,14 @@ do
 	      if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
 		 break
 	      else
-		 sleep 10 
+		 sleep 60 
 	      fi
-
+      let check_num++
+      if [[ ${check_num} -gt 15 ]];then
+          let fail_flag++
+          echo "timeout."
+          break
+      fi
    done
    v_mig_to_dn_id=${v_mig_from_dn_id} 
    

@@ -1,0 +1,3 @@
+curl http://172.20.31.2:8080/api/getfilelist?file_path=TimechoDB-RC
+curl http://172.20.31.2:8080/api/getfilelist?file_path=TimechoDB-RC/timechodb-2.0.8.2-bin_rc2_202602041926
+wget http://172.20.31.2:8080/download/TimechoDB-RC/timechodb-2.0.8.2-bin_rc2_202602041926/timechodb-2.0.8.2-bin.zip

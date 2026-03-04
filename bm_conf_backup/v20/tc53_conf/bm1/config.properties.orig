@@ -4,13 +4,13 @@
 
 ################### 被测数据库配置 #######################
 # 被测试的数据库，目前的格式为{name}{-version}{-insert mode}(注意-号)其全部参考值参见README文件
-DB_SWITCH=IoTDB-130-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-110-SESSION_BY_TABLET
 # 主机列表，如果有多个主机则使用英文逗号进行分割
 HOST=172.20.70.4
 # 端口列表，需要和HOST数量一致，保持一一对应。如果有多个端口则使用英文逗号进行分割。
 PORT=6667
 # 所有被测数据库的用户名，如果为多个数据库，则要求保持一致
-USERNAME=kevin
+USERNAME=root
 # 所有被测数据库的密码，如果为多个数据库，则要求保持一致
 PASSWORD=root
 # 即将被测试写入的数据库的名称
@@ -20,7 +20,7 @@ TOKEN=token
 
 ############### 数据库初始化：清理数据 ####################
 # 测试启动前是否清理数据
-IS_DELETE_DATA=false
+IS_DELETE_DATA=true
 # IS_DELETE_DATA = true 时生效，单位为ms，如果清理数据，则需要等待INIT_WAIT_TIME时间待数据库数据清理完成，当数据库为KairosDB, InfluxDb, OpenTSDB, TimescaleDB时必须
 INIT_WAIT_TIME=1000
 
@@ -31,7 +31,7 @@ TOPIC_NAME=test-topic
 
 ################## Benchmark配置 #######################
 # 总操作次数：具体每种类型操作会按OPERATION_PROPORTION定义的比例划分，例如OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
-LOOP=100
+LOOP=100000
 # 目前Benchmark支持多种运行模式，支持模式如下
 # testWithDefaultPath   常规测试模式，支持多种读和写操作的混合负载
 # generateDataMode      生成数据模式，生成Benchmark本身识别的数据
@@ -40,7 +40,7 @@ LOOP=100
 # serverMODE            服务器资源使用监控模式（该模式下运行通过ser-benchmark.sh脚本启动，无需手动配置该参数）
 BENCHMARK_WORK_MODE=testWithDefaultPath
 # 限制测试最长耗时，设置为0表示无限制，单位为ms
-TEST_MAX_TIME=0
+TEST_MAX_TIME=604800000
 # 是否启动Benchmark统计模块
 USE_MEASUREMENT=true
 # Benchmark的统计信息结果的精度，单位为%
@@ -84,11 +84,11 @@ VERIFICATION_STEP_SIZE=10000
 
 ############## 数据：设备、传感器、客户端 ##################
 # 设备总数
-DEVICE_NUMBER=10000
+DEVICE_NUMBER=100
 # 实际写入设备比例，(0, 1]
 REAL_INSERT_RATE=1.0
 # 每个设备的传感器总数
-SENSOR_NUMBER=50
+SENSOR_NUMBER=600
 # 各个传感器时间戳是否对齐
 IS_SENSOR_TS_ALIGNMENT=true
 # 当传感器不对齐时，每个设备的传感器的保留比例，(0, 1]
@@ -96,11 +96,11 @@ TS_ALIGNMENT_RATIO=1.0
 # 是否将设备绑定给客户端，如果绑定，则客户端数小于等于设备数，否则可以大于
 IS_CLIENT_BIND=true
 # 客户端总数
-CLIENT_NUMBER=10
+CLIENT_NUMBER=100
 # 存储组名称前缀
 GROUP_NAME_PREFIX=g_
 # 设备名称前缀
-DEVICE_NAME_PREFIX=d1_
+DEVICE_NAME_PREFIX=d_
 # 传感器名称前缀
 SENSOR_NAME_PREFIX=s_
 # 标签名的前缀
@@ -151,7 +151,7 @@ STRING_LENGTH=2
 # 浮点数小数位数
 DOUBLE_LENGTH=2
 # 插入数据的数据类型的比例，BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT
-INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1:0:0:0:0
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
 
 ################ IoTDB相关元数据参数 #####################
 # 压缩方式 UNCOMPRESSED | SNAPPY (仅对IoTDB有效)
@@ -208,7 +208,7 @@ DATA_SEED=666
 # Q8  最近点查询 select time, v1... where device = ? and time = max(time)
 # Q9  倒序范围查询（只限制起止时间）select v1... from data where time > ? and time < ? and device in ? order by time desc
 # Q10 倒序带值过滤的范围查询 select v1... from data where time > ? and time < ? and v1 > ? and device in ? order by time desc
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
 # 最长等待写时间，单位毫秒，即如果整个写操作在指定时间内没有返回，则终止此操作
 WRITE_OPERATION_TIMEOUT_MS=120000
 # 最长等待读时间，单位毫秒，即如果整个读操作在指定时间内没有返回，则终止此操作
@@ -216,11 +216,11 @@ READ_OPERATION_TIMEOUT_MS=300000
 
 ################## 操作信息：写入参数 ###################
 # 批写入数据行数，每行是某个设备所有传感器在某一时间戳的数据，每个Batch写入数据点数=SENSOR_NUMBER * BATCH_SIZE_PER_WRITE
-BATCH_SIZE_PER_WRITE=1000
+BATCH_SIZE_PER_WRITE=10
 # 是否在写入数据前，创建SCHEMA
-CREATE_SCHEMA=false
+CREATE_SCHEMA=true
 # 开始写入数据的时间戳
-START_TIME=1990-1-1T08:00:00+08:00
+START_TIME=2018-8-30T00:00:00+08:00
 
 ######### 复制的生成模式，是否添加异常，异常率和异常倍率 ############
 # verificationWriteMode模式下使用复制文件模式，此时必须将

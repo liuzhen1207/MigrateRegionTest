@@ -15,11 +15,12 @@ SCRIPT_NAME=$(basename "$0")
 seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
 query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 bm_ip=`head -1 ${nodeinfo_dir}/bm_node.txt`
-bm_dir=/data1/benchmark/bm_20240320_76af1a40
+bm_conn_version=`cat ${conf_file}|grep bm_conn_version|awk -F '=' '{print $2}'`
+bm_dir=/data1/benchmark/bm_20251220_38c839b_${bm_conn_version}
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
 bm_conn_pw=`cat ${conf_file}|grep bm_conn_pw|awk -F '=' '{print $2}'`
 bm_conf_name=tc34_conf
-bm_conf="${cur_dir}/../bm_conf_backup/v13/${bm_conf_name}"
+bm_conf="${cur_dir}/../bm_conf_backup/${bm_conn_version}/${bm_conf_name}"
 cn_num=3
 dn_num=5
 dr_rep_num=2
@@ -173,7 +174,7 @@ function start_bm()
     if [[ -f "$bm_conf_file1" ]]; then
         # 替换密码：变量加双引号，检查 sed 执行结果
         sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file1"
-        sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file1"
+        sed -i "s/^PASSWORD=.*/PASSWORD=TimechoDB@2021/g" "$bm_conf_file1"
         ret_code=$?
         if [[ $ret_code -ne 0 ]]; then
             echo "ERROR: Failed to replace password in $bm_conf_file1"
@@ -212,7 +213,7 @@ function start_bm()
 
             # 拷贝后重新替换密码（避免配置文件是新的，密码未替换）
             sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file1"
-            sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file1"
+            sed -i "s/^PASSWORD=.*/PASSWORD=TimechoDB@2021/g" "$bm_conf_file1"
             sed -i "s/^HOST=.*/HOST=${query_ip}/g" "$bm_conf_file1"
         else
             echo "ERROR: bm_conf is empty, cannot copy config!"
@@ -293,19 +294,45 @@ do
    fi 
 done
 if [ -n "${v_cn_leader_ip}" ]; then
+# 初始化连续v_mig_status_num=0的计数器
+local count_zero_status=0
+# 定义连续3次为退出阈值
+local MAX_ZERO_COUNT=3
    while true
    do
       ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
               v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all.log|tail -1"`
               v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-              v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
-
-              if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-                 break
-              else
-                 sleep 2 
-              fi
-
+#              v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
+              v_mig_suc_sec=$(date -d"${v_mig_suc_time}" +%s 2>/dev/null || echo 0)  # 容错：时间解析失败时赋值0
+    # 2. 获取迁移状态数量（Adding/Removing的region数）
+    v_mig_status_num=$(${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show regions;" | egrep "Adding|Removing" | wc -l)
+    
+    # 3. 核心判断：满足任一条件则退出循环
+    ## 条件1：迁移成功时间戳大于基准时间
+    if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]]; then
+        echo "满足条件：v_mig_suc_sec(${v_mig_suc_sec}) > v_bef_mig_sec(${v_bef_mig_sec})，退出循环"
+        break
+    fi
+    
+    ## 条件2：连续3次v_mig_status_num=0
+    # 重置/累加计数器
+    if [[ ${v_mig_status_num} -eq 0 ]]; then
+        count_zero_status=$((count_zero_status + 1))
+        echo "当前v_mig_status_num=0，连续计数：${count_zero_status}/${MAX_ZERO_COUNT}"
+    else
+        count_zero_status=0  # 非0则重置计数器
+        echo "当前v_mig_status_num=${v_mig_status_num}，重置连续0计数"
+    fi
+    
+    # 检查是否达到连续3次0
+    if [[ ${count_zero_status} -ge ${MAX_ZERO_COUNT} ]]; then
+        echo "满足条件：连续${MAX_ZERO_COUNT}次v_mig_status_num=0，退出循环"
+        break
+    fi
+    
+    # 未满足条件，休眠10秒后继续循环
+    sleep 10
    done
    v_mig_to_dn_id=${v_mig_from_dn_id}
 else

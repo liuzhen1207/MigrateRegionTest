@@ -63,21 +63,21 @@ do
         sleep 2 
 done
 # Strong password
-#while true
-#do
-#v_alter_user_pw=`${client_db_dir}/sbin/start-cli.sh -h ${query_host} -u root -pw root -e "alter user root set password 'TimechoDB@2021'"`
-#echo  "${v_alter_user_pw}"
-#v_succ=`echo  "${v_alter_user_pw}"|grep success|wc -l`
-#if [[ ${v_succ} -gt 0 ]];then
-#echo "alter user root pasword success."
-#break
-#fi
-#sleep 1
-#v_running=`${client_db_dir}/sbin/start-cli.sh -h ${query_host} -e "show cluster;"|grep Running |wc -l`
-#if [[ ${v_running} -gt 0 ]];then
-#break
-#fi
-#done
+while true
+do
+v_alter_user_pw=`${client_db_dir}/sbin/start-cli.sh -h ${query_host} -u root -pw root -e "alter user root set password 'TimechoDB@2021'"`
+echo  "${v_alter_user_pw}"
+v_succ=`echo  "${v_alter_user_pw}"|grep success|wc -l`
+if [[ ${v_succ} -gt 0 ]];then
+echo "alter user root pasword success."
+break
+fi
+sleep 1
+v_running=`${client_db_dir}/sbin/start-cli.sh -h ${query_host} -e "show cluster;"|grep Running |wc -l`
+if [[ ${v_running} -gt 0 ]];then
+break
+fi
+done
 # continue
 while true
 do

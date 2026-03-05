@@ -19,9 +19,10 @@ seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
 query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 bm_ip=`head -1 ${nodeinfo_dir}/bm_node.txt`
 bm_conn_pw=`cat ${conf_file}|grep bm_conn_pw|awk -F '=' '{print $2}'`
-bm_dir=/data1/benchmark/bm_20240320_76af1a40
+bm_conn_version=`cat ${conf_file}|grep bm_conn_version|awk -F '=' '{print $2}'`
+bm_dir=/data1/benchmark/bm_20251220_38c839b_${bm_conn_version}
 bm_conf_name=tc53_conf
-bm_conf="${cur_dir}/../bm_conf_backup/v13/${bm_conf_name}"
+bm_conf="${cur_dir}/../bm_conf_backup/${bm_conn_version}/${bm_conf_name}"
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
 # https://jira.infra.timecho.com:8443/browse/TIMECHODB-456 
 fail_file="fail.log"
@@ -32,7 +33,6 @@ sr_rep_num=3
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode.txt > ${nodeinfo_dir}/datanode.txt
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode_port.txt > ${nodeinfo_dir}/datanode_port.txt
 total_node_num=$((cn_num+dn_num))
-backup_dir_on_cn_dn_host=/data/iotdb/autotest_backup/3db_test_data
 tmp_out_file="tc${tc_num}_tmp.out"
 fail_flag=0
 testcase_ip=`cat ${conf_file}|grep test_ip|awk -F '.' '{print $4}'`
@@ -177,7 +177,7 @@ function start_bm()
     if [[ -f "$bm_conf_file1" && -f "$bm_conf_file2" ]]; then
         # 替换密码：变量加双引号，检查 sed 执行结果
         sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file1"
-        sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file1"
+        sed -i "s/^PASSWORD=.*/PASSWORD=TimechoDB@2021/g" "$bm_conf_file1"
         ret_code=$?
         if [[ $ret_code -ne 0 ]]; then
             echo "ERROR: Failed to replace password in $bm_conf_file1"
@@ -186,7 +186,7 @@ function start_bm()
         fi
         sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file2"
 
-        sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file2"
+        sed -i "s/^PASSWORD=.*/PASSWORD=TimechoDB@2021/g" "$bm_conf_file2"
         ret_code=$?
         if [[ $ret_code -ne 0 ]]; then
             echo "ERROR: Failed to replace password in $bm_conf_file2"
@@ -227,8 +227,8 @@ function start_bm()
             # 拷贝后重新替换密码（避免配置文件是新的，密码未替换）
             sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file1"
             sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file2"
-            sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file1"
-            sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "$bm_conf_file2"
+            sed -i "s/^PASSWORD=.*/PASSWORD=TimechoDB@2021/g" "$bm_conf_file1"
+            sed -i "s/^PASSWORD=.*/PASSWORD=TimechoDB@2021/g" "$bm_conf_file2"
             sed -i "s/^HOST=.*/HOST=${query_ip}/g" "$bm_conf_file1"
             sed -i "s/^HOST=.*/HOST=${query_ip}/g" "$bm_conf_file2"
         else

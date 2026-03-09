@@ -218,71 +218,85 @@ if [[ ${v_check_mig_regionid} != 3 ]];then
    let fail_flag++
 fi
 
-#stop dest DN 
-   v_dn_pid_str=`ssh ${u_name}@${v_stop_dn_ip} "sudo jps|grep -i datanode"`
-   v_dn_pid=`echo ${v_dn_pid_str} |awk '{print $1}'`
-   ssh ${u_name}@${v_stop_dn_ip} "sudo ${db_dir}/sbin/stop-datanode.sh"
-   t1=`date +%s`
-   while true
-   do
-      if [[ ${query_ip} = ${v_stop_dn_ip} ]];then
-         query_ip=`awk "NR==1" ${cur_dir}/mig_id_info.txt|awk -F ',' '{print $2}'`
-      fi
-      v_unknown_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster"|grep -i datanode|grep ${v_stop_dn_ip}|grep -i unknown|wc -l`
-      if [[ ${v_unknown_res} -gt 0 ]];then
-         break
-      else
-         sleep 1
-      fi
-   done
-   t2=`date +%s`
-   v_stopping=$((t2-t1))
-   echo "stopping : ${v_stopping} sec."
-#restart dn
-v_start_time=`date +%s`
-# check datanode pid
+
+vtaNode ==========
+# 获取DataNode的PID
+v_dn_pid_str=$(ssh ${u_name}@${v_stop_dn_ip} "sudo jps | grep -i datanode")
+v_dn_pid=$(echo ${v_dn_pid_str} | awk '{print $1}')
+
+# 执行停止脚本
+ssh ${u_name}@${v_stop_dn_ip} "sudo ${db_dir}/sbin/stop-datanode.sh"
+
+# 等待DataNode状态变为unknown（集群层面）
 while true
 do
-   v_dn_pid_exist=`ssh ${u_name}@${v_stop_dn_ip} "sudo jps|grep -i datanode|grep ${v_dn_pid}|wc -l"`
-   v_dn_pid_exist_num=`ssh ${u_name}@${v_stop_dn_ip} "sudo jps|grep -i datanode|wc -l"`
-   if [[ ${v_dn_pid_exist} -gt 0 ]] && [[ ${v_dn_pid_exist_num} = 1 ]];then
-
-        ssh ${u_name}@${v_stop_dn_ip} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_${v_start_time}_heapdump.hprof > /dev/null 2>&1 &"
-	while true
-	do
-	      sleep 1
-	      v_restart_unknown=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster"|grep -i datanode|grep ${v_stop_dn_ip}|grep -i Running|wc -l`
-	      if [[ ${v_restart_unknown} -gt 0 ]];then
-                 let fail_flag++
-                 break
-	      else
-                 v_dn_pid_pre_exist=`ssh ${u_name}@${v_stop_dn_ip} "sudo jps|grep -i datanode|grep ${v_dn_pid}|wc -l"`
-                 if [[ ${v_dn_pid_pre_exist} -gt 0 ]];then
-		    sleep 1
-                 else
-                    break
-                 fi
-	      fi
-	done
-    elif [[ ${v_dn_pid_exist} = 0 ]] && [[ ${v_dn_pid_exist_num} = 0 ]];then
-       break
+    # 切换查询IP（如果当前IP是停止的DN IP）
+    if [[ ${query_ip} = ${v_stop_dn_ip} ]];then
+        query_ip=$(awk "NR==1" ${cur_dir}/mig_id_info.txt | awk -F ',' '{print $2}')
+    fi
+    
+    # 检查集群中DN状态是否为unknown
+    v_unknown_res=$(${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster" | grep -i datanode | grep ${v_stop_dn_ip} | grep -i unknown | wc -l)
+    if [[ ${v_unknown_res} -gt 0 ]];then
+        # start another dn
+        ssh ${u_name}@${v_stop_dn_ip} "source /etc/profile; sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_${v_start_time}_heapdump.hprof > /dev/null 2>&1 &"
+        break
     else
-       sleep 1
+        sleep 0.5 
     fi
 done
-ssh ${u_name}@${v_stop_dn_ip} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_${v_start_time}_heapdump.hprof > /dev/null 2>&1 &"
-       while true
-        do
-              sleep 1
-              v_restart_unknown=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster"|grep -i datanode|grep ${v_stop_dn_ip}|grep -i Running|wc -l`
-              if [[ ${v_restart_unknown} -gt 0 ]];then
-                 break
-              else
-                 sleep 1
-              fi
-        done
 
-v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep " ${v_mig_id}|[[:space:]]*SchemaRegion"|wc -l`
+start_loop_time=$(date +%s)
+timeout=600
+
+# 检查DataNode进程状态，修复循环条件
+while true
+do
+    # 检查旧PID是否存在
+    v_dn_pid_exist=$(ssh ${u_name}@${v_stop_dn_ip} "sudo jps | grep -i datanode | grep ${v_dn_pid} | wc -l")
+    # 检查所有DataNode进程数量
+    v_dn_pid_exist_num=$(ssh ${u_name}@${v_stop_dn_ip} "sudo jps | grep -i datanode | wc -l")
+    v_restart_unknown=$(${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster" | grep -i datanode | grep ${v_stop_dn_ip} | grep -i Running | wc -l)
+    if [[ ${v_dn_pid_exist} = 0 && ${v_dn_pid_exist_num} -eq 1 && ${v_restart_unknown} -eq 1 ]];then   
+    # 合法状态
+       break
+    fi
+    if [[ ${v_dn_pid_exist} = 0 && ${v_dn_pid_exist_num} -eq 0 && ${v_restart_unknown} -eq 0 ]];then
+    # 合法状态
+       break
+    fi
+    sleep 1 
+    # 计算已循环时间，判断是否超时
+    current_loop_time=$(date +%s)
+    elapsed_time=$((current_loop_time - start_loop_time))
+    if [[ ${elapsed_time} -ge ${timeout} ]];then
+        echo "Error: 等待DataNode进程退出超时（${timeout}秒），强制退出循环"
+        let fail_flag++
+        break
+    fi
+
+done
+
+# 启动DataNode进程（仅当进程完全退出时执行）
+if [[ ${v_dn_pid_exist_num} -eq 0 ]];then
+    echo "启动新的DataNode进程..."
+    ssh ${u_name}@${v_stop_dn_ip} "source /etc/profile; sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_${v_start_time}_heapdump.hprof > /dev/null 2>&1 &"
+    
+    # 等待DataNode状态变为Running
+    while true
+    do
+        sleep 1
+        v_restart_running=$(${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster" | grep -i datanode | grep ${v_stop_dn_ip} | grep -i Running | wc -l)
+        if [[ ${v_restart_running} -gt 0 ]];then
+            echo "DataNode启动成功，状态为Running"
+            break
+        fi
+    done
+else
+    echo "DataNode进程未完全退出，跳过启动步骤"
+fi
+
+
 if [[ ${v_check_mig_regionid} != 3 ]];then
    let fail_flag++
 fi

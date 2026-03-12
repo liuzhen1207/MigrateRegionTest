@@ -85,7 +85,7 @@ do
    v_readonly=`${client_db_dir}/sbin/start-cli.sh -h ${query_host} -e "show cluster;"|grep ReadOnly |wc -l`
    v_ok_num=$((v_running+v_readonly))
    if [[ ${total_node_num} = ${v_ok_num} ]];then
-      exit
+      return
    else
       sleep 1
    fi

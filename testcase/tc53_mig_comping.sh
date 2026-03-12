@@ -461,8 +461,8 @@ tc_res=true
   if [[ ${fail_flag} = 0 ]];then
      tc_res=true
      echo "${SCRIPT_NAME} : pass" >>"${res_file}"
-     rm -rf "${bm_dir}/${time_stamp}_tc${tc_num}_bm1.out"
-     rm -rf "${bm_dir}/${time_stamp}_tc${tc_num}_bm2.out"
+#     rm -rf "${bm_dir}/${time_stamp}_tc${tc_num}_bm1.out"
+#     rm -rf "${bm_dir}/${time_stamp}_tc${tc_num}_bm2.out"
   else
      tc_res=false
      echo "${SCRIPT_NAME} : fail" >>"${res_file}"

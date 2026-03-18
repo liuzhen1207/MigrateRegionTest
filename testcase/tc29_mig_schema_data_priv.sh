@@ -85,7 +85,7 @@ set_sys_conf ${line} ${db_dir} ".*schema_region_group_extension_policy=.*" "sche
 set_sys_conf ${line} ${db_dir} ".*data_region_group_extension_policy=.*" "data_region_group_extension_policy=CUSTOM"
 set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=1"
 set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=5"
-     
+set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"     
   done
 
   exec 3<${nodeinfo_dir}/datanode.txt
@@ -105,6 +105,7 @@ set_sys_conf ${line} ${db_dir} ".*data_region_group_extension_policy=.*" "data_r
 set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=1"
 set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=5"
    set_sys_conf ${line} ${db_dir} ".*datanode_memory_proportion=.*"  "datanode_memory_proportion=1:5:1:1:1:1"
+set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"
   done
  
 }
@@ -263,8 +264,18 @@ do
    echo ${v_exp_error}
    if [[ $v_exp_error != *"successfully"* ]]; then
       let fail_flag++
+      break
    fi
-   break
+   sleep 10
+   while true
+   do
+      v_miging_num=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show regions;"|egrep "Adding|Removing"|wc -l`
+      if [[ ${v_miging_num} -gt 0 ]];then
+         sleep 10
+      else
+         break
+      fi 
+   done
 done
 local v_mig_to_dn_id=-1
 exec 3<${cur_dir}/mig_sr_id_info.txt
@@ -285,8 +296,19 @@ do
    echo ${v_exp_error}
    if [[ $v_exp_error != *"successfully"* ]]; then
       let fail_flag++
+      break
    fi
-   break
+   sleep 10
+   while true
+   do
+      v_miging_num=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show regions;"|egrep "Adding|Removing"|wc -l`
+      if [[ ${v_miging_num} -gt 0 ]];then
+         sleep 10
+      else
+         break 
+      fi
+   done
+
 done
 
 

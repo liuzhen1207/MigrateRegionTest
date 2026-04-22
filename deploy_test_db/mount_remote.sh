@@ -1,0 +1,6 @@
+ssh cluster@172.20.70.5 "sudo mount /dev/vdc1 /data"
+ssh cluster@172.20.70.4 "sudo mount /dev/vdd1 /data"
+ssh cluster@172.20.70.14 "sudo mount /dev/vdc1 /data"
+ssh cluster@172.20.70.26 "sudo mount /dev/vdd1 /data"
+ssh cluster@172.20.70.27 "sudo mount /dev/vdc1 /data"
+ssh cluster@172.20.70.30 "sudo mount /dev/vdc1 /data"

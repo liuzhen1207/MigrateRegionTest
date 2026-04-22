@@ -8,7 +8,7 @@ source_db_dir=`cat ${conf_file}|grep ^source_db_dir|awk -F '=' '{print $2}'`
 exec 3<${nodeinfo_dir}/datanode.txt
 while read line<&3
 do
-   ssh ${u_name}@${line} "echo \"hello\" > ${dest_db_dir}/test.out;cat ${dest_db_dir}/test.out" &
+   ssh ${u_name}@${line} "echo \"${line} hello\" > ${dest_db_dir}/test.out;cat ${dest_db_dir}/test.out" &
    sleep 1
 done
 wait
@@ -18,7 +18,8 @@ while read line<&3
 do
 v_check=`grep ${line} ${nodeinfo_dir}/datanode.txt |wc -l`
 if [[ ${v_check} = 0 ]];then
-   ssh ${u_name}@${line} "echo \"hello\" > ${dest_db_dir}/test.out;cat ${dest_db_dir}/test.out" &
+   
+   ssh ${u_name}@${line} "echo \"${line} hello\" > ${dest_db_dir}/test.out;cat ${dest_db_dir}/test.out" &
 fi
 done
 

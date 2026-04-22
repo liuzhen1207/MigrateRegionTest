@@ -85,7 +85,7 @@ set_sys_conf ${line} ${db_dir} ".*schema_region_group_extension_policy=.*" "sche
 set_sys_conf ${line} ${db_dir} ".*data_region_group_extension_policy=.*" "data_region_group_extension_policy=CUSTOM"
 set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=1"
 set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=5"
-     
+set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"     
   done
 
   exec 3<${nodeinfo_dir}/datanode.txt
@@ -105,6 +105,7 @@ set_sys_conf ${line} ${db_dir} ".*data_region_group_extension_policy=.*" "data_r
 set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=1"
 set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=5"
 set_sys_conf ${line} ${db_dir} ".*datanode_memory_proportion=.*"  "datanode_memory_proportion=1:5:1:1:1:1"
+set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"
   done
  
 }
@@ -170,6 +171,7 @@ function pre_and_exec_mig_region()
   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
 
 local v_mig_to_dn_id=-1
+>${cur_dir}/del_ts.out
 v_del_flag=0
 exec 3<${cur_dir}/mig_id_info.txt
 while read line<&3
@@ -192,8 +194,9 @@ do
    sleep 2
    if [[ ${v_del_flag} -gt 0 ]];then
       echo "have been executed delete timeseries;"
-   else 
-      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "delete timeseries root.test.g_0.view_from_d*.*;" &
+   else
+       
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "delete timeseries root.test.g_0.view_from_d*.*;">${cur_dir}/del_ts.out &
       let v_del_flag++
    fi
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
@@ -207,14 +210,25 @@ do
               if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
                  break
               else
-                 sleep 2 
+                 sleep  10 
               fi
 
    done
    v_mig_to_dn_id=${v_mig_from_dn_id}
 
 done
-
+sleep 10
+#check delete result
+  while true
+  do
+      v_del_msg=`cat ${cur_dir}/del_ts.out|wc -l`
+      if [[ ${v_del_msg} -gt 0 ]];then
+         cat ${cur_dir}/del_ts.out
+         break
+      else
+         sleep 10
+      fi
+  done
 
   v_ts_act=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "count timeseries root.test.g_0.view_from_d*.*;"|grep "|  "|awk -F '|' '{gsub(" ","");print $2}'` 
    if [[ ${v_ts_act} != 0 ]];then

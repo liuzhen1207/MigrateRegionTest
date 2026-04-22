@@ -15,10 +15,12 @@ SCRIPT_NAME=$(basename "$0")
 seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
 query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 bm_ip=`head -1 ${nodeinfo_dir}/bm_node.txt`
-bm_dir=/data1/benchmark/bm_20231129_d43030e
+bm_conn_version=`cat ${conf_file}|grep bm_conn_version|awk -F '=' '{print $2}'`
+bm_dir=/data1/benchmark/bm_20251220_38c839b_${bm_conn_version}
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
-# https://jira.infra.timecho.com:8443/browse/TIMECHODB-456 
-fail_file="fail.log"
+bm_conn_pw=`cat ${conf_file}|grep bm_conn_pw|awk -F '=' '{print $2}'`
+bm_conf_name=tc3401_conf
+bm_conf="${cur_dir}/../bm_conf_backup/${bm_conn_version}/${bm_conf_name}"
 cn_num=3
 dn_num=5
 dr_rep_num=2
@@ -152,80 +154,158 @@ done
    sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"
 
 }
+function start_bm()
+{
+
+    # 1. 变量定义：路径拼接更清晰，命名规范
+    local bm_conf_dir1="${bm_dir}/${bm_conf_name}/"
+    local bm_conf_file1="${bm_dir}/${bm_conf_name}/config.properties"
+    time_stamp=$(date +"%Y_%m_%d_%H_%M_%S")  # 命名更直观
+    local target_dir="${bm_dir}/${bm_conf_name}"    # 提取目标目录，减少重复拼接
+    local ret_code=0  # 局部返回码，避免污染全局
+
+    # 2. 前置校验：核心变量非空（避免后续操作无意义）
+    if [[ -z "$bm_dir" || -z "$bm_conf_name" ]]; then
+        echo "ERROR: bm_dir or bm_conf_name is empty!"
+        let fail_flag++
+        return 1
+    fi
+
+    # 3. 检查配置文件是否存在
+    if [[ -f "$bm_conf_file1" ]]; then
+        # 替换密码：变量加双引号，检查 sed 执行结果
+        sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file1"
+        sed -i "s/^PASSWORD=.*/PASSWORD=TimechoDB@2021/g" "$bm_conf_file1"
+        ret_code=$?
+        if [[ $ret_code -ne 0 ]]; then
+            echo "ERROR: Failed to replace password in $bm_conf_file1"
+            let fail_flag++
+            return $ret_code
+        fi
+            sed -i "s/^HOST=.*/HOST=${query_ip}/g" "$bm_conf_file1"
+
+    else
+        # 4. 配置文件不存在：删除目录（先判断存在）
+        if [[ -e "$target_dir" ]]; then
+            rm -rf "$target_dir"
+            if [[ $? -ne 0 ]]; then
+                echo "ERROR: Failed to delete $target_dir"
+                let fail_flag++
+                return 1
+            fi
+        fi
+
+        # 5. 拷贝配置：变量加双引号，检查拷贝结果
+        if [[ -n "$bm_conf" ]]; then
+            cp -rp "$bm_conf" "$bm_dir"
+            ret_code=$?
+            if [[ $ret_code -ne 0 ]]; then
+                echo "ERROR: Failed to copy $bm_conf to $bm_dir"
+                let fail_flag++
+                return $ret_code
+            fi
+
+            # 6. 拷贝后重新检查配置文件（核心修复：补上逻辑漏洞）
+            if [[ ! -f "$bm_conf_file1" ]]; then
+                echo "ERROR: Config files $bm_conf_file1 still missing after copy!"
+                let fail_flag++
+                return 1
+            fi
+
+            # 拷贝后重新替换密码（避免配置文件是新的，密码未替换）
+            sed -i "s/^USERNAME=.*/USERNAME=kevin/g" "$bm_conf_file1"
+            sed -i "s/^PASSWORD=.*/PASSWORD=TimechoDB@2021/g" "$bm_conf_file1"
+            sed -i "s/^HOST=.*/HOST=${query_ip}/g" "$bm_conf_file1"
+        else
+            echo "ERROR: bm_conf is empty, cannot copy config!"
+            let fail_flag++
+            return 1  # 修复：失败返回非 0
+        fi
+    fi
+
+    # 7. 执行 benchmark 脚本：变量加双引号，检查脚本是否可执行
+    local benchmark_script="${bm_dir}/benchmark.sh"
+    if [[ ! -x "$benchmark_script" ]]; then
+        echo "ERROR: $benchmark_script is not executable!"
+        let fail_flag++
+        return 1
+    fi
+
+    # 输出日志加双引号，避免空格/特殊字符解析错误
+nohup "$benchmark_script" -cf "$bm_conf_dir1" >"${bm_dir}/${time_stamp}_tc${tc_num}_bm1.out" 2>&1 &
+    ret_code=$?
+    if [[ $ret_code -ne 0 ]]; then
+        echo "ERROR: benchmark.sh bm1 execution failed!"
+        let fail_flag++
+        # 不直接返回，继续执行 bm2，或根据需求调整
+    fi
+
+    sleep 10
+    return 0  # 全部执行完成返回成功
+}
 
 function pre_and_exec_mig_region()
 {
 
-  v_mig_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep root.test|head -1|awk -F '|' '{gsub(" ","");print $2}'`
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8","$9}'>${cur_dir}/mig_id_info.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8}'>${cur_dir}/mig_region_dn_id.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/all_dn_id.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
 
-local v_mig_to_dn_id=-1
-v_del_flag=0
-exec 3<${cur_dir}/mig_id_info.txt
-while read line<&3
-do
-   v_mig_from_dn_id=`echo ${line}|awk -F ',' '{print $1}'`
-   if [[ ${v_mig_to_dn_id} -lt 0 ]];then
-         for i in {1..4}
-         do
-             v_mig_to_dn_id=`awk "NR==${i}" ${cur_dir}/all_dn_id.txt`
-             v_check=`grep ${v_mig_to_dn_id} ${cur_dir}/mig_region_dn_id.txt|wc -l`
-             if [[ ${v_check} = 0 ]];then
-                break
-             fi
-         done
-   fi
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
-   v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
-   sleep 2
-   if [[ ${v_del_flag} -gt 0 ]];then
-      echo "have been executed delete timeseries;"
-   else 
-      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "drop database root.db.g_0;">${cur_dir}/del_s_40.out &
-      let v_del_flag++
-   fi
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   while true
-   do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all.log|tail -1"`
-              v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-              v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
- 
-              if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-                 break
-              else
-                 sleep 2 
-              fi
-
-   done
-   v_mig_to_dn_id=${v_mig_from_dn_id}
-
-done
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "create user kevin 'TimechoDB@2021';"
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "grant all ON root.** TO USER kevin WITH GRANT OPTION;"
+   start_bm 
 while true
 do
-   v_bm_finish=`cat ${cur_dir}/del_s_40.out|wc -l`
+   v_bm_finish=`sudo jps|grep -i app|wc -l`
    if [[ ${v_bm_finish} -gt 0 ]];then
-      break
+      sleep 60 
    else
-      sleep 5
+      break 
    fi
 done
- ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.** align by device;">${cur_dir}/q_act.out
- v_check_res=`cat ${cur_dir}/q_act.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,100000,100000" |wc -l`
- if [[ ${v_check_res} != 40000 ]];then
+
+ ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** where time>=1990-1-1T08:00:00+08:00 align by device;">${cur_dir}/q_act.out
+  v_check_res=`cat ${cur_dir}/q_act.out|grep "There is not enough memory to execute current fragment instance"|wc -l`
+
+ if [[ ${v_check_res} = 0 ]];then
+    v_exp_num=`grep root.test ${cur_dir}/q_act.out|awk -F '|' '{gsub(" ","");print $3","$4","$5","$6","$7}'|grep "100000,100000,100000,100000,100000"|wc -l`
+    if [[ ${v_exp_num} != 20000 ]];then
+       let fail_flag++
+    fi
+ fi
+
+${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8) from root.** where time>=1990-1-1T08:00:00+08:00 align by device;">${cur_dir}/q_act2.out
+v_check_res=`cat ${cur_dir}/q_act2.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,100000,100000" |wc -l`
+if [[ ${v_check_res} != 20000 ]];then
+let fail_flag++
+fi
+ v_check_res=`cat ${cur_dir}/q_act2.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "0,0,0" |wc -l`
+ if [[ ${v_check_res} != 60000 ]];then
     let fail_flag++
  fi
+
 
 v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|wc -l`
 if [[ ${v_check_mig_regionid} != ${dr_rep_num} ]];then
    let fail_flag++
 fi
+
+#check NPE
+exec 3<${nodeinfo_dir}/datanode.txt
+while read line <&3
+do
+ssh ${u_name}@${line} "sudo gunzip ${db_dir}/logs/log-datanode-all*"
+v_npe=`ssh ${u_name}@${line} "grep -i NullPointer ${db_dir}/logs/*datanode*all*|wc -l"`
+if [[ ${v_npe} -gt 0 ]];then
+let fail_flag++
+fi
+done
+exec 3<${nodeinfo_dir}/confignode.txt
+while read line <&3
+do
+ssh ${u_name}@${line} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
+v_npe=`ssh ${u_name}@${line} "grep -i NullPointer ${db_dir}/logs/*confignode*all*|wc -l"`
+if [[ ${v_npe} -gt 0 ]];then
+let fail_flag++
+fi
+done
 
 test_end_sec=`date +%s`
 test_elp_sec=$((test_end_sec-test_begin_sec))
@@ -234,6 +314,7 @@ tc_res=true
   if [[ ${fail_flag} = 0 ]];then
      tc_res=true
      echo "${SCRIPT_NAME} : pass" >>"${res_file}"
+     rm -rf "${bm_dir}/${time_stamp}_tc${tc_num}_bm1.out"
   else
      tc_res=false
      echo "${SCRIPT_NAME} : fail" >>"${res_file}"

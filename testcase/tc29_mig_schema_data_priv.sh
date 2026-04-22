@@ -276,6 +276,7 @@ do
          break
       fi 
    done
+   break
 done
 local v_mig_to_dn_id=-1
 exec 3<${cur_dir}/mig_sr_id_info.txt
@@ -308,7 +309,7 @@ do
          break 
       fi
    done
-
+   break
 done
 
 

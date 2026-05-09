@@ -116,11 +116,36 @@ function start_db()
    #start cluster
    head -n $cn_num ${nodeinfo_dir}/total_node.txt > ${nodeinfo_dir}/confignode.txt 
    set_conf
+exec 3<${nodeinfo_dir}/datanode.txt
+while read line <&3
+do
+   ssh ${u_name}@${line} "test -d ${backup_dir_on_cn_dn_host}/data/datanode/system"
+   if [[ $? -ne 0 ]];then
+      echo "backup data missing on datanode host ${line}: ${backup_dir_on_cn_dn_host}/data/datanode/system"
+      let fail_flag++
+      return 1
+   fi
+done
+exec 3<${nodeinfo_dir}/confignode.txt
+while read line <&3
+do
+   ssh ${u_name}@${line} "test -d ${backup_dir_on_cn_dn_host}/data/confignode/system"
+   if [[ $? -ne 0 ]];then
+      echo "backup data missing on confignode host ${line}: ${backup_dir_on_cn_dn_host}/data/confignode/system"
+      let fail_flag++
+      return 1
+   fi
+done
 #copy data
 exec 3<${nodeinfo_dir}/datanode.txt
 while read line<&3
 do
 ssh ${u_name}@${line} "sudo cp -rl ${backup_dir_on_cn_dn_host}/data ${db_dir}/data"
+if [[ $? -ne 0 ]];then
+   echo "copy backup data failed on datanode host ${line}"
+   let fail_flag++
+   return 1
+fi
 done
 exec 3<${nodeinfo_dir}/datanode.txt
 while read line<&3
@@ -142,6 +167,11 @@ do
 v_check=`grep ${line} ${nodeinfo_dir}/datanode.txt |wc -l`
 if [[ ${v_check} = 0 ]];then
 ssh ${u_name}@${line} "sudo cp -rl ${backup_dir_on_cn_dn_host}/data ${db_dir}/data"
+if [[ $? -ne 0 ]];then
+   echo "copy backup data failed on confignode host ${line}"
+   let fail_flag++
+   return 1
+fi
 ssh ${u_name}@${line} "sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"";
 fi
 done

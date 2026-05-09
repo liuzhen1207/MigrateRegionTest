@@ -32,12 +32,169 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+copy_wait_timeout_sec=1800
+migrate_wait_timeout_sec=600
+dn_status_wait_timeout_sec=180
+dn_process_wait_timeout_sec=180
+region_stable_rounds=3
 function clean_env()
 {
    #clean env
    sh -x ${clean_env_dir}/stop_cluster.sh
    sh -x ${clean_env_dir}/clean_cluster.sh
    sh -x ${clean_env_dir}/reset_conf.sh
+}
+
+function wait_timeout_check()
+{
+   local begin_sec=$1
+   local timeout_sec=$2
+   local wait_desc="$3"
+   local cur_sec=`date +%s`
+   local elp_sec=$((cur_sec-begin_sec))
+
+   if [[ ${elp_sec} -gt ${timeout_sec} ]];then
+      echo "[${SCRIPT_NAME}] timeout waiting for ${wait_desc}, elapsed ${elp_sec}s"
+      let fail_flag++
+      return 0
+   fi
+
+   return 1
+}
+
+function check_migrate_cmd()
+{
+   local mig_out_file=$1
+
+   if grep -Eq "IoTDBSQLException|Exception|^Msg:| has some other region operation procedures in progress" ${mig_out_file};then
+      echo "[${SCRIPT_NAME}] migrate command failed:"
+      cat ${mig_out_file}
+      let fail_flag++
+      return 1
+   fi
+
+   return 0
+}
+
+function refresh_schema_region_info()
+{
+   local region_id=$1
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep " ${region_id}|[[:space:]]*SchemaRegion"|awk -F '|' '{gsub(" ","");print $8","$9}'>${cur_dir}/mig_id_info.txt
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep " ${region_id}|[[:space:]]*SchemaRegion"|awk -F '|' '{gsub(" ","");print $8}'>${cur_dir}/mig_region_dn_id.txt
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/all_dn_id.txt
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
+}
+
+function get_dn_ip_by_id()
+{
+   local dn_id=$1
+   grep "^${dn_id}," ${cur_dir}/all_dn_id_ip.txt|head -1|awk -F ',' '{print $2}'
+}
+
+function get_query_ip_excluding()
+{
+   local exclude_ip=$1
+   awk -F ',' -v exclude_ip="${exclude_ip}" '$2 != exclude_ip {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt
+}
+
+function get_schema_region_transition_count()
+{
+   local region_id=$1
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep " ${region_id}|[[:space:]]*SchemaRegion"|grep -E "Adding|Removing"|wc -l
+}
+
+function wait_schema_region_migrated()
+{
+   local region_id=$1
+   local expect_replica_num=$2
+   local target_dn_id=$3
+   local source_dn_id=$4
+   local timeout_sec=$5
+   local stable_round=$6
+   local wait_desc="$7"
+   local begin_sec=`date +%s`
+   local stable_hit=0
+
+   while true
+   do
+      refresh_schema_region_info ${region_id}
+      v_region_dn_num=`wc -l < ${cur_dir}/mig_region_dn_id.txt`
+      v_transition_num=`get_schema_region_transition_count ${region_id}`
+      v_has_target=`grep "^${target_dn_id}$" ${cur_dir}/mig_region_dn_id.txt|wc -l`
+      v_has_source=`grep "^${source_dn_id}$" ${cur_dir}/mig_region_dn_id.txt|wc -l`
+
+      if [[ ${v_region_dn_num} = ${expect_replica_num} && ${v_transition_num} = 0 && ${v_has_target} -gt 0 && ${v_has_source} = 0 ]];then
+         stable_hit=$((stable_hit+1))
+         if [[ ${stable_hit} -ge ${stable_round} ]];then
+            return 0
+         fi
+      else
+         stable_hit=0
+      fi
+
+      if wait_timeout_check ${begin_sec} ${timeout_sec} "${wait_desc}";then
+         return 1
+      fi
+      sleep 3
+   done
+}
+
+function wait_schema_region_stable()
+{
+   local region_id=$1
+   local expect_replica_num=$2
+   local timeout_sec=$3
+   local stable_round=$4
+   local wait_desc="$5"
+   local begin_sec=`date +%s`
+   local stable_hit=0
+
+   while true
+   do
+      refresh_schema_region_info ${region_id}
+      v_region_dn_num=`wc -l < ${cur_dir}/mig_region_dn_id.txt`
+      v_transition_num=`get_schema_region_transition_count ${region_id}`
+
+      if [[ ${v_region_dn_num} = ${expect_replica_num} && ${v_transition_num} = 0 ]];then
+         stable_hit=$((stable_hit+1))
+         if [[ ${stable_hit} -ge ${stable_round} ]];then
+            return 0
+         fi
+      else
+         stable_hit=0
+      fi
+
+      if wait_timeout_check ${begin_sec} ${timeout_sec} "${wait_desc}";then
+         return 1
+      fi
+      sleep 3
+   done
+}
+
+function normalize_query_output()
+{
+   local src_file=$1
+   local dst_file=$2
+   grep 'root\.' ${src_file} | LC_ALL=C sort > ${dst_file}
+}
+
+function compare_query_result()
+{
+   local exp_file=$1
+   local act_file=$2
+   local exp_norm_file="${exp_file}.norm"
+   local act_norm_file="${act_file}.norm"
+
+   normalize_query_output ${exp_file} ${exp_norm_file}
+   normalize_query_output ${act_file} ${act_norm_file}
+
+   v_exp_cnt=`wc -l < ${exp_norm_file}`
+   v_act_cnt=`wc -l < ${act_norm_file}`
+   if [[ ${v_exp_cnt} = 0 || ${v_act_cnt} = 0 ]];then
+      return 1
+   fi
+
+   diff ${exp_norm_file} ${act_norm_file} >/dev/null 2>&1
 }
 
 
@@ -126,6 +283,7 @@ done
 exec 3<${nodeinfo_dir}/datanode.txt
 while read line<&3
 do
+        v_cp_beg_sec=`date +%s`
         while true
         do
         v_check_cp=`ssh ${u_name}@${line} "sudo ps -ef|grep \"cp -rl\"|grep -v grep|wc -l"`
@@ -133,6 +291,9 @@ do
            ssh ${u_name}@${line} "sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"";
            break
         else
+           if wait_timeout_check ${v_cp_beg_sec} ${copy_wait_timeout_sec} "copy backup data on ${line}";then
+              break
+           fi
            sleep 5
         fi
         done
@@ -158,10 +319,7 @@ function mig_region()
      let fail_flag++
   fi
   local v_mig_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep root|head -1|awk -F '|' '{gsub(" ","");print $2}'`
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep " ${v_mig_id}|[[:space:]]*SchemaRegion"|awk -F '|' '{gsub(" ","");print $8","$9}'>${cur_dir}/mig_id_info.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep " ${v_mig_id}|[[:space:]]*SchemaRegion"|awk -F '|' '{gsub(" ","");print $8}'>${cur_dir}/mig_region_dn_id.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/all_dn_id.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
+  refresh_schema_region_info ${v_mig_id}
 local v_mig_to_dn_id=-1
 exec 3<${cur_dir}/mig_id_info.txt
 while read line<&3
@@ -178,60 +336,60 @@ do
          done
    fi
    v_stop_dn_ip=`grep "^${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
-   v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
-   sleep 10
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   while true
-   do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-      	      v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all.log|tail -1"`
-	      v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-	      v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
-
-	      if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-		 break
-	      else
-		 sleep 10 
-	      fi
-
-   done
+   if ! check_migrate_cmd ${cur_dir}/mig.out;then
+      break
+   fi
+   if ! wait_schema_region_migrated ${v_mig_id} 3 ${v_mig_to_dn_id} ${v_mig_from_dn_id} ${migrate_wait_timeout_sec} ${region_stable_rounds} "schema region ${v_mig_id} migrate from ${v_mig_from_dn_id} to ${v_mig_to_dn_id}";then
+      break
+   fi
    v_mig_to_dn_id=${v_mig_from_dn_id} 
    
 done
   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
 
-   v_query_is_same=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out|grep root|wc -l`
-   if [[ ${v_query_is_same} -gt 0 ]];then
+   if ! compare_query_result ${cur_dir}/q_exp.out ${cur_dir}/q_act.out;then
       let fail_flag++
    fi
-v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep " ${v_mig_id}|[[:space:]]*SchemaRegion"|wc -l`
+if ! wait_schema_region_stable ${v_mig_id} 3 ${migrate_wait_timeout_sec} ${region_stable_rounds} "schema region ${v_mig_id} settle before stop dest dn";then
+   let fail_flag++
+fi
+v_check_mig_regionid=`wc -l < ${cur_dir}/mig_region_dn_id.txt`
 if [[ ${v_check_mig_regionid} != 3 ]];then
    let fail_flag++
 fi
 
 #stop dest DN 
    ssh ${u_name}@${v_stop_dn_ip} "sudo ${db_dir}/sbin/stop-datanode.sh"
+   v_unknown_beg_sec=`date +%s`
    while true
    do
       if [[ ${query_ip} = ${v_stop_dn_ip} ]];then
-         query_ip=`awk "NR==1" ${cur_dir}/mig_id_info.txt|awk -F ',' '{print $2}'`
+         v_new_query_ip=`get_query_ip_excluding ${v_stop_dn_ip}`
+         if [[ -n "${v_new_query_ip}" ]];then
+            query_ip=${v_new_query_ip}
+         fi
       fi
       v_unknown_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster"|grep -i datanode|grep ${v_stop_dn_ip}|grep -i unknown|wc -l`
       if [[ ${v_unknown_res} -gt 0 ]];then
          break
       else
+         if wait_timeout_check ${v_unknown_beg_sec} ${dn_status_wait_timeout_sec} "datanode ${v_stop_dn_ip} become unknown";then
+            break
+         fi
          sleep 1
       fi
    done
+   v_dn_stop_beg_sec=`date +%s`
    while true
    do
       v_dn_pid=`ssh ${u_name}@${v_stop_dn_ip} "sudo jps|grep -i datanode|wc -l"`
       if [[ ${v_dn_pid} = 0 ]];then
          break
       else
+         if wait_timeout_check ${v_dn_stop_beg_sec} ${dn_process_wait_timeout_sec} "datanode ${v_stop_dn_ip} process stop";then
+            break
+         fi
          sleep 1
       fi
    done
@@ -245,6 +403,7 @@ fi
 #restart dn
 v_start_time=`date +%s`
 ssh ${u_name}@${v_stop_dn_ip} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_${v_start_time}_heapdump.hprof > /dev/null 2>&1 &"
+v_restart_beg_sec=`date +%s`
 while true
 do
 sleep 1
@@ -252,18 +411,23 @@ sleep 1
       if [[ ${v_restart_unknown} -gt 0 ]];then
          break
       else
+         if wait_timeout_check ${v_restart_beg_sec} ${dn_status_wait_timeout_sec} "datanode ${v_stop_dn_ip} restart running";then
+            break
+         fi
          sleep 1
       fi
 
 done
-v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep " ${v_mig_id}|[[:space:]]*SchemaRegion"|wc -l`
+if ! wait_schema_region_stable ${v_mig_id} 3 ${migrate_wait_timeout_sec} ${region_stable_rounds} "schema region ${v_mig_id} settle after restart ${v_stop_dn_ip}";then
+   let fail_flag++
+fi
+v_check_mig_regionid=`wc -l < ${cur_dir}/mig_region_dn_id.txt`
 if [[ ${v_check_mig_regionid} != 3 ]];then
    let fail_flag++
 fi
 
   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
-   v_query_is_same=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out|grep root|wc -l`
-   if [[ ${v_query_is_same} -gt 0 ]];then
+   if ! compare_query_result ${cur_dir}/q_exp.out ${cur_dir}/q_act.out;then
       let fail_flag++
    fi
 
@@ -271,13 +435,15 @@ test_end_sec=`date +%s`
 test_elp_sec=$((test_end_sec-test_begin_sec))
 tc_res=true
 
-  if [[ ${fail_flag} = 0 ]];then
-     tc_res=true
-     echo "${SCRIPT_NAME} : pass" >>"${res_file}"
-  else
-     tc_res=false
-     echo "${SCRIPT_NAME} : fail" >>"${res_file}"
-  fi
+	  if [[ ${fail_flag} = 0 ]];then
+	     tc_res=true
+             mkdir -p `dirname "${res_file}"`
+	     echo "${SCRIPT_NAME} : pass" >>"${res_file}"
+	  else
+	     tc_res=false
+             mkdir -p `dirname "${res_file}"`
+	     echo "${SCRIPT_NAME} : fail" >>"${res_file}"
+	  fi
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
 
 }

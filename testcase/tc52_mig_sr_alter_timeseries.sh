@@ -160,6 +160,41 @@ function alter_ts()
       ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "alter timeseries root.test.g_0.d2_${i}.s_0 UPSERT ALIAS=may TAGS(color=read, city=beijing) ATTRIBUTES(timezone=eight, air=good);"
    done
 }
+
+function wait_schema_region_migration()
+{
+   local region_id=$1
+   local from_dn_id=$2
+   local to_dn_id=$3
+   local timeout_sec=${4:-900}
+   local start_sec=`date +%s`
+   local cur_sec
+   local region_dn_ids
+   local from_cnt
+   local to_cnt
+   local region_cnt
+
+   while true
+   do
+      region_dn_ids=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;" | grep " ${region_id}|[[:space:]]*SchemaRegion" | awk -F '|' '{gsub(" ","");print $8}'`
+      from_cnt=`echo "${region_dn_ids}" | grep -x "${from_dn_id}" | wc -l`
+      to_cnt=`echo "${region_dn_ids}" | grep -x "${to_dn_id}" | wc -l`
+      region_cnt=`echo "${region_dn_ids}" | sed '/^$/d' | wc -l`
+
+      if [[ ${from_cnt} = 0 && ${to_cnt} -ge 1 && ${region_cnt} = ${sr_rep_num} ]];then
+         return 0
+      fi
+
+      cur_sec=`date +%s`
+      if ((cur_sec-start_sec >= timeout_sec));then
+         echo "wait schema region migration timeout, region_id=${region_id}, from_dn_id=${from_dn_id}, to_dn_id=${to_dn_id}, region_dn_ids=${region_dn_ids}" >> ${cur_dir}/${fail_file}
+         return 1
+      fi
+
+      sleep 2
+   done
+}
+
 function pre_and_exec_mig_region()
 {
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_exp.out
@@ -195,26 +230,12 @@ do
              fi
          done
    fi
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
-   v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
    alter_ts &
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   while true
-   do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all.log|tail -1"`
-              v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-              v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
-
-              if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-                 break
-              else
-                 sleep 2 
-              fi
-
-   done
+   if ! wait_schema_region_migration ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_to_dn_id} 900;then
+      let fail_flag++
+      break
+   fi
    v_mig_to_dn_id=${v_mig_from_dn_id}
 
 done
@@ -230,12 +251,12 @@ ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12
       let fail_flag++
    fi
 v_ts_act=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_0) from root.test.g_0.d2* group by tags(city);"|grep beijing|grep 10100000|wc -l`
-if [[${v_ts_act} != 1 ]];then
+if [[ ${v_ts_act} != 1 ]];then
 let fail_flag++
 fi
 
 v_ts_act=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_0) from root.test.g_0.d1* group by tags(city);"|grep beijing|grep 10100000|wc -l`
-if [[${v_ts_act} != 1 ]];then
+if [[ ${v_ts_act} != 1 ]];then
 let fail_flag++
 fi
 

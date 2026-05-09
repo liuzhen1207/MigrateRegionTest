@@ -35,6 +35,8 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+loop_timeout_sec=300
+mig_submit_timeout_sec=180
 function clean_env()
 {
    #clean env
@@ -112,6 +114,49 @@ set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_fr
  
 }
 
+function run_migrate_region_with_retry()
+{
+  local v_region_id=$1
+  local v_from_dn_id=$2
+  local v_to_dn_id=$3
+  local v_out_file=$4
+  local v_start_sec=`date +%s`
+
+  while true
+  do
+     ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_region_id} FROM ${v_from_dn_id} TO ${v_to_dn_id};" > ${v_out_file}
+     if grep -q "has some other region operation procedures in progress" ${v_out_file};then
+        v_now_sec=`date +%s`
+        v_elp=$((v_now_sec-v_start_sec))
+        if [[ ${v_elp} -gt ${mig_submit_timeout_sec} ]];then
+           return 1
+        fi
+        sleep 2
+     elif grep -q "IoTDBSQLException" ${v_out_file};then
+        return 1
+     else
+        return 0
+     fi
+  done
+}
+
+function write_test_result()
+{
+  test_end_sec=`date +%s`
+  test_elp_sec=$((test_end_sec-test_begin_sec))
+  tc_res=true
+
+  if [[ ${fail_flag} = 0 ]];then
+     tc_res=true
+     echo "${SCRIPT_NAME} : pass" >>"${res_file}"
+  else
+     tc_res=false
+     echo "${SCRIPT_NAME} : fail" >>"${res_file}"
+  fi
+
+  ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
+}
+
 function start_db()
 {
    #clean env
@@ -168,6 +213,8 @@ function pre_and_exec_mig_region()
 local v_mig_to_dn_id=-1
   line=`head -1 ${cur_dir}/mig_id_info.txt`
    if [[ ${line} = "" ]];then
+      let fail_flag++
+      write_test_result
       return 1
    fi
 
@@ -187,10 +234,15 @@ local v_mig_to_dn_id=-1
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
    v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
+   if ! run_migrate_region_with_retry ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_to_dn_id} ${cur_dir}/mig.out;then
+      let fail_flag++
+      write_test_result
+      return 1
+   fi
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
 # check adding
    if [[ ${kill_flag} -lt 1 ]];then
+           v_start_time=`date +%s`
 	   while true
 	   do
 	      if ssh ${u_name}@${v_cn_leader_ip} '[ -f "${db_dir}/logs/log-confignode-all*gz" ]'; then
@@ -204,6 +256,13 @@ local v_mig_to_dn_id=-1
 		 fi
 		 break
 	      else
+                 v_end_time=`date +%s`
+                 v_elp=$((v_end_time-v_start_time))
+                 if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+                    let fail_flag++
+                    write_test_result
+                    return 1
+                 fi
 		 sleep 1
 	      fi
 	   done
@@ -214,6 +273,7 @@ local v_mig_to_dn_id=-1
 # get Remove Coord IP
    v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
 # check snapshot
+   v_start_time=`date +%s`
    while true
    do
       if ssh ${u_name}@${v_add_coord_ip} '[ -f "${db_dir}/logs/log-datanode-all*gz" ]'; then
@@ -229,15 +289,30 @@ local v_mig_to_dn_id=-1
 	 query_ip=`grep -v ${v_remove_coord_ip} ${cur_dir}/all_dn_id_ip.txt|grep -v ${v_mig_from_dn_ip}|grep -v ${v_mig_sec_dn_ip}|head -1|awk -F ',' '{print $2}'`
          break
       else
+         v_end_time=`date +%s`
+         v_elp=$((v_end_time-v_start_time))
+         if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+            let fail_flag++
+            write_test_result
+            return 1
+         fi
          sleep 1
       fi
    done
 # check stop dn pid
 
+v_start_time=`date +%s`
 while true
 do
    v_pid=`ssh ${u_name}@${v_mig_from_dn_ip} "sudo jps|grep -i datanode|wc -l"`
    if [[ ${v_pid} -gt 0 ]];then
+      v_end_time=`date +%s`
+      v_elp=$((v_end_time-v_start_time))
+      if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+         let fail_flag++
+         write_test_result
+         return 1
+      fi
       sleep 3
    else
           v_stop_time=`date +%s`
@@ -248,10 +323,18 @@ do
   
 done
 
+v_start_time=`date +%s`
 while true
 do
    v_pid=`ssh ${u_name}@${v_mig_sec_dn_ip} "sudo jps|grep -i datanode|wc -l"`
    if [[ ${v_pid} -gt 0 ]];then
+      v_end_time=`date +%s`
+      v_elp=$((v_end_time-v_start_time))
+      if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+         let fail_flag++
+         write_test_result
+         return 1
+      fi
       sleep 3
    else
           v_stop_time=`date +%s`
@@ -262,10 +345,18 @@ do
 
 done
 
+v_start_time=`date +%s`
 while true
 do
    v_pid=`ssh ${u_name}@${v_remove_coord_ip} "sudo jps|grep -i datanode|wc -l"`
    if [[ ${v_pid} -gt 0 ]];then
+      v_end_time=`date +%s`
+      v_elp=$((v_end_time-v_start_time))
+      if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+         let fail_flag++
+         write_test_result
+         return 1
+      fi
       sleep 3
    else
           v_stop_time=`date +%s`
@@ -276,10 +367,18 @@ do
 
 done
 
+v_start_time=`date +%s`
 while true
 do
    v_pid=`ssh ${u_name}@${v_cn_leader_ip} "sudo jps|grep -i confignode|wc -l"`
    if [[ ${v_pid} -gt 0 ]];then
+      v_end_time=`date +%s`
+      v_elp=$((v_end_time-v_start_time))
+      if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+         let fail_flag++
+         write_test_result
+         return 1
+      fi
       sleep 3
    else
           v_stop_time=`date +%s`
@@ -389,6 +488,8 @@ done
 v_mig_to_dn_id=-1
   line=`tail -1 ${cur_dir}/mig_id_info.txt`
    if [[ ${line} = "" ]];then
+      let fail_flag++
+      write_test_result
       return 1
    fi
 
@@ -406,7 +507,11 @@ v_mig_to_dn_id=-1
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
    v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
+   if ! run_migrate_region_with_retry ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_to_dn_id} ${cur_dir}/mig.out;then
+      let fail_flag++
+      write_test_result
+      return 1
+   fi
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
 # check Removing success
  v_mig_to_dn_ip=`grep "${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
@@ -421,12 +526,16 @@ v_mig_to_dn_id=-1
               else
                  v_mig_cur_sec=`date +%s`
                  v_mig_elp_sec=$((v_mig_cur_sec-v_mig_beg_sec))
-                 if [[ ${v_mig_elp_sec} -gt 360 ]];then
-                    v_mig_submit_fail_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure failed\" ${db_dir}/logs/*confignode*all*|grep \"same consensus group ${v_mig_id} is already in processing\"|wc -l"`
+                 if [[ ${v_mig_elp_sec} -gt ${loop_timeout_sec} ]];then
+                    v_mig_submit_fail_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure failed\" ${db_dir}/logs/*confignode*all*|grep -E \"same consensus group ${v_mig_id} is already in processing|has some other region operation procedures in progress\"|wc -l"`
                     if [[ ${v_mig_submit_fail_log} = 1 ]];then
-                       break
+                       let fail_flag++
+                       write_test_result
+                       return 1
                     fi
-                    
+                    let fail_flag++
+                    write_test_result
+                    return 1
                  fi
                  sleep 5 
               fi
@@ -444,18 +553,7 @@ if [[ ${v_check_mig_regionid} != ${dr_rep_num} ]];then
    let fail_flag++
 fi
 
-test_end_sec=`date +%s`
-test_elp_sec=$((test_end_sec-test_begin_sec))
-tc_res=true
-
-  if [[ ${fail_flag} = 0 ]];then
-     tc_res=true
-     echo "${SCRIPT_NAME} : pass" >>"${res_file}"
-  else
-     tc_res=false
-     echo "${SCRIPT_NAME} : fail" >>"${res_file}"
-  fi
-${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
+write_test_result
 
  
 } 

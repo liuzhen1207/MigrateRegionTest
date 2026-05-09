@@ -34,6 +34,8 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+loop_timeout_sec=300
+mig_submit_timeout_sec=180
 function clean_env()
 {
    #clean env
@@ -108,7 +110,74 @@ set_sys_conf ${line} ${db_dir} ".*region_migration_speed_limit_bytes_per_second=
    set_sys_conf ${line} ${db_dir} ".*datanode_memory_proportion=.*"  "datanode_memory_proportion=1:5:1:1:1:1"
 set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=171966464"
   done
- 
+
+}
+
+function refresh_region_runtime_info()
+{
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8","$9}'>${cur_dir}/mig_id_info.txt
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8}'>${cur_dir}/mig_region_dn_id.txt
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e 'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/all_dn_id.txt
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e 'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
+}
+
+function select_target_dn()
+{
+  local v_target_dn_id=""
+  while read line
+  do
+     if [[ -z "${line}" ]];then
+        continue
+     fi
+     v_check=`grep -w "${line}" ${cur_dir}/mig_region_dn_id.txt|wc -l`
+     if [[ ${v_check} = 0 ]];then
+        v_target_dn_id=${line}
+        break
+     fi
+  done < ${cur_dir}/all_dn_id.txt
+  echo ${v_target_dn_id}
+}
+
+function run_migrate_region_with_retry()
+{
+  local v_region_id=$1
+  local v_from_dn_id=$2
+  local v_to_dn_id=$3
+  local v_out_file=$4
+  local v_start_sec=`date +%s`
+
+  while true
+  do
+     ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_region_id} FROM ${v_from_dn_id} TO ${v_to_dn_id};" > ${v_out_file}
+     if grep -q "has some other region operation procedures in progress" ${v_out_file};then
+        v_now_sec=`date +%s`
+        v_elp=$((v_now_sec-v_start_sec))
+        if [[ ${v_elp} -gt ${mig_submit_timeout_sec} ]];then
+           return 1
+        fi
+        sleep 2
+     elif grep -q "IoTDBSQLException" ${v_out_file};then
+        return 1
+     else
+        return 0
+     fi
+  done
+}
+
+function write_test_result()
+{
+  test_end_sec=`date +%s`
+  test_elp_sec=$((test_end_sec-test_begin_sec))
+  tc_res=true
+
+  if [[ ${fail_flag} = 0 ]];then
+     tc_res=true
+     echo "${SCRIPT_NAME} : pass" >>"${res_file}"
+  else
+     tc_res=false
+     echo "${SCRIPT_NAME} : fail" >>"${res_file}"
+  fi
+  ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
 }
 
 function start_db()
@@ -159,39 +228,39 @@ function pre_and_exec_mig_region()
  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_exp.out
 
   v_mig_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep root.test|head -1|awk -F '|' '{gsub(" ","");print $2}'`
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8","$9}'>${cur_dir}/mig_id_info.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8}'>${cur_dir}/mig_region_dn_id.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/all_dn_id.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
+  refresh_region_runtime_info
 
 local v_mig_to_dn_id=-1
   line=`head -1 ${cur_dir}/mig_id_info.txt`
    if [[ ${line} = "" ]];then
+      let fail_flag++
+      write_test_result
       return 1
    fi
 
    v_mig_from_dn_id=`echo ${line}|awk -F ',' '{print $1}'`
    if [[ ${v_mig_to_dn_id} -lt 0 ]];then
-         for i in {1..4}
-         do
-             v_mig_to_dn_id=`awk "NR==${i}" ${cur_dir}/all_dn_id.txt`
-             v_check=`grep ${v_mig_to_dn_id} ${cur_dir}/mig_region_dn_id.txt|wc -l`
-             if [[ ${v_check} = 0 ]];then
-                break
-             fi
-         done
+         v_mig_to_dn_id=`select_target_dn`
+   fi
+   if [[ ${v_mig_to_dn_id} = "" ]];then
+      let fail_flag++
+      write_test_result
+      return 1
    fi
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
    v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
+   if ! run_migrate_region_with_retry ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_to_dn_id} ${cur_dir}/mig.out;then
+      let fail_flag++
+      write_test_result
+      return 1
+   fi
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
 # check adding
+   v_start_time=`date +%s`
    while true
    do
-      if ssh ${u_name}@${v_cn_leader_ip} '[ -f "${db_dir}/logs/log-confignode-all*gz" ]'; then
-         ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-      fi
+      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip -f ${db_dir}/logs/log-confignode-all*gz >/dev/null 2>&1 || true"
       v_AddRegion=`ssh ${u_name}@${v_cn_leader_ip} "grep \"AddRegion\] started\" ${db_dir}/logs/*confignode*all*|grep \"added to DataNode ${v_mig_to_dn_id}\"|wc -l"`
       if [[ ${v_AddRegion} -gt 0 ]];then
          v_adding_check=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions"|grep Adding|wc -l`
@@ -200,6 +269,13 @@ local v_mig_to_dn_id=-1
          fi
          break
       else
+         v_end_time=`date +%s`
+         v_elp=$((v_end_time-v_start_time))
+         if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+            let fail_flag++
+            write_test_result
+            return 1
+         fi
          sleep 1
       fi
    done
@@ -209,11 +285,10 @@ local v_mig_to_dn_id=-1
 # get Remove Coord IP
    v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
 # check snapshot
+   v_start_time=`date +%s`
    while true
    do
-      if ssh ${u_name}@${v_add_coord_ip} '[ -f "${db_dir}/logs/log-datanode-all*gz" ]'; then
-         ssh ${u_name}@${v_add_coord_ip} "sudo gunzip ${db_dir}/logs/log-datanode-all*"
-      fi
+      ssh ${u_name}@${v_add_coord_ip} "sudo gunzip -f ${db_dir}/logs/log-datanode-all*gz >/dev/null 2>&1 || true"
       v_AddRegion=`ssh ${u_name}@${v_add_coord_ip} "grep \"SNAPSHOT TRANSMISSION] The overall progress\" ${db_dir}/logs/*datanode*all*|wc -l"`
       if [[ ${v_AddRegion} -gt 1 ]];then
          ssh ${u_name}@${v_add_coord_ip} "sudo ${db_dir}/sbin/stop-datanode.sh" &
@@ -223,15 +298,30 @@ local v_mig_to_dn_id=-1
 		 fi
          break
       else
+         v_end_time=`date +%s`
+         v_elp=$((v_end_time-v_start_time))
+         if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+            let fail_flag++
+            write_test_result
+            return 1
+         fi
          sleep 1
       fi
    done
 # check stop dn pid
 
+v_start_time=`date +%s`
 while true
 do
    v_pid=`ssh ${u_name}@${v_add_coord_ip} "sudo jps|grep -i datanode|wc -l"`
    if [[ ${v_pid} -gt 0 ]];then
+      v_end_time=`date +%s`
+      v_elp=$((v_end_time-v_start_time))
+      if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+         let fail_flag++
+         write_test_result
+         return 1
+      fi
       sleep 3
    else
           v_stop_time=`date +%s`
@@ -242,10 +332,18 @@ do
   
 done
 
+v_start_time=`date +%s`
 while true
 do
    v_pid=`ssh ${u_name}@${v_cn_leader_ip} "sudo jps|grep -i confignode|wc -l"`
    if [[ ${v_pid} -gt 0 ]];then
+      v_end_time=`date +%s`
+      v_elp=$((v_end_time-v_start_time))
+      if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+         let fail_flag++
+         write_test_result
+         return 1
+      fi
       sleep 3
    else
           break
@@ -311,39 +409,51 @@ do
       fi
 done
 
-
+refresh_region_runtime_info
 v_mig_to_dn_id=-1
   line=`tail -1 ${cur_dir}/mig_id_info.txt`
    if [[ ${line} = "" ]];then
+      let fail_flag++
+      write_test_result
       return 1
    fi
 
    v_mig_from_dn_id=`echo ${line}|awk -F ',' '{print $1}'`
    if [[ ${v_mig_to_dn_id} -lt 0 ]];then
-         for i in {1..4}
-         do
-             v_mig_to_dn_id=`awk "NR==${i}" ${cur_dir}/all_dn_id.txt`
-             v_check=`grep ${v_mig_to_dn_id} ${cur_dir}/mig_region_dn_id.txt|wc -l`
-             if [[ ${v_check} = 0 ]];then
-                break
-             fi
-         done
+         v_mig_to_dn_id=`select_target_dn`
+   fi
+   if [[ ${v_mig_to_dn_id} = "" ]];then
+      let fail_flag++
+      write_test_result
+      return 1
    fi
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
    v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
+   if ! run_migrate_region_with_retry ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_to_dn_id} ${cur_dir}/mig.out;then
+      let fail_flag++
+      write_test_result
+      return 1
+   fi
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
 # check Removing success
  v_mig_to_dn_ip=`grep "${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
  v_mig_from_dn_ip=`grep "${v_mig_from_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
+   v_start_time=`date +%s`
    while true
    do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
+      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip -f ${db_dir}/logs/log-confignode-all*gz >/dev/null 2>&1 || true"
               v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|grep \" has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}\"|wc -l"`
               if [[ ${v_mig_suc_log} = 1 ]];then
                  break
               else
+                 v_end_time=`date +%s`
+                 v_elp=$((v_end_time-v_start_time))
+                 if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+                    let fail_flag++
+                    write_test_result
+                    return 1
+                 fi
                  sleep 2
               fi
 
@@ -360,18 +470,7 @@ if [[ ${v_check_mig_regionid} != ${dr_rep_num} ]];then
    let fail_flag++
 fi
 
-test_end_sec=`date +%s`
-test_elp_sec=$((test_end_sec-test_begin_sec))
-tc_res=true
-
-  if [[ ${fail_flag} = 0 ]];then
-     tc_res=true
-     echo "${SCRIPT_NAME} : pass" >>"${res_file}"
-  else
-     tc_res=false
-     echo "${SCRIPT_NAME} : fail" >>"${res_file}"
-  fi
-${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
+write_test_result
 
  
 } 

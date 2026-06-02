@@ -1,0 +1,378 @@
+2026-05-29 02:14:35,084 ERROR cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager:117 - Failed to close TableSession 
+2026-05-29 02:14:35,084 ERROR cn.edu.tsinghua.iot.benchmark.client.DataClient:138 - Close IoTDB-200-SESSION_BY_TABLET error:  
+cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:118)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy.close(SessionStrategy.java:493)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB.close(IoTDB.java:136)
+	at cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper.close(DBWrapper.java:558)
+	at cn.edu.tsinghua.iot.benchmark.client.DataClient.run(DataClient.java:135)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:286)
+	at org.apache.iotdb.session.Session.close(Session.java:658)
+	at org.apache.iotdb.session.TableSession.close(TableSession.java:62)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:115)
+	... 9 common frames omitted
+Caused by: org.apache.thrift.transport.TTransportException: java.net.SocketException: Broken pipe
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:213)
+	at org.apache.iotdb.rpc.TElasticFramedTransport.flush(TElasticFramedTransport.java:254)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:73)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:62)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.send_closeSession(IClientRPCService.java:548)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.closeSession(IClientRPCService.java:540)
+	at jdk.internal.reflect.GeneratedMethodAccessor9.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.apache.iotdb.rpc.SynchronizedHandler.invoke(SynchronizedHandler.java:42)
+	at jdk.proxy2/jdk.proxy2.$Proxy6.closeSession(Unknown Source)
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:284)
+	... 12 common frames omitted
+Caused by: java.net.SocketException: Broken pipe
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:425)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:445)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:831)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1035)
+	at java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:81)
+	at java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:142)
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:208)
+	... 23 common frames omitted
+2026-05-29 02:16:42,071 ERROR cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager:117 - Failed to close TableSession 
+2026-05-29 02:16:42,071 ERROR cn.edu.tsinghua.iot.benchmark.client.DataClient:138 - Close IoTDB-200-SESSION_BY_TABLET error:  
+cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:118)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy.close(SessionStrategy.java:493)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB.close(IoTDB.java:136)
+	at cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper.close(DBWrapper.java:558)
+	at cn.edu.tsinghua.iot.benchmark.client.DataClient.run(DataClient.java:135)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:286)
+	at org.apache.iotdb.session.Session.close(Session.java:658)
+	at org.apache.iotdb.session.TableSession.close(TableSession.java:62)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:115)
+	... 9 common frames omitted
+Caused by: org.apache.thrift.transport.TTransportException: java.net.SocketException: Broken pipe
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:213)
+	at org.apache.iotdb.rpc.TElasticFramedTransport.flush(TElasticFramedTransport.java:254)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:73)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:62)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.send_closeSession(IClientRPCService.java:548)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.closeSession(IClientRPCService.java:540)
+	at jdk.internal.reflect.GeneratedMethodAccessor9.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.apache.iotdb.rpc.SynchronizedHandler.invoke(SynchronizedHandler.java:42)
+	at jdk.proxy2/jdk.proxy2.$Proxy6.closeSession(Unknown Source)
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:284)
+	... 12 common frames omitted
+Caused by: java.net.SocketException: Broken pipe
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:425)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:445)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:831)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1035)
+	at java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:81)
+	at java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:142)
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:208)
+	... 23 common frames omitted
+2026-05-29 02:20:51,484 ERROR cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager:117 - Failed to close TableSession 
+2026-05-29 02:20:51,484 ERROR cn.edu.tsinghua.iot.benchmark.client.DataClient:138 - Close IoTDB-200-SESSION_BY_TABLET error:  
+cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:118)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy.close(SessionStrategy.java:493)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB.close(IoTDB.java:136)
+	at cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper.close(DBWrapper.java:558)
+	at cn.edu.tsinghua.iot.benchmark.client.DataClient.run(DataClient.java:135)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:286)
+	at org.apache.iotdb.session.Session.close(Session.java:658)
+	at org.apache.iotdb.session.TableSession.close(TableSession.java:62)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:115)
+	... 9 common frames omitted
+Caused by: org.apache.thrift.transport.TTransportException: java.net.SocketException: Broken pipe
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:213)
+	at org.apache.iotdb.rpc.TElasticFramedTransport.flush(TElasticFramedTransport.java:254)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:73)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:62)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.send_closeSession(IClientRPCService.java:548)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.closeSession(IClientRPCService.java:540)
+	at jdk.internal.reflect.GeneratedMethodAccessor9.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.apache.iotdb.rpc.SynchronizedHandler.invoke(SynchronizedHandler.java:42)
+	at jdk.proxy2/jdk.proxy2.$Proxy6.closeSession(Unknown Source)
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:284)
+	... 12 common frames omitted
+Caused by: java.net.SocketException: Broken pipe
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:425)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:445)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:831)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1035)
+	at java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:81)
+	at java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:142)
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:208)
+	... 23 common frames omitted
+2026-05-29 02:21:55,200 ERROR cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager:117 - Failed to close TableSession 
+2026-05-29 02:21:55,200 ERROR cn.edu.tsinghua.iot.benchmark.client.DataClient:138 - Close IoTDB-200-SESSION_BY_TABLET error:  
+cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:118)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy.close(SessionStrategy.java:493)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB.close(IoTDB.java:136)
+	at cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper.close(DBWrapper.java:558)
+	at cn.edu.tsinghua.iot.benchmark.client.DataClient.run(DataClient.java:135)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:286)
+	at org.apache.iotdb.session.Session.close(Session.java:658)
+	at org.apache.iotdb.session.TableSession.close(TableSession.java:62)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:115)
+	... 9 common frames omitted
+Caused by: org.apache.thrift.transport.TTransportException: java.net.SocketException: Broken pipe
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:213)
+	at org.apache.iotdb.rpc.TElasticFramedTransport.flush(TElasticFramedTransport.java:254)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:73)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:62)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.send_closeSession(IClientRPCService.java:548)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.closeSession(IClientRPCService.java:540)
+	at jdk.internal.reflect.GeneratedMethodAccessor9.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.apache.iotdb.rpc.SynchronizedHandler.invoke(SynchronizedHandler.java:42)
+	at jdk.proxy2/jdk.proxy2.$Proxy6.closeSession(Unknown Source)
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:284)
+	... 12 common frames omitted
+Caused by: java.net.SocketException: Broken pipe
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:425)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:445)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:831)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1035)
+	at java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:81)
+	at java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:142)
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:208)
+	... 23 common frames omitted
+2026-05-29 02:23:42,885 ERROR cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager:117 - Failed to close TableSession 
+2026-05-29 02:23:42,885 ERROR cn.edu.tsinghua.iot.benchmark.client.DataClient:138 - Close IoTDB-200-SESSION_BY_TABLET error:  
+cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:118)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy.close(SessionStrategy.java:493)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB.close(IoTDB.java:136)
+	at cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper.close(DBWrapper.java:558)
+	at cn.edu.tsinghua.iot.benchmark.client.DataClient.run(DataClient.java:135)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:286)
+	at org.apache.iotdb.session.Session.close(Session.java:658)
+	at org.apache.iotdb.session.TableSession.close(TableSession.java:62)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:115)
+	... 9 common frames omitted
+Caused by: org.apache.thrift.transport.TTransportException: java.net.SocketException: Broken pipe
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:213)
+	at org.apache.iotdb.rpc.TElasticFramedTransport.flush(TElasticFramedTransport.java:254)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:73)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:62)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.send_closeSession(IClientRPCService.java:548)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.closeSession(IClientRPCService.java:540)
+	at jdk.internal.reflect.GeneratedMethodAccessor9.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.apache.iotdb.rpc.SynchronizedHandler.invoke(SynchronizedHandler.java:42)
+	at jdk.proxy2/jdk.proxy2.$Proxy6.closeSession(Unknown Source)
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:284)
+	... 12 common frames omitted
+Caused by: java.net.SocketException: Broken pipe
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:425)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:445)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:831)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1035)
+	at java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:81)
+	at java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:142)
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:208)
+	... 23 common frames omitted
+2026-05-29 02:24:34,015 ERROR cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager:117 - Failed to close TableSession 
+2026-05-29 02:24:34,015 ERROR cn.edu.tsinghua.iot.benchmark.client.DataClient:138 - Close IoTDB-200-SESSION_BY_TABLET error:  
+cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:118)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy.close(SessionStrategy.java:493)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB.close(IoTDB.java:136)
+	at cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper.close(DBWrapper.java:558)
+	at cn.edu.tsinghua.iot.benchmark.client.DataClient.run(DataClient.java:135)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:286)
+	at org.apache.iotdb.session.Session.close(Session.java:658)
+	at org.apache.iotdb.session.TableSession.close(TableSession.java:62)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:115)
+	... 9 common frames omitted
+Caused by: org.apache.thrift.transport.TTransportException: java.net.SocketException: Broken pipe
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:213)
+	at org.apache.iotdb.rpc.TElasticFramedTransport.flush(TElasticFramedTransport.java:254)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:73)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:62)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.send_closeSession(IClientRPCService.java:548)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.closeSession(IClientRPCService.java:540)
+	at jdk.internal.reflect.GeneratedMethodAccessor9.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.apache.iotdb.rpc.SynchronizedHandler.invoke(SynchronizedHandler.java:42)
+	at jdk.proxy2/jdk.proxy2.$Proxy6.closeSession(Unknown Source)
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:284)
+	... 12 common frames omitted
+Caused by: java.net.SocketException: Broken pipe
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:425)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:445)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:831)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1035)
+	at java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:81)
+	at java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:142)
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:208)
+	... 23 common frames omitted
+2026-05-29 02:26:38,865 ERROR cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager:117 - Failed to close TableSession 
+2026-05-29 02:26:38,865 ERROR cn.edu.tsinghua.iot.benchmark.client.DataClient:138 - Close IoTDB-200-SESSION_BY_TABLET error:  
+cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:118)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy.close(SessionStrategy.java:493)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB.close(IoTDB.java:136)
+	at cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper.close(DBWrapper.java:558)
+	at cn.edu.tsinghua.iot.benchmark.client.DataClient.run(DataClient.java:135)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:286)
+	at org.apache.iotdb.session.Session.close(Session.java:658)
+	at org.apache.iotdb.session.TableSession.close(TableSession.java:62)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:115)
+	... 9 common frames omitted
+Caused by: org.apache.thrift.transport.TTransportException: java.net.SocketException: Broken pipe
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:213)
+	at org.apache.iotdb.rpc.TElasticFramedTransport.flush(TElasticFramedTransport.java:254)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:73)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:62)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.send_closeSession(IClientRPCService.java:548)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.closeSession(IClientRPCService.java:540)
+	at jdk.internal.reflect.GeneratedMethodAccessor9.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.apache.iotdb.rpc.SynchronizedHandler.invoke(SynchronizedHandler.java:42)
+	at jdk.proxy2/jdk.proxy2.$Proxy6.closeSession(Unknown Source)
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:284)
+	... 12 common frames omitted
+Caused by: java.net.SocketException: Broken pipe
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:425)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:445)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:831)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1035)
+	at java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:81)
+	at java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:142)
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:208)
+	... 23 common frames omitted
+2026-05-29 03:10:47,942 ERROR cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager:117 - Failed to close TableSession 
+2026-05-29 03:10:47,942 ERROR cn.edu.tsinghua.iot.benchmark.client.DataClient:138 - Close IoTDB-200-SESSION_BY_TABLET error:  
+cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:118)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy.close(SessionStrategy.java:493)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB.close(IoTDB.java:136)
+	at cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper.close(DBWrapper.java:558)
+	at cn.edu.tsinghua.iot.benchmark.client.DataClient.run(DataClient.java:135)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:286)
+	at org.apache.iotdb.session.Session.close(Session.java:658)
+	at org.apache.iotdb.session.TableSession.close(TableSession.java:62)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:115)
+	... 9 common frames omitted
+Caused by: org.apache.thrift.transport.TTransportException: java.net.SocketException: Broken pipe
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:213)
+	at org.apache.iotdb.rpc.TElasticFramedTransport.flush(TElasticFramedTransport.java:254)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:73)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:62)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.send_closeSession(IClientRPCService.java:548)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.closeSession(IClientRPCService.java:540)
+	at jdk.internal.reflect.GeneratedMethodAccessor9.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.apache.iotdb.rpc.SynchronizedHandler.invoke(SynchronizedHandler.java:42)
+	at jdk.proxy2/jdk.proxy2.$Proxy6.closeSession(Unknown Source)
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:284)
+	... 12 common frames omitted
+Caused by: java.net.SocketException: Broken pipe
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:425)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:445)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:831)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1035)
+	at java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:81)
+	at java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:142)
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:208)
+	... 23 common frames omitted
+2026-05-29 03:11:36,554 ERROR cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager:117 - Failed to close TableSession 
+2026-05-29 03:11:36,554 ERROR cn.edu.tsinghua.iot.benchmark.client.DataClient:138 - Close IoTDB-200-SESSION_BY_TABLET error:  
+cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:118)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy.close(SessionStrategy.java:493)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB.close(IoTDB.java:136)
+	at cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper.close(DBWrapper.java:558)
+	at cn.edu.tsinghua.iot.benchmark.client.DataClient.run(DataClient.java:135)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+Caused by: org.apache.iotdb.rpc.IoTDBConnectionException: Error occurs when closing session at server. Maybe server is down.
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:286)
+	at org.apache.iotdb.session.Session.close(Session.java:658)
+	at org.apache.iotdb.session.TableSession.close(TableSession.java:62)
+	at cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager.close(TableSessionManager.java:115)
+	... 9 common frames omitted
+Caused by: org.apache.thrift.transport.TTransportException: java.net.SocketException: Broken pipe
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:213)
+	at org.apache.iotdb.rpc.TElasticFramedTransport.flush(TElasticFramedTransport.java:254)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:73)
+	at org.apache.thrift.TServiceClient.sendBase(TServiceClient.java:62)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.send_closeSession(IClientRPCService.java:548)
+	at org.apache.iotdb.service.rpc.thrift.IClientRPCService$Client.closeSession(IClientRPCService.java:540)
+	at jdk.internal.reflect.GeneratedMethodAccessor9.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.apache.iotdb.rpc.SynchronizedHandler.invoke(SynchronizedHandler.java:42)
+	at jdk.proxy2/jdk.proxy2.$Proxy6.closeSession(Unknown Source)
+	at org.apache.iotdb.session.SessionConnection.close(SessionConnection.java:284)
+	... 12 common frames omitted
+Caused by: java.net.SocketException: Broken pipe
+	at java.base/sun.nio.ch.NioSocketImpl.implWrite(NioSocketImpl.java:425)
+	at java.base/sun.nio.ch.NioSocketImpl.write(NioSocketImpl.java:445)
+	at java.base/sun.nio.ch.NioSocketImpl$2.write(NioSocketImpl.java:831)
+	at java.base/java.net.Socket$SocketOutputStream.write(Socket.java:1035)
+	at java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:81)
+	at java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:142)
+	at org.apache.thrift.transport.TIOStreamTransport.flush(TIOStreamTransport.java:208)
+	... 23 common frames omitted

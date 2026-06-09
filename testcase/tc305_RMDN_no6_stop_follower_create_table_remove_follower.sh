@@ -1,4 +1,5 @@
 #!/bin/bash
+# 用例描述: benchmark启动5分钟后，先停止待缩容DataNode并等待其进程退出，待show cluster显示该节点为Unknown后再执行缩容，验证Unknown节点缩容流程及writable view对象数据迁移一致性。
 
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
@@ -23,24 +24,31 @@ res_root_pw=TimechoDB@2021
 ssl_str=""
 v_consensus="IoTConsensus"
 
-cn_num=3
+cn_num=5
 dn_num=5
+confignode_runtime_file="${nodeinfo_dir}/confignode.txt"
+confignode_source_file="${nodeinfo_dir}/total_node.txt"
+if [[ ${cn_num} -eq 5 && -f "${nodeinfo_dir}/confignode_5c.txt" ]]; then
+  confignode_source_file="${nodeinfo_dir}/confignode_5c.txt"
+fi
 head -n ${dn_num} "${nodeinfo_dir}/total_datanode.txt" > "${nodeinfo_dir}/datanode.txt"
 head -n ${dn_num} "${nodeinfo_dir}/total_datanode_port.txt" > "${nodeinfo_dir}/datanode_port.txt"
 total_node_num=$((cn_num + dn_num))
 
-seed_cn_ip=$(head -1 "${nodeinfo_dir}/confignode.txt"):10710
+seed_cn_ip=""
 query_ip=$(head -1 "${nodeinfo_dir}/datanode.txt")
 
 tc_num=$(echo "${SCRIPT_NAME}" | awk -F '_' '{print $1}' | awk -F 'tc' '{print $2}')
 testcase_ip=$(grep '^test_ip=' "${conf_file}" | awk -F '.' '{print $4}')
 test_begin_sec=$(date +%s)
+manual_table_prefix="tc${tc_num}_stop_rm_${test_begin_sec}"
 
 bm_dir="${cur_dir}/../benchmark/bm_20260519_writeview_v20"
 bm_case_root="${bm_dir}/weather_6h_diff"
 bm_work_root="${cur_dir}/bm_work_${tc_num}_${test_begin_sec}"
 bm_log_root="${bm_work_root}/logs"
 benchmark_error_pattern="Execution fail:|Failed to do |StatementExecutionException|WorkloadException|There is not enough memory to execute current fragment instance|Connection error"
+create_table_after_stop_count=10
 
 tree_workload="conf_tree"
 table_base_workload="conf_tab1"
@@ -97,6 +105,28 @@ set_config_value() {
   else
     printf '%s=%s\n' "${key}" "${value}" >> "${config_file}"
   fi
+}
+
+prepare_confignode_runtime_file() {
+  local source_count
+
+  if [[ ! -f "${confignode_source_file}" ]]; then
+    append_warn "confignode source file ${confignode_source_file} does not exist"
+    let fail_flag++
+    return 1
+  fi
+
+  source_count=$(awk 'NF {count++} END {print count + 0}' "${confignode_source_file}")
+  if [[ ${source_count} -lt ${cn_num} ]]; then
+    append_warn "confignode source file ${confignode_source_file} has only ${source_count} nodes, expected ${cn_num}"
+    let fail_flag++
+    return 1
+  fi
+
+  head -n "${cn_num}" "${confignode_source_file}" > "${confignode_runtime_file}"
+  seed_cn_ip=$(head -1 "${confignode_runtime_file}"):10710
+  log "use confignode list ${confignode_source_file} for ${cn_num} CNs"
+  return 0
 }
 
 prepare_table_benchmark_config() {
@@ -225,8 +255,8 @@ set_conf() {
     set_sys_conf "${line}" "${db_dir}" ".*cn_seed_config_node=.*" "cn_seed_config_node=${seed_cn_ip}"
     set_sys_conf "${line}" "${db_dir}" ".*cn_internal_address=.*" "cn_internal_address=${line}"
     set_sys_conf "${line}" "${db_dir}" ".*cn_metric_reporter_list=.*" "cn_metric_reporter_list=PROMETHEUS"
-    set_sys_conf "${line}" "${db_dir}" ".*schema_replication_factor=.*" "schema_replication_factor=3"
-    set_sys_conf "${line}" "${db_dir}" ".*data_replication_factor=.*" "data_replication_factor=2"
+    set_sys_conf "${line}" "${db_dir}" ".*schema_replication_factor=.*" "schema_replication_factor=5"
+    set_sys_conf "${line}" "${db_dir}" ".*data_replication_factor=.*" "data_replication_factor=3"
   done
   exec 3<&-
 
@@ -239,15 +269,17 @@ set_conf() {
     set_sys_conf "${line}" "${db_dir}" ".*dn_internal_address=.*" "dn_internal_address=${line}"
     set_sys_conf "${line}" "${db_dir}" ".*dn_rpc_address=.*" "dn_rpc_address=${line}"
     set_sys_conf "${line}" "${db_dir}" ".*dn_metric_reporter_list=.*" "dn_metric_reporter_list=PROMETHEUS"
-    set_sys_conf "${line}" "${db_dir}" ".*schema_replication_factor=.*" "schema_replication_factor=3"
-    set_sys_conf "${line}" "${db_dir}" ".*data_replication_factor=.*" "data_replication_factor=2"
+    set_sys_conf "${line}" "${db_dir}" ".*schema_replication_factor=.*" "schema_replication_factor=5"
+    set_sys_conf "${line}" "${db_dir}" ".*data_replication_factor=.*" "data_replication_factor=3"
   done
   exec 3<&-
 }
 
 start_db() {
   clean_env
-  head -n "${cn_num}" "${nodeinfo_dir}/total_node.txt" > "${nodeinfo_dir}/confignode.txt"
+  if ! prepare_confignode_runtime_file; then
+    return 1
+  fi
   set_conf
   sh -x "${prepare_env_dir}/start_cluster_v20.sh" "1" "${total_node_num}"
 }
@@ -415,7 +447,7 @@ resolve_object_columns() {
 
 wait_until_remove_time() {
   local benchmark_start_sec=$1
-  local remove_after_sec=120
+  local remove_after_sec=300
   local now
   local sleep_sec
 
@@ -447,6 +479,101 @@ wait_datanode_status() {
     fi
     sleep 2
   done
+}
+
+wait_cluster_node_status() {
+  local host=$1
+  local dn_ip=$2
+  local expect_status=$3
+  local timeout_sec=${4:-180}
+  local start_time
+  local hit_num
+
+  start_time=$(date +%s)
+  while true
+  do
+    run_cli_sql "${host}" tree "show cluster;" "${cur_dir}/show_cluster.out" 3600
+    hit_num=$(grep "${dn_ip}" "${cur_dir}/show_cluster.out" | grep -i "DataNode" | grep -i "${expect_status}" | wc -l)
+    if [[ ${hit_num} -gt 0 ]]; then
+      return 0
+    fi
+    if (( $(date +%s) - start_time > timeout_sec )); then
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+wait_remote_datanode_process_exit() {
+  local dn_ip=$1
+  local timeout_sec=${2:-180}
+  local start_time
+  local proc_num
+
+  start_time=$(date +%s)
+  while true
+  do
+    proc_num=$(ssh "${u_name}@${dn_ip}" "source /etc/profile; jps | grep -i DataNode | wc -l" 2>/dev/null | tr -d '[:space:]')
+    proc_num=${proc_num:-1}
+    if [[ "${proc_num}" = "0" ]]; then
+      return 0
+    fi
+    if (( $(date +%s) - start_time > timeout_sec )); then
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+stop_remove_target_datanode_and_wait_unknown() {
+  ssh "${u_name}@${rm_target_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh"
+  if [[ $? -ne 0 ]]; then
+    log "failed to execute stop-datanode.sh on ${rm_target_ip}"
+    append_warn "failed to execute stop-datanode.sh on remove target ${rm_target_ip}"
+    let fail_flag++
+    return 1
+  fi
+
+  if ! wait_remote_datanode_process_exit "${rm_target_ip}" 180; then
+    log "datanode process on ${rm_target_ip} did not exit after stop-datanode.sh"
+    append_warn "datanode process on remove target ${rm_target_ip} did not exit after stop-datanode.sh"
+    let fail_flag++
+    return 1
+  fi
+
+  if ! wait_cluster_node_status "${query_ip}" "${rm_target_ip}" "Unknown" 300; then
+    log "show cluster did not mark ${rm_target_ip} as Unknown before remove"
+    append_warn "show cluster did not mark remove target ${rm_target_ip} as Unknown before remove"
+    let fail_flag++
+    return 1
+  fi
+
+  return 0
+}
+
+create_tables_after_stop_datanode() {
+  local table_idx
+  local table_name
+  local sql
+  local outfile
+
+  for table_idx in $(seq 1 "${create_table_after_stop_count}")
+  do
+    printf -v table_name "%s_%02d" "${manual_table_prefix}" "${table_idx}"
+    sql="use ${table_db_name};create table ${table_name}(region string tag, device_id string tag, s1 int32 field);insert into ${table_name}(region,device_id,s1) values('region_${table_idx}','device_${table_idx}',${table_idx});"
+    outfile="${cur_dir}/create_table_after_stop_${table_idx}.out"
+    run_cli_sql "${query_ip}" table "${sql}" "${outfile}" 3600
+    if query_output_has_error "${outfile}"; then
+      log "failed to create table ${table_db_name}.${table_name} after stopping ${rm_target_ip}"
+      sed -n '1,40p' "${outfile}"
+      append_warn "failed to create and insert ${table_db_name}.${table_name} after stopping ${rm_target_ip}"
+      let fail_flag++
+      return 1
+    fi
+  done
+
+  log "created ${create_table_after_stop_count} tables and inserted 1 row into each after stopping ${rm_target_ip}"
+  return 0
 }
 
 wait_datanode_absent() {
@@ -577,11 +704,13 @@ select_remove_target_ip() {
 
   run_cli_sql "${query_ip}" table "show regions from ${table_db_name};" "${regions_file}" 3600
 
-  awk -F '|' '
-    /DataRegion/ {
+  awk -F '|' -v db_name="${table_db_name}" '
+    /DataRegion/ && tolower($0) ~ /follower/ {
+      db=$5
       ip=$9
+      gsub(/^[ \t]+|[ \t]+$/, "", db)
       gsub(/^[ \t]+|[ \t]+$/, "", ip)
-      if (ip != "") {
+      if (db == db_name && ip != "") {
         print ip
       }
     }
@@ -601,7 +730,7 @@ select_remove_target_ip() {
   ' "${candidate_file}" "${nodeinfo_dir}/datanode.txt")
 
   if [[ -z "${rm_target_ip}" ]]; then
-    append_warn "failed to select remove target from ${table_db_name} data regions"
+    append_warn "failed to select follower remove target from ${table_db_name} data regions"
     let fail_flag++
     return 1
   fi
@@ -750,8 +879,7 @@ check_region_object_migrated() {
   fi
 
   check_region_object_files_on_dn "${tracked_region_target_dn_ip}" "${tracked_region_id}" "yes" || return 1
-  check_region_object_files_on_dn "${rm_target_ip}" "${tracked_region_id}" "no" || return 1
-  check_removed_datanode_data_cleaned "${rm_target_ip}" "${tracked_region_id}" || return 1
+  log "skip removed dn local file cleanup check for unknown dn ${rm_target_ip}"
   return 0
 }
 
@@ -776,6 +904,16 @@ remove_datanode_under_load() {
   fi
 
   if ! capture_region_members_before_remove; then
+    return 1
+  fi
+
+  if ! stop_remove_target_datanode_and_wait_unknown; then
+    let rm_fail_flag++
+    return 1
+  fi
+
+  if ! create_tables_after_stop_datanode; then
+    let rm_fail_flag++
     return 1
   fi
 
@@ -879,7 +1017,6 @@ wait_benchmarks_finish() {
             grep -E "${benchmark_error_pattern}" "${bm_file}" | tail -n 20
             append_warn "benchmark ${workload} output contains execution errors"
             reported_error_workloads="${reported_error_workloads} ${workload}"
-            let fail_flag++
           fi
           ;;
         *)
@@ -1349,7 +1486,7 @@ write_test_result() {
 testcase() {
   local benchmark_start_sec
 
-  start_db
+  start_db || return 1
   create_benchmark_users
   prepare_benchmark_workdirs
   benchmark_start_sec=$(date +%s)

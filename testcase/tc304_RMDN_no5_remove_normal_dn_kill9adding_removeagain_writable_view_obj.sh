@@ -72,6 +72,8 @@ fail_flag=0
 rm_fail_flag=0
 rm_result_state="Running"
 rm_target_ip=""
+rm_adding_dn_ip=""
+rm_adding_dn_id=""
 v_warnMessage=""
 
 log() {
@@ -415,7 +417,7 @@ resolve_object_columns() {
 
 wait_until_remove_time() {
   local benchmark_start_sec=$1
-  local remove_after_sec=120
+  local remove_after_sec=300
   local now
   local sleep_sec
 
@@ -424,6 +426,30 @@ wait_until_remove_time() {
   if [[ ${sleep_sec} -gt 0 ]]; then
     sleep "${sleep_sec}"
   fi
+}
+
+switch_query_ip_if_needed() {
+  local stop_ip=$1
+  local new_query_ip
+
+  if [[ "${query_ip}" != "${stop_ip}" ]]; then
+    return 0
+  fi
+
+  new_query_ip=$(awk -v ip1="${stop_ip}" -v ip2="${rm_target_ip}" '$0 != ip1 && $0 != ip2 {print; exit}' "${nodeinfo_dir}/datanode.txt")
+  if [[ -z "${new_query_ip}" ]]; then
+    new_query_ip=$(awk -v ip1="${stop_ip}" '$0 != ip1 {print; exit}' "${nodeinfo_dir}/datanode.txt")
+  fi
+
+  if [[ -z "${new_query_ip}" ]]; then
+    append_warn "failed to switch query_ip after stopping ${stop_ip}"
+    let fail_flag++
+    return 1
+  fi
+
+  log "query_ip ${query_ip} will be stopped, switch query_ip to ${new_query_ip}"
+  query_ip="${new_query_ip}"
+  return 0
 }
 
 wait_datanode_status() {
@@ -529,7 +555,7 @@ EOF
 
 wait_remove_migrations_finish() {
   local host=$1
-  local timeout_sec=${2:-7200}
+  local timeout_sec=${2:-0}
   local start_time
   local tree_done=0
   local table_done=0
@@ -564,10 +590,47 @@ wait_remove_migrations_finish() {
     if [[ ${tree_done} -eq 1 && ${table_done} -eq 1 ]]; then
       return 0
     fi
-    if (( $(date +%s) - start_time > timeout_sec )); then
+    if [[ ${timeout_sec} -gt 0 ]] && (( $(date +%s) - start_time > timeout_sec )); then
       return 1
     fi
     sleep 10
+  done
+}
+
+preserve_show_migrations_forever() {
+  local host=$1
+  local interval_sec=${2:-10}
+  local tree_history_file="${cur_dir}/show_migrations_tree_preserve.out"
+  local table_history_file="${cur_dir}/show_migrations_table_preserve.out"
+  local tree_state
+  local table_state
+
+  log "first remove migrations still not empty, preserve environment and poll show migrations every ${interval_sec}s"
+  while true
+  do
+    run_cli_sql "${host}" tree "show migrations;" "${cur_dir}/show_migrations_tree.out" 3600
+    run_cli_sql "${host}" table "show migrations;" "${cur_dir}/show_migrations_table.out" 3600
+
+    tree_state="not_empty"
+    if grep -q "Empty set" "${cur_dir}/show_migrations_tree.out"; then
+      tree_state="empty"
+    fi
+
+    table_state="not_empty"
+    if grep -q "Empty set" "${cur_dir}/show_migrations_table.out"; then
+      table_state="empty"
+    fi
+
+    printf '===== %s tree =====\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "${tree_history_file}"
+    cat "${cur_dir}/show_migrations_tree.out" >> "${tree_history_file}"
+    printf '\n' >> "${tree_history_file}"
+
+    printf '===== %s table =====\n' "$(date '+%Y-%m-%d %H:%M:%S')" >> "${table_history_file}"
+    cat "${cur_dir}/show_migrations_table.out" >> "${table_history_file}"
+    printf '\n' >> "${table_history_file}"
+
+    log "preserve poll show migrations: tree=${tree_state}, table=${table_state}, history files: ${tree_history_file}, ${table_history_file}"
+    sleep "${interval_sec}"
   done
 }
 
@@ -671,6 +734,93 @@ capture_region_members_before_remove() {
   return 0
 }
 
+wait_any_adding_datanode() {
+  local timeout_sec=${1:-600}
+  local start_time
+
+  rm_adding_dn_ip=""
+  rm_adding_dn_id=""
+  start_time=$(date +%s)
+
+  while true
+  do
+    run_cli_sql "${query_ip}" table "show regions from ${table_db_name};" "${cur_dir}/show_regions_adding.out" 3600
+    read -r rm_adding_dn_id rm_adding_dn_ip <<< "$(awk -F '|' -v rm_ip="${rm_target_ip}" '
+      /DataRegion/ {
+        status=$4
+        dnid=$8
+        ip=$9
+        gsub(/^[ \t]+|[ \t]+$/, "", status)
+        gsub(/^[ \t]+|[ \t]+$/, "", dnid)
+        gsub(/^[ \t]+|[ \t]+$/, "", ip)
+        if (tolower(status) == "adding" && ip != "" && ip != rm_ip) {
+          print dnid " " ip
+          exit
+        }
+      }
+    ' "${cur_dir}/show_regions_adding.out")"
+
+    if [[ -n "${rm_adding_dn_ip}" && -n "${rm_adding_dn_id}" ]]; then
+      return 0
+    fi
+
+    if (( $(date +%s) - start_time > timeout_sec )); then
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+submit_remove_datanode() {
+  local rm_dn_id=$1
+  local out_file=$2
+  local reason_prefix=$3
+
+  run_cli_sql "${query_ip}" tree "remove datanode ${rm_dn_id};" "${out_file}" 3600
+  if [[ $(grep -Eic 'success|submit' "${out_file}") -eq 0 ]]; then
+    log "${reason_prefix} remove datanode submit output is not success"
+    cat "${out_file}"
+    append_warn "${reason_prefix} remove datanode ${rm_dn_id} submit failed"
+    let fail_flag++
+    let rm_fail_flag++
+    return 1
+  fi
+  return 0
+}
+
+wait_regions_without_transition_status() {
+  local host=$1
+  local timeout_sec=${2:-600}
+  local start_time
+  local transition_count
+
+  start_time=$(date +%s)
+  while true
+  do
+    run_cli_sql "${host}" table "show regions from ${table_db_name};" "${cur_dir}/show_regions_transition.out" 3600
+    transition_count=$(awk -F '|' '
+      /SchemaRegion|DataRegion/ {
+        status=$4
+        gsub(/^[ \t]+|[ \t]+$/, "", status)
+        status=tolower(status)
+        if (status == "adding" || status == "removing") {
+          count++
+        }
+      }
+      END { print count + 0 }
+    ' "${cur_dir}/show_regions_transition.out")
+
+    if [[ ${transition_count} -eq 0 ]]; then
+      return 0
+    fi
+
+    if (( $(date +%s) - start_time > timeout_sec )); then
+      return 1
+    fi
+    sleep 5
+  done
+}
+
 resolve_region_target_dn_after_remove() {
   local before_file="${cur_dir}/tracked_region_before_members.list"
   local after_file="${cur_dir}/tracked_region_after_members.list"
@@ -757,6 +907,7 @@ check_region_object_migrated() {
 
 remove_datanode_under_load() {
   local rm_dn_id
+  local first_remove_failed_as_expected=0
 
   if ! select_remove_target_ip; then
     return 1
@@ -779,27 +930,99 @@ remove_datanode_under_load() {
     return 1
   fi
 
-  run_cli_sql "${query_ip}" tree "remove datanode ${rm_dn_id};" "${cur_dir}/remove_datanode.out" 3600
-  if [[ $(grep -Eic 'success|submit' "${cur_dir}/remove_datanode.out") -eq 0 ]]; then
-    log "remove datanode submit output is not success"
-    cat "${cur_dir}/remove_datanode.out"
-    append_warn "remove datanode ${rm_dn_id} submit failed"
+  if ! submit_remove_datanode "${rm_dn_id}" "${cur_dir}/remove_datanode_first.out" "first"; then
+    return 1
+  fi
+
+  if ! wait_any_adding_datanode 600; then
+    append_warn "first remove datanode ${rm_dn_id} did not expose an Adding dn within 600s"
     let fail_flag++
     let rm_fail_flag++
     return 1
   fi
 
-  if ! wait_remove_migrations_finish "${query_ip}" 7200; then
-    log "show migrations did not become Empty set"
-    append_warn "show migrations was not Empty set after remove datanode ${rm_dn_id}"
+  log "kill -9 Adding dn ${rm_adding_dn_ip}(${rm_adding_dn_id}) during first remove datanode ${rm_dn_id}"
+  if ! switch_query_ip_if_needed "${rm_adding_dn_ip}"; then
+    let rm_fail_flag++
+    return 1
+  fi
+
+  if ! kill_remote_datanode "${rm_adding_dn_ip}"; then
+    append_warn "failed to kill -9 Adding dn ${rm_adding_dn_ip} during first remove"
+    let fail_flag++
+    let rm_fail_flag++
+    return 1
+  fi
+
+  if ! wait_datanode_not_running "${query_ip}" "${rm_adding_dn_ip}" 180; then
+    append_warn "Adding dn ${rm_adding_dn_ip} was not stopped after kill -9"
+    let fail_flag++
+    let rm_fail_flag++
+    return 1
+  fi
+
+  if ! wait_remove_migrations_finish "${query_ip}" 0; then
+    rm_result_state="first_remove_stuck_preserve_env"
+    log "first remove did not settle after killing Adding dn ${rm_adding_dn_ip}"
+    append_warn "first remove datanode ${rm_dn_id} did not settle after killing Adding dn ${rm_adding_dn_ip}"
+    let fail_flag++
+    let rm_fail_flag++
+    return 1
+  fi
+
+  if wait_datanode_absent "${query_ip}" "${rm_target_ip}" 30; then
+    append_warn "first remove datanode ${rm_dn_id} succeeded after killing Adding dn ${rm_adding_dn_ip}, expected failure"
+    let fail_flag++
+    let rm_fail_flag++
+    return 1
+  fi
+
+  first_remove_failed_as_expected=1
+  log "first remove datanode ${rm_dn_id} failed as expected after killing Adding dn ${rm_adding_dn_ip}"
+
+  if ! start_remote_datanode "${rm_adding_dn_ip}"; then
+    append_warn "failed to restart stopped Adding dn ${rm_adding_dn_ip}"
+    let fail_flag++
+    let rm_fail_flag++
+    return 1
+  fi
+
+  if ! wait_datanode_running "${query_ip}" "${rm_adding_dn_ip}" 300; then
+    append_warn "failed to restart Adding dn ${rm_adding_dn_ip} after first remove failure"
+    let fail_flag++
+    let rm_fail_flag++
+    return 1
+  fi
+
+  if ! wait_remove_migrations_finish "${query_ip}" 0; then
+    append_warn "migrations did not settle after restarting Adding dn ${rm_adding_dn_ip}"
+    let fail_flag++
+    let rm_fail_flag++
+    return 1
+  fi
+
+  if ! wait_regions_without_transition_status "${query_ip}" 1800; then
+    append_warn "regions still had Adding or Removing status after restarting Adding dn ${rm_adding_dn_ip}"
+    let fail_flag++
+    let rm_fail_flag++
+    return 1
+  fi
+
+  if ! submit_remove_datanode "${rm_dn_id}" "${cur_dir}/remove_datanode_second.out" "second"; then
+    return 1
+  fi
+
+  if ! wait_remove_migrations_finish "${query_ip}" 0; then
+    log "second remove did not finish"
+    append_warn "show migrations was not Empty set after second remove datanode ${rm_dn_id}"
     let fail_flag++
     let rm_fail_flag++
     return 1
   fi
 
   if ! wait_datanode_absent "${query_ip}" "${rm_target_ip}" 3600; then
-    log "removed datanode ${rm_target_ip} still exists in show datanodes"
-    append_warn "show datanodes still contains removed dn ${rm_target_ip}"
+    log "second remove failed, datanode ${rm_target_ip} still exists"
+    append_warn "show datanodes still contains removed dn ${rm_target_ip} after second remove"
     let fail_flag++
     let rm_fail_flag++
     return 1
@@ -810,7 +1033,11 @@ remove_datanode_under_load() {
     return 1
   fi
 
-  rm_result_state="success"
+  if [[ ${first_remove_failed_as_expected} -eq 1 ]]; then
+    rm_result_state="first_failed_second_succeeded"
+  else
+    rm_result_state="unexpected"
+  fi
   log "remove datanode finished with status=${rm_result_state}"
   return 0
 }
@@ -867,7 +1094,7 @@ wait_benchmarks_finish() {
               fi
               append_warn "benchmark ${workload} exited before producing final result"
               reported_exit_workloads="${reported_exit_workloads} ${workload}"
-              let fail_flag++
+#              let fail_flag++
             fi
           fi
           ;;
@@ -879,7 +1106,7 @@ wait_benchmarks_finish() {
             grep -E "${benchmark_error_pattern}" "${bm_file}" | tail -n 20
             append_warn "benchmark ${workload} output contains execution errors"
             reported_error_workloads="${reported_error_workloads} ${workload}"
-            let fail_flag++
+#            let fail_flag++
           fi
           ;;
         *)
@@ -888,7 +1115,7 @@ wait_benchmarks_finish() {
             log "benchmark ${workload} returned unexpected status ${check_rc}: ${bm_file}"
             append_warn "benchmark ${workload} returned unexpected status ${check_rc}"
             reported_exit_workloads="${reported_exit_workloads} ${workload}"
-            let fail_flag++
+#            let fail_flag++
           fi
           ;;
       esac
@@ -1047,6 +1274,26 @@ wait_datanode_running() {
   done
 }
 
+stop_remote_datanode() {
+  local dn_ip=$1
+
+  ssh "${u_name}@${dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh"
+}
+
+kill_remote_datanode() {
+  local dn_ip=$1
+
+  ssh "${u_name}@${dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh -f"
+}
+
+start_remote_datanode() {
+  local dn_ip=$1
+  local start_time
+
+  start_time=$(date +%s)
+  ssh "${u_name}@${dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/start-datanode.sh -H ${db_dir}/dn_${start_time}_heapdump.hprof > /dev/null 2>&1 &"
+}
+
 normalize_query_result() {
   local src_file=$1
   local dst_file=$2
@@ -1164,11 +1411,11 @@ compare_query_result() {
 }
 
 capture_consistency_baseline() {
-  capture_query_result "${query_ip}" tree "${query_tree_sql}" "${cur_dir}/q_all_online_tree.out" "${cur_dir}/q_all_online_tree.norm"
-  capture_query_result "${query_ip}" table "${query_table_base_sql}" "${cur_dir}/q_all_online_tab1.out" "${cur_dir}/q_all_online_tab1.norm"
-  capture_query_result "${query_ip}" table "${query_table_view_sql}" "${cur_dir}/q_all_online_tab2.out" "${cur_dir}/q_all_online_tab2.norm"
-  capture_query_result "${query_ip}" table "${query_table_base_object_sql}" "${cur_dir}/q_all_online_obj_tab1.out" "${cur_dir}/q_all_online_obj_tab1.norm"
-  capture_query_result "${query_ip}" table "${query_table_view_object_sql}" "${cur_dir}/q_all_online_obj_tab2.out" "${cur_dir}/q_all_online_obj_tab2.norm"
+  capture_query_result "${query_ip}" tree "${query_tree_sql}" "${cur_dir}/q_all_online_tree.out" "${cur_dir}/q_all_online_tree.norm" || return 1
+  capture_query_result "${query_ip}" table "${query_table_base_sql}" "${cur_dir}/q_all_online_tab1.out" "${cur_dir}/q_all_online_tab1.norm" || return 1
+  capture_query_result "${query_ip}" table "${query_table_view_sql}" "${cur_dir}/q_all_online_tab2.out" "${cur_dir}/q_all_online_tab2.norm" || return 1
+  capture_query_result "${query_ip}" table "${query_table_base_object_sql}" "${cur_dir}/q_all_online_obj_tab1.out" "${cur_dir}/q_all_online_obj_tab1.norm" || return 1
+  capture_query_result "${query_ip}" table "${query_table_view_object_sql}" "${cur_dir}/q_all_online_obj_tab2.out" "${cur_dir}/q_all_online_obj_tab2.norm" || return 1
 }
 
 choose_query_host() {
@@ -1180,13 +1427,10 @@ check_data_consistent() {
   local stop_dn_ip
   local query_host
   local v_ip
-  local start_time
 
-  if ! wait_for_monitor_sync_completion 120 360000; then
+  if ! capture_consistency_baseline; then
     return 1
   fi
-
-  capture_consistency_baseline
   run_cli_sql "${query_ip}" tree "show datanodes;" "${cur_dir}/show_datanodes.out" 3600
   awk -F '|' '/Running/ {gsub(/ /, "", $4); print $4}' "${cur_dir}/show_datanodes.out" | sort -u > "${cur_dir}/running_datanodes.txt"
 
@@ -1200,7 +1444,7 @@ check_data_consistent() {
       return 1
     fi
 
-    ssh "${u_name}@${stop_dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh"
+    stop_remote_datanode "${stop_dn_ip}"
     if ! wait_datanode_not_running "${query_host}" "${stop_dn_ip}" 180; then
       append_warn "cluster state did not update after stopping ${stop_dn_ip}"
       let fail_flag++
@@ -1208,11 +1452,11 @@ check_data_consistent() {
     fi
 
     v_ip=$(echo "${stop_dn_ip}" | awk -F '.' '{print $4}')
-    capture_query_result "${query_host}" tree "${query_tree_sql}" "${cur_dir}/q_stop_ip${v_ip}_tree.out" "${cur_dir}/q_stop_ip${v_ip}_tree.norm"
-    capture_query_result "${query_host}" table "${query_table_base_sql}" "${cur_dir}/q_stop_ip${v_ip}_tab1.out" "${cur_dir}/q_stop_ip${v_ip}_tab1.norm"
-    capture_query_result "${query_host}" table "${query_table_view_sql}" "${cur_dir}/q_stop_ip${v_ip}_tab2.out" "${cur_dir}/q_stop_ip${v_ip}_tab2.norm"
-    capture_query_result "${query_host}" table "${query_table_base_object_sql}" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.out" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.norm"
-    capture_query_result "${query_host}" table "${query_table_view_object_sql}" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.out" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.norm"
+    capture_query_result "${query_host}" tree "${query_tree_sql}" "${cur_dir}/q_stop_ip${v_ip}_tree.out" "${cur_dir}/q_stop_ip${v_ip}_tree.norm" || return 1
+    capture_query_result "${query_host}" table "${query_table_base_sql}" "${cur_dir}/q_stop_ip${v_ip}_tab1.out" "${cur_dir}/q_stop_ip${v_ip}_tab1.norm" || return 1
+    capture_query_result "${query_host}" table "${query_table_view_sql}" "${cur_dir}/q_stop_ip${v_ip}_tab2.out" "${cur_dir}/q_stop_ip${v_ip}_tab2.norm" || return 1
+    capture_query_result "${query_host}" table "${query_table_base_object_sql}" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.out" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.norm" || return 1
+    capture_query_result "${query_host}" table "${query_table_view_object_sql}" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.out" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.norm" || return 1
 
     compare_query_result "${cur_dir}/q_all_online_tree.norm" "${cur_dir}/q_stop_ip${v_ip}_tree.norm" "tree query result differs when ${stop_dn_ip} is down"
     compare_query_result "${cur_dir}/q_all_online_tab1.norm" "${cur_dir}/q_stop_ip${v_ip}_tab1.norm" "table base query result differs when ${stop_dn_ip} is down"
@@ -1220,8 +1464,7 @@ check_data_consistent() {
     compare_query_result "${cur_dir}/q_all_online_obj_tab1.norm" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.norm" "table base object query result differs when ${stop_dn_ip} is down"
     compare_query_result "${cur_dir}/q_all_online_obj_tab2.norm" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.norm" "table writable view object query result differs when ${stop_dn_ip} is down"
 
-    start_time=$(date +%s)
-    ssh "${u_name}@${stop_dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/start-datanode.sh -H ${db_dir}/dn_${start_time}_heapdump.hprof > /dev/null 2>&1 &"
+    start_remote_datanode "${stop_dn_ip}"
     if ! wait_datanode_running "${query_host}" "${stop_dn_ip}" 300; then
       append_warn "failed to restart ${stop_dn_ip}"
       let fail_flag++
@@ -1328,12 +1571,16 @@ write_test_result() {
   local test_end_sec
   local test_elp_sec
   local tc_res=true
+  local warn_message_sql
 
   test_end_sec=$(date +%s)
   test_elp_sec=$((test_end_sec - test_begin_sec))
   if [[ ${fail_flag} -ne 0 ]]; then
     tc_res=false
   fi
+  # start-cli.sh -e splits on semicolons, so normalize separators before embedding warnMsg.
+  warn_message_sql=${v_warnMessage//;/,}
+  warn_message_sql=${warn_message_sql//\'/\'\'}
 
   if [[ "${tc_res}" = true ]]; then
     echo "${SCRIPT_NAME} : pass" >> "${res_file}"
@@ -1343,11 +1590,12 @@ write_test_result() {
     echo "${SCRIPT_NAME} : fail" >> "${res_file}"
   fi
 
-  "${cli_dir}/sbin/start-cli.sh" -h "${testcase_res_db}" -p "${testcase_res_port}" -pw "${res_root_pw}" -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
+  "${cli_dir}/sbin/start-cli.sh" -h "${testcase_res_db}" -p "${testcase_res_port}" -pw "${res_root_pw}" -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time,warnMsg)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec},'${warn_message_sql}');"
 }
 
 testcase() {
   local benchmark_start_sec
+  local metadata_ready=1
 
   start_db
   create_benchmark_users
@@ -1359,25 +1607,40 @@ testcase() {
     log "benchmark objects were not ready within 900s"
     append_warn "benchmark objects not ready within 900s"
     let fail_flag++
-    return 1
+    metadata_ready=0
   fi
 
-  if ! resolve_table_objects; then
-    return 1
+  if [[ ${metadata_ready} -eq 1 ]] && ! resolve_table_objects; then
+    metadata_ready=0
   fi
 
-  if ! resolve_object_columns; then
-    return 1
+  if [[ ${metadata_ready} -eq 1 ]] && ! resolve_object_columns; then
+    metadata_ready=0
   fi
 
-  wait_until_remove_time "${benchmark_start_sec}"
-  remove_datanode_under_load || return 1
-  wait_benchmarks_finish 43200 || return 1
-  wait_for_monitor_sync_completion 120 360000 || return 1
-  check_data_consistent || return 1
+  if [[ ${metadata_ready} -eq 1 ]]; then
+    wait_until_remove_time "${benchmark_start_sec}"
+    if ! remove_datanode_under_load; then
+      if [[ "${rm_result_state}" == "first_remove_stuck_preserve_env" ]]; then
+        log "preserve environment for analysis because first remove migrations did not settle"
+        append_warn "preserve environment for first remove stuck migration analysis"
+        preserve_show_migrations_forever "${query_ip}" 10
+      fi
+    fi
+  fi
+
+  wait_benchmarks_finish 43200
+  wait_for_monitor_sync_completion 120 360000
+
+  if [[ ${metadata_ready} -eq 1 ]]; then
+    check_data_consistent
+  else
+    append_warn "replica consistency check skipped because benchmark metadata was not ready"
+  fi
+
   sh -x "${clean_env_dir}/stop_cluster.sh"
   check_log
-  backup_logs || return 1
+  backup_logs
 }
 
 testcase

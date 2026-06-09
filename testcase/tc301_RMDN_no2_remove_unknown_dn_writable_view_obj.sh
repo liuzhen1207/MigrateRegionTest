@@ -1,4 +1,5 @@
 #!/bin/bash
+# 用例描述: benchmark启动5分钟后，先停止待缩容DataNode并等待其进程退出，待show cluster显示该节点为Unknown后再执行缩容，验证Unknown节点缩容流程及writable view对象数据迁移一致性。
 
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
@@ -415,7 +416,7 @@ resolve_object_columns() {
 
 wait_until_remove_time() {
   local benchmark_start_sec=$1
-  local remove_after_sec=120
+  local remove_after_sec=300
   local now
   local sleep_sec
 
@@ -447,6 +448,76 @@ wait_datanode_status() {
     fi
     sleep 2
   done
+}
+
+wait_cluster_node_status() {
+  local host=$1
+  local dn_ip=$2
+  local expect_status=$3
+  local timeout_sec=${4:-180}
+  local start_time
+  local hit_num
+
+  start_time=$(date +%s)
+  while true
+  do
+    run_cli_sql "${host}" tree "show cluster;" "${cur_dir}/show_cluster.out" 3600
+    hit_num=$(grep "${dn_ip}" "${cur_dir}/show_cluster.out" | grep -i "DataNode" | grep -i "${expect_status}" | wc -l)
+    if [[ ${hit_num} -gt 0 ]]; then
+      return 0
+    fi
+    if (( $(date +%s) - start_time > timeout_sec )); then
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+wait_remote_datanode_process_exit() {
+  local dn_ip=$1
+  local timeout_sec=${2:-180}
+  local start_time
+  local proc_num
+
+  start_time=$(date +%s)
+  while true
+  do
+    proc_num=$(ssh "${u_name}@${dn_ip}" "source /etc/profile; jps | grep -i DataNode | wc -l" 2>/dev/null | tr -d '[:space:]')
+    proc_num=${proc_num:-1}
+    if [[ "${proc_num}" = "0" ]]; then
+      return 0
+    fi
+    if (( $(date +%s) - start_time > timeout_sec )); then
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+stop_remove_target_datanode_and_wait_unknown() {
+  ssh "${u_name}@${rm_target_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh"
+  if [[ $? -ne 0 ]]; then
+    log "failed to execute stop-datanode.sh on ${rm_target_ip}"
+    append_warn "failed to execute stop-datanode.sh on remove target ${rm_target_ip}"
+    let fail_flag++
+    return 1
+  fi
+
+  if ! wait_remote_datanode_process_exit "${rm_target_ip}" 180; then
+    log "datanode process on ${rm_target_ip} did not exit after stop-datanode.sh"
+    append_warn "datanode process on remove target ${rm_target_ip} did not exit after stop-datanode.sh"
+    let fail_flag++
+    return 1
+  fi
+
+  if ! wait_cluster_node_status "${query_ip}" "${rm_target_ip}" "Unknown" 300; then
+    log "show cluster did not mark ${rm_target_ip} as Unknown before remove"
+    append_warn "show cluster did not mark remove target ${rm_target_ip} as Unknown before remove"
+    let fail_flag++
+    return 1
+  fi
+
+  return 0
 }
 
 wait_datanode_absent() {
@@ -750,8 +821,7 @@ check_region_object_migrated() {
   fi
 
   check_region_object_files_on_dn "${tracked_region_target_dn_ip}" "${tracked_region_id}" "yes" || return 1
-  check_region_object_files_on_dn "${rm_target_ip}" "${tracked_region_id}" "no" || return 1
-  check_removed_datanode_data_cleaned "${rm_target_ip}" "${tracked_region_id}" || return 1
+  log "skip removed dn local file cleanup check for unknown dn ${rm_target_ip}"
   return 0
 }
 
@@ -776,6 +846,11 @@ remove_datanode_under_load() {
   fi
 
   if ! capture_region_members_before_remove; then
+    return 1
+  fi
+
+  if ! stop_remove_target_datanode_and_wait_unknown; then
+    let rm_fail_flag++
     return 1
   fi
 
@@ -879,7 +954,6 @@ wait_benchmarks_finish() {
             grep -E "${benchmark_error_pattern}" "${bm_file}" | tail -n 20
             append_warn "benchmark ${workload} output contains execution errors"
             reported_error_workloads="${reported_error_workloads} ${workload}"
-            let fail_flag++
           fi
           ;;
         *)

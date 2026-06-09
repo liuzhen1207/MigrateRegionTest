@@ -25,6 +25,7 @@ tc26_mig_region_kill9_dest_dn.sh
 tc2601_mig_region_kill9_dest_dn_tsfile_bad_jr1044.sh
 tc2602_mig_snapshot_stop_dest_dn.sh
 tc27_mig_region_stop_cn_leader.sh
+tc2701_mig_region_stop_cn_leader_first_mig_repro.sh
 tc28_mig_region_kill_cn_leader.sh
 tc29_mig_schema_data_priv.sh
 tc30_mig_sr_del_timeseries.sh

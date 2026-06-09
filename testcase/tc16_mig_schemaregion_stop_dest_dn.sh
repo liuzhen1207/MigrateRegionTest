@@ -66,7 +66,14 @@ function check_migrate_cmd()
 {
    local mig_out_file=$1
 
-   if grep -Eq "IoTDBSQLException|Exception|^Msg:| has some other region operation procedures in progress" ${mig_out_file};then
+   if grep -Eq "IoTDBSQLException|Exception| has some other region operation procedures in progress" ${mig_out_file};then
+      echo "[${SCRIPT_NAME}] migrate command failed:"
+      cat ${mig_out_file}
+      let fail_flag++
+      return 1
+   fi
+
+   if awk '/^Msg:/ && $0 != "Msg: The statement is executed successfully." {found=1} END {exit found ? 0 : 1}' ${mig_out_file};then
       echo "[${SCRIPT_NAME}] migrate command failed:"
       cat ${mig_out_file}
       let fail_flag++
@@ -313,18 +320,30 @@ done
 }
 function mig_region()
 {
+  local v_mig_id
+  local v_mig_to_dn_id=-1
+  local v_mig_from_dn_id=""
+  local v_stop_dn_ip=""
+  local v_check=0
+  local line=""
+  local mig_member_snapshot="${cur_dir}/mig_id_info.snapshot"
+
   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_exp.out
   v_check_data=`grep root.test.g_0 ${cur_dir}/q_exp.out |wc -l`
   if [[ ${v_check_data} = 0 ]];then
      let fail_flag++
   fi
-  local v_mig_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep root|head -1|awk -F '|' '{gsub(" ","");print $2}'`
+  v_mig_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;"|grep root|head -1|awk -F '|' '{gsub(" ","");print $2}'`
   refresh_schema_region_info ${v_mig_id}
-local v_mig_to_dn_id=-1
-exec 3<${cur_dir}/mig_id_info.txt
-while read line<&3
+  cp ${cur_dir}/mig_id_info.txt ${mig_member_snapshot}
+while read line
 do
    v_mig_from_dn_id=`echo ${line}|awk -F ',' '{print $1}'`
+   if [[ -z "${v_mig_from_dn_id}" ]];then
+      echo "[${SCRIPT_NAME}] migrate source dn id is empty, line=${line}"
+      let fail_flag++
+      break
+   fi
    if [[ ${v_mig_to_dn_id} -lt 0 ]];then
          for i in {1..4}
          do
@@ -335,7 +354,17 @@ do
 	     fi
          done
    fi
+   if [[ -z "${v_mig_to_dn_id}" ]];then
+      echo "[${SCRIPT_NAME}] migrate target dn id is empty for schema region ${v_mig_id}"
+      let fail_flag++
+      break
+   fi
    v_stop_dn_ip=`grep "^${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
+   if [[ -z "${v_stop_dn_ip}" ]];then
+      echo "[${SCRIPT_NAME}] stop dn ip is empty for target dn id ${v_mig_to_dn_id}"
+      let fail_flag++
+      break
+   fi
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
    if ! check_migrate_cmd ${cur_dir}/mig.out;then
       break
@@ -345,7 +374,7 @@ do
    fi
    v_mig_to_dn_id=${v_mig_from_dn_id} 
    
-done
+done < ${mig_member_snapshot}
   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
 
    if ! compare_query_result ${cur_dir}/q_exp.out ${cur_dir}/q_act.out;then

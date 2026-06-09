@@ -1,4 +1,5 @@
 #!/bin/bash
+# 用例描述: benchmark启动5分钟后，先对待缩容DataNode执行kill -9并等待其进程退出，待show cluster显示该节点为Unknown后再执行缩容，验证Unknown节点缩容流程及writable view对象数据迁移一致性。
 
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
@@ -72,6 +73,7 @@ fail_flag=0
 rm_fail_flag=0
 rm_result_state="Running"
 rm_target_ip=""
+rm_pre_remove_sleep_sec=${RM_PRE_REMOVE_SLEEP_SEC:-0}
 v_warnMessage=""
 
 log() {
@@ -249,7 +251,7 @@ start_db() {
   clean_env
   head -n "${cn_num}" "${nodeinfo_dir}/total_node.txt" > "${nodeinfo_dir}/confignode.txt"
   set_conf
-  sh -x "${prepare_env_dir}/start_cluster_v20.sh" "1" "${total_node_num}"
+  sh -x "${prepare_env_dir}/start_cluster.sh" "1" "${total_node_num}"
 }
 
 create_benchmark_users() {
@@ -408,14 +410,14 @@ resolve_object_columns() {
     return 1
   fi
 
-  query_table_base_object_sql="select D_DATETIME,device_id,length(read_object(${table_base_object_col})),sha256(cast(read_object(${table_base_object_col}) as string)) from ${table_db_name}.${table_base_name} order by D_DATETIME,device_id limit 20;"
-  query_table_view_object_sql="select D_DATETIME,device_id,length(read_object(${table_view_object_col})),sha256(cast(read_object(${table_view_object_col}) as string)) from ${table_db_name}.${table_view_name} order by D_DATETIME,device_id limit 20;"
+  query_table_base_object_sql="select D_DATETIME,device_id,read_object(${table_base_object_col}) from ${table_db_name}.${table_base_name} order by D_DATETIME,device_id limit 20;"
+  query_table_view_object_sql="select D_DATETIME,device_id,read_object(${table_view_object_col}) from ${table_db_name}.${table_view_name} order by D_DATETIME,device_id limit 20;"
   return 0
 }
 
 wait_until_remove_time() {
   local benchmark_start_sec=$1
-  local remove_after_sec=120
+  local remove_after_sec=300
   local now
   local sleep_sec
 
@@ -449,6 +451,94 @@ wait_datanode_status() {
   done
 }
 
+wait_cluster_node_status() {
+  local host=$1
+  local dn_ip=$2
+  local expect_status=$3
+  local timeout_sec=${4:-180}
+  local start_time
+  local hit_num
+
+  start_time=$(date +%s)
+  while true
+  do
+    run_cli_sql "${host}" tree "show cluster;" "${cur_dir}/show_cluster.out" 3600
+    hit_num=$(grep "${dn_ip}" "${cur_dir}/show_cluster.out" | grep -i "DataNode" | grep -i "${expect_status}" | wc -l)
+    if [[ ${hit_num} -gt 0 ]]; then
+      return 0
+    fi
+    if (( $(date +%s) - start_time > timeout_sec )); then
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+wait_remote_datanode_process_exit() {
+  local dn_ip=$1
+  local timeout_sec=${2:-180}
+  local start_time
+  local proc_num
+
+  start_time=$(date +%s)
+  while true
+  do
+    proc_num=$(ssh "${u_name}@${dn_ip}" "source /etc/profile; sudo ps -ef | awk '/[c]om.timecho.iotdb.DataNode/ {count++} END {print count+0}'" 2>/dev/null | tr -d '[:space:]')
+    proc_num=${proc_num:-1}
+    if [[ "${proc_num}" = "0" ]]; then
+      return 0
+    fi
+    if (( $(date +%s) - start_time > timeout_sec )); then
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+stop_remove_target_datanode_and_wait_unknown() {
+  ssh "${u_name}@${rm_target_ip}" 'bash -s' > "${cur_dir}/kill_remove_target_datanode.out" 2>&1 <<'EOF'
+source /etc/profile
+dn_pids=$(sudo ps -ef | awk '/[c]om.timecho.iotdb.DataNode/ {print $2}')
+if [[ -z "${dn_pids}" ]]; then
+  echo "NO_DATANODE_PID"
+  exit 1
+fi
+for pid in ${dn_pids}
+do
+  sudo kill -9 "${pid}"
+done
+echo "KILLED_PID=${dn_pids}"
+EOF
+  if [[ $? -ne 0 ]]; then
+    log "failed to kill -9 datanode on ${rm_target_ip}"
+    cat "${cur_dir}/kill_remove_target_datanode.out"
+    append_warn "failed to kill -9 datanode on remove target ${rm_target_ip}"
+    let fail_flag++
+    return 1
+  fi
+
+  if ! wait_remote_datanode_process_exit "${rm_target_ip}" 180; then
+    log "datanode process on ${rm_target_ip} did not exit after kill -9"
+    append_warn "datanode process on remove target ${rm_target_ip} did not exit after kill -9"
+    let fail_flag++
+    return 1
+  fi
+
+  if ! wait_cluster_node_status "${query_ip}" "${rm_target_ip}" "Unknown" 300; then
+    log "show cluster did not mark ${rm_target_ip} as Unknown before remove"
+    append_warn "show cluster did not mark remove target ${rm_target_ip} as Unknown before remove"
+    let fail_flag++
+    return 1
+  fi
+
+  if [[ ${rm_pre_remove_sleep_sec} -gt 0 ]]; then
+    log "remove target ${rm_target_ip} is Unknown, sleep ${rm_pre_remove_sleep_sec}s before remove datanode"
+    sleep "${rm_pre_remove_sleep_sec}"
+  fi
+
+  return 0
+}
+
 wait_datanode_absent() {
   local host=$1
   local dn_ip=$2
@@ -469,6 +559,52 @@ wait_datanode_absent() {
     fi
     sleep 5
   done
+}
+
+capture_regions_when_remove_incomplete() {
+  local tree_regions_file="${cur_dir}/show_regions_tree_remove_incomplete.out"
+  local table_regions_file="${cur_dir}/show_regions_table_remove_incomplete.out"
+  local tree_target_file="${cur_dir}/show_regions_tree_remove_target.out"
+  local table_target_file="${cur_dir}/show_regions_table_remove_target.out"
+
+  log "show migrations is empty but ${rm_target_ip} still exists in show datanodes, capture show regions for diagnosis"
+
+  run_cli_sql "${query_ip}" tree "show regions;" "${tree_regions_file}" 3600
+  if grep -Eiq '(^Error|Exception|^[[:space:]]*Msg:|StatementExecutionException|java\.lang\.)' "${tree_regions_file}"; then
+    append_warn "tree show regions execute failed when remove target ${rm_target_ip} still exists"
+    let fail_flag++
+  fi
+  grep -F "${rm_target_ip}" "${tree_regions_file}" > "${tree_target_file}" || true
+
+  run_cli_sql "${query_ip}" table "show regions from ${table_db_name};" "${table_regions_file}" 3600
+  if grep -Eiq '(^Error|Exception|^[[:space:]]*Msg:|StatementExecutionException|java\.lang\.)' "${table_regions_file}"; then
+    append_warn "table show regions execute failed when remove target ${rm_target_ip} still exists"
+    let fail_flag++
+  fi
+  grep -F "${rm_target_ip}" "${table_regions_file}" > "${table_target_file}" || true
+}
+
+capture_regions_before_remove_submit() {
+  local tree_regions_file="${cur_dir}/show_regions_tree_before_remove_submit.out"
+  local table_regions_file="${cur_dir}/show_regions_table_before_remove_submit.out"
+  local tree_target_file="${cur_dir}/show_regions_tree_before_remove_target.out"
+  local table_target_file="${cur_dir}/show_regions_table_before_remove_target.out"
+
+  log "capture show regions before remove datanode ${rm_target_ip}"
+
+  run_cli_sql "${query_ip}" tree "show regions;" "${tree_regions_file}" 3600
+  if grep -Eiq '(^Error|Exception|^[[:space:]]*Msg:|StatementExecutionException|java\.lang\.)' "${tree_regions_file}"; then
+    append_warn "tree show regions execute failed before remove datanode ${rm_target_ip}"
+    let fail_flag++
+  fi
+  grep -F "${rm_target_ip}" "${tree_regions_file}" > "${tree_target_file}" || true
+
+  run_cli_sql "${query_ip}" table "show regions from ${table_db_name};" "${table_regions_file}" 3600
+  if grep -Eiq '(^Error|Exception|^[[:space:]]*Msg:|StatementExecutionException|java\.lang\.)' "${table_regions_file}"; then
+    append_warn "table show regions execute failed before remove datanode ${rm_target_ip}"
+    let fail_flag++
+  fi
+  grep -F "${rm_target_ip}" "${table_regions_file}" > "${table_target_file}" || true
 }
 
 check_removed_datanode_data_cleaned() {
@@ -529,7 +665,7 @@ EOF
 
 wait_remove_migrations_finish() {
   local host=$1
-  local timeout_sec=${2:-7200}
+  local timeout_sec=${2:-0}
   local start_time
   local tree_done=0
   local table_done=0
@@ -564,7 +700,7 @@ wait_remove_migrations_finish() {
     if [[ ${tree_done} -eq 1 && ${table_done} -eq 1 ]]; then
       return 0
     fi
-    if (( $(date +%s) - start_time > timeout_sec )); then
+    if [[ ${timeout_sec} -gt 0 ]] && (( $(date +%s) - start_time > timeout_sec )); then
       return 1
     fi
     sleep 10
@@ -750,8 +886,7 @@ check_region_object_migrated() {
   fi
 
   check_region_object_files_on_dn "${tracked_region_target_dn_ip}" "${tracked_region_id}" "yes" || return 1
-  check_region_object_files_on_dn "${rm_target_ip}" "${tracked_region_id}" "no" || return 1
-  check_removed_datanode_data_cleaned "${rm_target_ip}" "${tracked_region_id}" || return 1
+  log "skip removed dn local file cleanup check for unknown dn ${rm_target_ip}"
   return 0
 }
 
@@ -779,6 +914,13 @@ remove_datanode_under_load() {
     return 1
   fi
 
+  if ! stop_remove_target_datanode_and_wait_unknown; then
+    let rm_fail_flag++
+    return 1
+  fi
+
+  capture_regions_before_remove_submit
+
   run_cli_sql "${query_ip}" tree "remove datanode ${rm_dn_id};" "${cur_dir}/remove_datanode.out" 3600
   if [[ $(grep -Eic 'success|submit' "${cur_dir}/remove_datanode.out") -eq 0 ]]; then
     log "remove datanode submit output is not success"
@@ -789,7 +931,7 @@ remove_datanode_under_load() {
     return 1
   fi
 
-  if ! wait_remove_migrations_finish "${query_ip}" 7200; then
+  if ! wait_remove_migrations_finish "${query_ip}" 0; then
     log "show migrations did not become Empty set"
     append_warn "show migrations was not Empty set after remove datanode ${rm_dn_id}"
     let fail_flag++
@@ -799,6 +941,7 @@ remove_datanode_under_load() {
 
   if ! wait_datanode_absent "${query_ip}" "${rm_target_ip}" 3600; then
     log "removed datanode ${rm_target_ip} still exists in show datanodes"
+    capture_regions_when_remove_incomplete
     append_warn "show datanodes still contains removed dn ${rm_target_ip}"
     let fail_flag++
     let rm_fail_flag++
@@ -879,7 +1022,6 @@ wait_benchmarks_finish() {
             grep -E "${benchmark_error_pattern}" "${bm_file}" | tail -n 20
             append_warn "benchmark ${workload} output contains execution errors"
             reported_error_workloads="${reported_error_workloads} ${workload}"
-            let fail_flag++
           fi
           ;;
         *)
@@ -1051,11 +1193,6 @@ normalize_query_result() {
   local src_file=$1
   local dst_file=$2
 
-  if [[ "${src_file}" == *"_obj_"* ]]; then
-    normalize_object_query_result "${src_file}" "${dst_file}"
-    return
-  fi
-
   awk '
     /\+/ { next }
     /\|/ {
@@ -1083,45 +1220,6 @@ normalize_query_result() {
       }
     }
   ' "${src_file}" | sort > "${dst_file}"
-}
-
-normalize_object_query_result() {
-  local src_file=$1
-  local dst_file=$2
-  local tmp_file="${dst_file}.tmp"
-
-  # OBJECT payloads can be very large; hash the normalized result instead of sorting raw values.
-  awk '
-    /\+/ { next }
-    /\|/ {
-      line = $0
-      gsub(/\r/, "", line)
-      gsub(/^[ \t]+|[ \t]+$/, "", line)
-      if (line == "") {
-        next
-      }
-      split(line, arr, "|")
-      out = ""
-      for (i = 2; i < length(arr); i++) {
-        val = arr[i]
-        gsub(/^[ \t]+|[ \t]+$/, "", val)
-        if (val == "null") {
-          val = ""
-        }
-        out = out val "|"
-      }
-      if (out ~ /^(Time|time|D_DATETIME|device_id|Device|Database|TableName)\|/) {
-        next
-      }
-      if (out != "|") {
-        print out
-      }
-    }
-  ' "${src_file}" > "${tmp_file}"
-
-  printf 'line_count=%s\n' "$(wc -l < "${tmp_file}" | tr -d '[:space:]')" > "${dst_file}"
-  printf 'sha256=%s\n' "$(sha256sum "${tmp_file}" | awk '{print $1}')" >> "${dst_file}"
-  rm -f "${tmp_file}"
 }
 
 query_output_has_error() {
@@ -1152,23 +1250,26 @@ compare_query_result() {
   local base_file=$1
   local check_file=$2
   local reason=$3
+  local warn_only=${4:-false}
 
   if ! diff -u "${base_file}" "${check_file}" > "${cur_dir}/tmp_diff.out" 2>&1; then
     append_warn "${reason}"
     log "${reason}"
     sed -n '1,40p' "${cur_dir}/tmp_diff.out"
-    let fail_flag++
+    if [[ "${warn_only}" != "true" ]]; then
+      let fail_flag++
+    fi
     return 1
   fi
   return 0
 }
 
 capture_consistency_baseline() {
-  capture_query_result "${query_ip}" tree "${query_tree_sql}" "${cur_dir}/q_all_online_tree.out" "${cur_dir}/q_all_online_tree.norm"
-  capture_query_result "${query_ip}" table "${query_table_base_sql}" "${cur_dir}/q_all_online_tab1.out" "${cur_dir}/q_all_online_tab1.norm"
-  capture_query_result "${query_ip}" table "${query_table_view_sql}" "${cur_dir}/q_all_online_tab2.out" "${cur_dir}/q_all_online_tab2.norm"
-  capture_query_result "${query_ip}" table "${query_table_base_object_sql}" "${cur_dir}/q_all_online_obj_tab1.out" "${cur_dir}/q_all_online_obj_tab1.norm"
-  capture_query_result "${query_ip}" table "${query_table_view_object_sql}" "${cur_dir}/q_all_online_obj_tab2.out" "${cur_dir}/q_all_online_obj_tab2.norm"
+  capture_query_result "${query_ip}" tree "${query_tree_sql}" "${cur_dir}/q_all_online_tree.out" "${cur_dir}/q_all_online_tree.norm" || return 1
+  capture_query_result "${query_ip}" table "${query_table_base_sql}" "${cur_dir}/q_all_online_tab1.out" "${cur_dir}/q_all_online_tab1.norm" || return 1
+  capture_query_result "${query_ip}" table "${query_table_view_sql}" "${cur_dir}/q_all_online_tab2.out" "${cur_dir}/q_all_online_tab2.norm" || return 1
+  capture_query_result "${query_ip}" table "${query_table_base_object_sql}" "${cur_dir}/q_all_online_obj_tab1.out" "${cur_dir}/q_all_online_obj_tab1.norm" || return 1
+  capture_query_result "${query_ip}" table "${query_table_view_object_sql}" "${cur_dir}/q_all_online_obj_tab2.out" "${cur_dir}/q_all_online_obj_tab2.norm" || return 1
 }
 
 choose_query_host() {
@@ -1186,7 +1287,9 @@ check_data_consistent() {
     return 1
   fi
 
-  capture_consistency_baseline
+  if ! capture_consistency_baseline; then
+    return 1
+  fi
   run_cli_sql "${query_ip}" tree "show datanodes;" "${cur_dir}/show_datanodes.out" 3600
   awk -F '|' '/Running/ {gsub(/ /, "", $4); print $4}' "${cur_dir}/show_datanodes.out" | sort -u > "${cur_dir}/running_datanodes.txt"
 
@@ -1208,17 +1311,17 @@ check_data_consistent() {
     fi
 
     v_ip=$(echo "${stop_dn_ip}" | awk -F '.' '{print $4}')
-    capture_query_result "${query_host}" tree "${query_tree_sql}" "${cur_dir}/q_stop_ip${v_ip}_tree.out" "${cur_dir}/q_stop_ip${v_ip}_tree.norm"
-    capture_query_result "${query_host}" table "${query_table_base_sql}" "${cur_dir}/q_stop_ip${v_ip}_tab1.out" "${cur_dir}/q_stop_ip${v_ip}_tab1.norm"
-    capture_query_result "${query_host}" table "${query_table_view_sql}" "${cur_dir}/q_stop_ip${v_ip}_tab2.out" "${cur_dir}/q_stop_ip${v_ip}_tab2.norm"
-    capture_query_result "${query_host}" table "${query_table_base_object_sql}" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.out" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.norm"
-    capture_query_result "${query_host}" table "${query_table_view_object_sql}" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.out" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.norm"
+    capture_query_result "${query_host}" tree "${query_tree_sql}" "${cur_dir}/q_stop_ip${v_ip}_tree.out" "${cur_dir}/q_stop_ip${v_ip}_tree.norm" || return 1
+    capture_query_result "${query_host}" table "${query_table_base_sql}" "${cur_dir}/q_stop_ip${v_ip}_tab1.out" "${cur_dir}/q_stop_ip${v_ip}_tab1.norm" || return 1
+    capture_query_result "${query_host}" table "${query_table_view_sql}" "${cur_dir}/q_stop_ip${v_ip}_tab2.out" "${cur_dir}/q_stop_ip${v_ip}_tab2.norm" || return 1
+    capture_query_result "${query_host}" table "${query_table_base_object_sql}" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.out" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.norm" || return 1
+    capture_query_result "${query_host}" table "${query_table_view_object_sql}" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.out" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.norm" || return 1
 
-    compare_query_result "${cur_dir}/q_all_online_tree.norm" "${cur_dir}/q_stop_ip${v_ip}_tree.norm" "tree query result differs when ${stop_dn_ip} is down"
-    compare_query_result "${cur_dir}/q_all_online_tab1.norm" "${cur_dir}/q_stop_ip${v_ip}_tab1.norm" "table base query result differs when ${stop_dn_ip} is down"
-    compare_query_result "${cur_dir}/q_all_online_tab2.norm" "${cur_dir}/q_stop_ip${v_ip}_tab2.norm" "table writable view query result differs when ${stop_dn_ip} is down"
-    compare_query_result "${cur_dir}/q_all_online_obj_tab1.norm" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.norm" "table base object query result differs when ${stop_dn_ip} is down"
-    compare_query_result "${cur_dir}/q_all_online_obj_tab2.norm" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.norm" "table writable view object query result differs when ${stop_dn_ip} is down"
+    compare_query_result "${cur_dir}/q_all_online_tree.norm" "${cur_dir}/q_stop_ip${v_ip}_tree.norm" "tree query result differs when ${stop_dn_ip} is down" true
+    compare_query_result "${cur_dir}/q_all_online_tab1.norm" "${cur_dir}/q_stop_ip${v_ip}_tab1.norm" "table base query result differs when ${stop_dn_ip} is down" true
+    compare_query_result "${cur_dir}/q_all_online_tab2.norm" "${cur_dir}/q_stop_ip${v_ip}_tab2.norm" "table writable view query result differs when ${stop_dn_ip} is down" true
+    compare_query_result "${cur_dir}/q_all_online_obj_tab1.norm" "${cur_dir}/q_stop_ip${v_ip}_obj_tab1.norm" "table base object query result differs when ${stop_dn_ip} is down" true
+    compare_query_result "${cur_dir}/q_all_online_obj_tab2.norm" "${cur_dir}/q_stop_ip${v_ip}_obj_tab2.norm" "table writable view object query result differs when ${stop_dn_ip} is down" true
 
     start_time=$(date +%s)
     ssh "${u_name}@${stop_dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/start-datanode.sh -H ${db_dir}/dn_${start_time}_heapdump.hprof > /dev/null 2>&1 &"

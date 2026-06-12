@@ -563,7 +563,7 @@ create_tables_after_stop_datanode() {
     sql="use ${table_db_name};create table ${table_name}(region string tag, device_id string tag, s1 int32 field);insert into ${table_name}(region,device_id,s1) values('region_${table_idx}','device_${table_idx}',${table_idx});"
     outfile="${cur_dir}/create_table_after_stop_${table_idx}.out"
     run_cli_sql "${query_ip}" table "${sql}" "${outfile}" 3600
-    if query_output_has_error "${outfile}"; then
+    if statement_output_has_error "${outfile}"; then
       log "failed to create table ${table_db_name}.${table_name} after stopping ${rm_target_ip}"
       sed -n '1,40p' "${outfile}"
       append_warn "failed to create and insert ${table_db_name}.${table_name} after stopping ${rm_target_ip}"
@@ -1265,6 +1265,20 @@ query_output_has_error() {
   local src_file=$1
 
   grep -Eiq '(^Msg:|IoTDBSQLException|StatementExecutionException|executeStatement failed|^[[:space:]]*Exception|java\.lang\.)' "${src_file}"
+}
+
+statement_output_has_error() {
+  local src_file=$1
+
+  if grep -Eiq '(IoTDBSQLException|StatementExecutionException|executeStatement failed|^[[:space:]]*Exception|java\.lang\.)' "${src_file}"; then
+    return 0
+  fi
+
+  if awk '/^Msg:/ && $0 != "Msg: The statement is executed successfully." {found=1} END {exit found ? 0 : 1}' "${src_file}"; then
+    return 0
+  fi
+
+  return 1
 }
 
 capture_query_result() {

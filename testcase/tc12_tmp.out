@@ -1,43 +1,49 @@
-+------+----------+-------+---------------+------------+-------+-----------+--------------+
-|NodeID|  NodeType| Status|InternalAddress|InternalPort|Version|  BuildInfo|ActivateStatus|
-+------+----------+-------+---------------+------------+-------+-----------+--------------+
-|     0|ConfigNode|Running|    172.20.70.5|       10710|1.3.6.1|d2e7bf2-dev|     ACTIVATED|
-|     1|ConfigNode|Running|    172.20.70.4|       10710|1.3.6.1|d2e7bf2-dev|     ACTIVATED|
-|     2|ConfigNode|Running|   172.20.70.26|       10710|1.3.6.1|d2e7bf2-dev|     ACTIVATED|
-|     3|  DataNode|Unknown|    172.20.70.4|       10730|1.3.6.1|d2e7bf2-dev|     ACTIVATED|
-|     4|  DataNode|Running|   172.20.70.26|       10730|1.3.6.1|d2e7bf2-dev|     ACTIVATED|
-|     5|  DataNode|Running|   172.20.70.14|       10730|1.3.6.1|d2e7bf2-dev|     ACTIVATED|
-|     6|  DataNode|Running|   172.20.70.27|       10730|1.3.6.1|d2e7bf2-dev|     ACTIVATED|
-|     7|  DataNode|Running|   172.20.70.30|       10730|1.3.6.1|d2e7bf2-dev|     ACTIVATED|
-+------+----------+-------+---------------+------------+-------+-----------+--------------+
++------+----------+-------+---------------+------------+--------+---------+--------------+
+|NodeID|  NodeType| Status|InternalAddress|InternalPort| Version|BuildInfo|ActivateStatus|
++------+----------+-------+---------------+------------+--------+---------+--------------+
+|     0|ConfigNode|Running|    172.20.70.5|       10710|2.0.10.1|  53e350c|     ACTIVATED|
+|     1|ConfigNode|Running|    172.20.70.4|       10710|2.0.10.1|  53e350c|     ACTIVATED|
+|     2|ConfigNode|Running|   172.20.70.26|       10710|2.0.10.1|  53e350c|     ACTIVATED|
+|     3|  DataNode|Unknown|    172.20.70.4|       10730|2.0.10.1|  53e350c|       UNKNOWN|
+|     4|  DataNode|Running|   172.20.70.26|       10730|2.0.10.1|  53e350c|     ACTIVATED|
+|     5|  DataNode|Running|   172.20.70.14|       10730|2.0.10.1|  53e350c|     ACTIVATED|
+|     6|  DataNode|Running|   172.20.70.27|       10730|2.0.10.1|  53e350c|     ACTIVATED|
+|     7|  DataNode|Running|   172.20.70.30|       10730|2.0.10.1|  53e350c|     ACTIVATED|
++------+----------+-------+---------------+------------+--------+---------+--------------+
 Total line number = 8
-It costs 0.067s
-+--------+------------+--------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+
-|RegionId|        Type|  Status|     Database|SeriesSlotNum|TimeSlotNum|DataNodeId|  RpcAddress|RpcPort|InternalAddress|    Role|             CreateTime|TsFileSize|
-+--------+------------+--------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+
-|       0|SchemaRegion|ReadOnly|root.test.g_0|          100|          0|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-10T09:13:37.935|          |
-|       0|SchemaRegion| Running|root.test.g_0|          100|          0|         5|172.20.70.14|   6667|   172.20.70.14|Follower|2024-04-10T09:13:37.935|          |
-|       0|SchemaRegion| Running|root.test.g_0|          100|          0|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-10T09:13:37.935|          |
-|       1|  DataRegion| Running|root.test.g_0|           20|         40|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2024-04-10T09:13:41.870|   3.81 GB|
-|       1|  DataRegion| Running|root.test.g_0|           20|         40|         6|172.20.70.27|   6667|   172.20.70.27|Follower|2024-04-10T09:13:41.870|   3.82 GB|
-|       1|  DataRegion| Running|root.test.g_0|           20|         40|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-10T09:13:41.870|   3.81 GB|
-|       2|  DataRegion|ReadOnly|root.test.g_0|           20|         40|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-10T09:13:41.870|   3.99 GB|
-|       2|  DataRegion| Running|root.test.g_0|           20|         40|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2024-04-10T09:13:41.870|   4.02 GB|
-|       2|  DataRegion| Running|root.test.g_0|           20|         40|         5|172.20.70.14|   6667|   172.20.70.14|  Leader|2024-04-10T09:13:41.870|   3.99 GB|
-|       3|  DataRegion|ReadOnly|root.test.g_0|           20|         40|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-10T09:13:41.870|   3.85 GB|
-|       3|  DataRegion| Running|root.test.g_0|           20|         40|         5|172.20.70.14|   6667|   172.20.70.14|Follower|2024-04-10T09:13:41.870|   3.86 GB|
-|       3|  DataRegion| Running|root.test.g_0|           20|         40|         6|172.20.70.27|   6667|   172.20.70.27|  Leader|2024-04-10T09:13:41.870|   3.83 GB|
-|       4|  DataRegion| Running|root.test.g_0|           20|         40|         5|172.20.70.14|   6667|   172.20.70.14|Follower|2024-04-10T09:13:41.870|   3.91 GB|
-|       4|  DataRegion| Running|root.test.g_0|           20|         40|         6|172.20.70.27|   6667|   172.20.70.27|  Leader|2024-04-10T09:13:41.870|   3.91 GB|
-|       4|  DataRegion| Running|root.test.g_0|           20|         40|         7|172.20.70.30|   6667|   172.20.70.30|Follower|2024-04-10T09:13:41.870|   3.92 GB|
-|       5|  DataRegion|ReadOnly|root.test.g_0|           20|         40|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-10T09:13:41.870|   3.97 GB|
-|       5|  DataRegion| Running|root.test.g_0|           20|         40|         4|172.20.70.26|   6667|   172.20.70.26|  Leader|2024-04-10T09:13:41.870|   4.01 GB|
-|       5|  DataRegion| Running|root.test.g_0|           20|         40|         7|172.20.70.30|   6667|   172.20.70.30|Follower|2024-04-10T09:13:41.870|   4.01 GB|
-|       6|SchemaRegion| Running|root.__system|           15|          0|         4|172.20.70.26|   6667|   172.20.70.26|  Leader|2024-04-10T09:13:52.478|          |
-|       7|  DataRegion| Running|root.__system|           15|         15|         4|172.20.70.26|   6667|   172.20.70.26|  Leader|2024-04-10T09:13:54.212|  26.57 KB|
-+--------+------------+--------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+
-Total line number = 20
-It costs 0.076s
+It costs 0.030s
++--------+------------+--------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+----------------+
+|RegionId|        Type|  Status|     Database|SeriesSlotNum|TimeSlotNum|DataNodeId|  RpcAddress|RpcPort|InternalAddress|    Role|             CreateTime|TsFileSize|CompressionRatio|
++--------+------------+--------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+----------------+
+|       0|SchemaRegion|ReadOnly|root.test.g_0|          100|          0|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-10T09:13:37.935|          |             NaN|
+|       0|SchemaRegion| Running|root.test.g_0|          100|          0|         5|172.20.70.14|   6667|   172.20.70.14|Follower|2024-04-10T09:13:37.935|          |             NaN|
+|       0|SchemaRegion| Running|root.test.g_0|          100|          0|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-10T09:13:37.935|          |             NaN|
+|       1|  DataRegion| Running|root.test.g_0|           20|         40|         4|172.20.70.26|   6667|   172.20.70.26|  Leader|2024-04-10T09:13:41.870|   3.81 GB|             NaN|
+|       1|  DataRegion| Running|root.test.g_0|           20|         40|         6|172.20.70.27|   6667|   172.20.70.27|Follower|2024-04-10T09:13:41.870|   3.82 GB|             NaN|
+|       1|  DataRegion| Running|root.test.g_0|           20|         40|         7|172.20.70.30|   6667|   172.20.70.30|Follower|2024-04-10T09:13:41.870|   3.81 GB|             NaN|
+|       2|  DataRegion|ReadOnly|root.test.g_0|           20|         40|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-10T09:13:41.870|   3.99 GB|             NaN|
+|       2|  DataRegion| Running|root.test.g_0|           20|         40|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2024-04-10T09:13:41.870|   4.02 GB|             NaN|
+|       2|  DataRegion| Running|root.test.g_0|           20|         40|         5|172.20.70.14|   6667|   172.20.70.14|  Leader|2024-04-10T09:13:41.870|   3.99 GB|             NaN|
+|       3|  DataRegion|ReadOnly|root.test.g_0|           20|         40|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-10T09:13:41.870|   3.85 GB|             NaN|
+|       3|  DataRegion| Running|root.test.g_0|           20|         40|         5|172.20.70.14|   6667|   172.20.70.14|Follower|2024-04-10T09:13:41.870|   3.86 GB|             NaN|
+|       3|  DataRegion| Running|root.test.g_0|           20|         40|         6|172.20.70.27|   6667|   172.20.70.27|  Leader|2024-04-10T09:13:41.870|   3.83 GB|             NaN|
+|       4|  DataRegion| Running|root.test.g_0|           20|         40|         5|172.20.70.14|   6667|   172.20.70.14|Follower|2024-04-10T09:13:41.870|   3.91 GB|             NaN|
+|       4|  DataRegion| Running|root.test.g_0|           20|         40|         6|172.20.70.27|   6667|   172.20.70.27|Follower|2024-04-10T09:13:41.870|   3.91 GB|             NaN|
+|       4|  DataRegion| Running|root.test.g_0|           20|         40|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-10T09:13:41.870|   3.92 GB|             NaN|
+|       5|  DataRegion|ReadOnly|root.test.g_0|           20|         40|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-10T09:13:41.870|   3.97 GB|             NaN|
+|       5|  DataRegion| Running|root.test.g_0|           20|         40|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2024-04-10T09:13:41.870|   4.01 GB|             NaN|
+|       5|  DataRegion| Running|root.test.g_0|           20|         40|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-10T09:13:41.870|   4.01 GB|             NaN|
+|       6|SchemaRegion| Running|root.__system|           15|          0|         4|172.20.70.26|   6667|   172.20.70.26|  Leader|2024-04-10T09:13:52.478|          |             NaN|
+|       7|  DataRegion| Running|root.__system|           15|         15|         4|172.20.70.26|   6667|   172.20.70.26|  Leader|2024-04-10T09:13:54.212|  26.57 KB|             NaN|
+|       8|SchemaRegion|ReadOnly| root.__audit|            1|          0|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2026-06-06T12:33:40.112|          |             NaN|
+|       8|SchemaRegion| Running| root.__audit|            1|          0|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2026-06-06T12:33:40.112|          |             NaN|
+|       8|SchemaRegion| Running| root.__audit|            1|          0|         6|172.20.70.27|   6667|   172.20.70.27|  Leader|2026-06-06T12:33:40.112|          |             NaN|
+|       9|  DataRegion|ReadOnly| root.__audit|            1|          1|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2026-06-06T12:33:41.143|   Unknown|             NaN|
+|       9|  DataRegion| Running| root.__audit|            1|          1|         5|172.20.70.14|   6667|   172.20.70.14|  Leader|2026-06-06T12:33:41.143|   Unknown|             NaN|
+|       9|  DataRegion| Running| root.__audit|            1|          1|         7|172.20.70.30|   6667|   172.20.70.30|Follower|2026-06-06T12:33:41.143|   Unknown|             NaN|
++--------+------------+--------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+----------------+
+Total line number = 26
+It costs 0.028s
 +------+-------+---------------+------------+--------+
 |NodeID| Status|InternalAddress|InternalPort|    Role|
 +------+-------+---------------+------------+--------+
@@ -46,4 +52,4 @@ It costs 0.076s
 |     2|Running|   172.20.70.26|       10710|Follower|
 +------+-------+---------------+------------+--------+
 Total line number = 3
-It costs 0.068s
+It costs 0.024s

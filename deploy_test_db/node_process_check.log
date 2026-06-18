@@ -53,3 +53,128 @@ Warning: Permanently added '172.20.70.26' (ECDSA) to the list of known hosts.
 [2026-02-27_16:41:12] 172.20.70.26 ConfigNode检查完成，正常退出
 ===== 2026-02-27_16:41:12 节点进程检查结束 =====
 
+
+===== 2026-03-12_14:00:34 开始检查节点进程 =====
+[2026-03-12_14:00:34] 检查DataNode：172.20.70.4
+[2026-03-12_14:00:34] 172.20.70.4 ssh进程PID：4632
+Warning: Permanently added '172.20.70.4' (ECDSA) to the list of known hosts.
+[2026-03-12_14:00:35] 172.20.70.4 DataNode检查完成，正常退出
+[2026-03-12_14:00:35] 检查DataNode：172.20.70.26
+[2026-03-12_14:00:35] 172.20.70.26 ssh进程PID：4640
+Warning: Permanently added '172.20.70.26' (ECDSA) to the list of known hosts.
+22261 DataNode
+[2026-03-12_14:00:36] 172.20.70.26 DataNode检查完成，正常退出
+[2026-03-12_14:00:36] 检查DataNode：172.20.70.14
+[2026-03-12_14:00:36] 172.20.70.14 ssh进程PID：4657
+Warning: Permanently added '172.20.70.14' (ECDSA) to the list of known hosts.
+23024 DataNode
+[2026-03-12_14:00:37] 172.20.70.14 DataNode检查完成，正常退出
+[2026-03-12_14:00:37] 检查DataNode：172.20.70.27
+[2026-03-12_14:00:37] 172.20.70.27 ssh进程PID：4665
+Warning: Permanently added '172.20.70.27' (ECDSA) to the list of known hosts.
+27011 DataNode
+[2026-03-12_14:00:38] 172.20.70.27 DataNode检查完成，正常退出
+[2026-03-12_14:00:38] 检查DataNode：172.20.70.30
+[2026-03-12_14:00:38] 172.20.70.30 ssh进程PID：4673
+Warning: Permanently added '172.20.70.30' (ECDSA) to the list of known hosts.
+32715 DataNode
+[2026-03-12_14:00:39] 172.20.70.30 DataNode检查完成，正常退出
+[2026-03-12_14:00:39] 检查ConfigNode：172.20.70.5
+[2026-03-12_14:00:39] 172.20.70.5 ssh进程PID：4681
+Warning: Permanently added '172.20.70.5' (ECDSA) to the list of known hosts.
+3491 ConfigNode
+[2026-03-12_14:00:40] 172.20.70.5 ConfigNode检查完成，正常退出
+[2026-03-12_14:00:40] 检查ConfigNode：172.20.70.4
+[2026-03-12_14:00:40] 172.20.70.4 ssh进程PID：4689
+Warning: Permanently added '172.20.70.4' (ECDSA) to the list of known hosts.
+[2026-03-12_14:00:41] 172.20.70.4 ConfigNode检查完成，正常退出
+[2026-03-12_14:00:41] 检查ConfigNode：172.20.70.26
+[2026-03-12_14:00:41] 172.20.70.26 ssh进程PID：4697
+Warning: Permanently added '172.20.70.26' (ECDSA) to the list of known hosts.
+22009 ConfigNode
+[2026-03-12_14:00:42] 172.20.70.26 ConfigNode检查完成，正常退出
+===== 2026-03-12_14:00:42 节点进程检查结束 =====
+
+
+===== 2026-03-18_10:01:22 开始检查节点进程 =====
+[2026-03-18_10:01:22] 检查DataNode：172.20.70.4
+[2026-03-18_10:01:22] 172.20.70.4 ssh进程PID：16026
+Warning: Permanently added '172.20.70.4' (ECDSA) to the list of known hosts.
+[2026-03-18_10:01:23] 172.20.70.4 DataNode检查完成，正常退出
+[2026-03-18_10:01:23] 检查DataNode：172.20.70.26
+[2026-03-18_10:01:23] 172.20.70.26 ssh进程PID：16034
+Warning: Permanently added '172.20.70.26' (ECDSA) to the list of known hosts.
+[2026-03-18_10:01:24] 172.20.70.26 DataNode检查完成，正常退出
+[2026-03-18_10:01:24] 检查DataNode：172.20.70.14
+[2026-03-18_10:01:24] 172.20.70.14 ssh进程PID：16042
+Warning: Permanently added '172.20.70.14' (ECDSA) to the list of known hosts.
+[2026-03-18_10:01:25] 172.20.70.14 DataNode检查完成，正常退出
+[2026-03-18_10:01:25] 检查DataNode：172.20.70.27
+[2026-03-18_10:01:25] 172.20.70.27 ssh进程PID：16050
+Warning: Permanently added '172.20.70.27' (ECDSA) to the list of known hosts.
+29310 DataNode
+[2026-03-18_10:01:26] 172.20.70.27 DataNode检查完成，正常退出
+[2026-03-18_10:01:26] 检查DataNode：172.20.70.30
+[2026-03-18_10:01:26] 172.20.70.30 ssh进程PID：16058
+Warning: Permanently added '172.20.70.30' (ECDSA) to the list of known hosts.
+4170 DataNode
+[2026-03-18_10:01:27] 172.20.70.30 DataNode检查完成，正常退出
+[2026-03-18_10:01:27] 检查ConfigNode：172.20.70.5
+[2026-03-18_10:01:27] 172.20.70.5 ssh进程PID：16075
+Warning: Permanently added '172.20.70.5' (ECDSA) to the list of known hosts.
+14984 ConfigNode
+[2026-03-18_10:01:28] 172.20.70.5 ConfigNode检查完成，正常退出
+[2026-03-18_10:01:28] 检查ConfigNode：172.20.70.4
+[2026-03-18_10:01:28] 172.20.70.4 ssh进程PID：16083
+Warning: Permanently added '172.20.70.4' (ECDSA) to the list of known hosts.
+13427 ConfigNode
+[2026-03-18_10:01:29] 172.20.70.4 ConfigNode检查完成，正常退出
+[2026-03-18_10:01:29] 检查ConfigNode：172.20.70.26
+[2026-03-18_10:01:29] 172.20.70.26 ssh进程PID：16091
+Warning: Permanently added '172.20.70.26' (ECDSA) to the list of known hosts.
+18594 ConfigNode
+[2026-03-18_10:01:30] 172.20.70.26 ConfigNode检查完成，正常退出
+===== 2026-03-18_10:01:30 节点进程检查结束 =====
+
+
+===== 2026-03-23_11:34:35 开始检查节点进程 =====
+[2026-03-23_11:34:35] 检查DataNode：172.20.70.4
+[2026-03-23_11:34:35] 172.20.70.4 ssh进程PID：14119
+Warning: Permanently added '172.20.70.4' (ECDSA) to the list of known hosts.
+19463 DataNode
+[2026-03-23_11:34:37] 172.20.70.4 DataNode检查完成，正常退出
+[2026-03-23_11:34:37] 检查DataNode：172.20.70.26
+[2026-03-23_11:34:37] 172.20.70.26 ssh进程PID：14136
+Warning: Permanently added '172.20.70.26' (ECDSA) to the list of known hosts.
+30225 DataNode
+[2026-03-23_11:34:38] 172.20.70.26 DataNode检查完成，正常退出
+[2026-03-23_11:34:38] 检查DataNode：172.20.70.14
+[2026-03-23_11:34:38] 172.20.70.14 ssh进程PID：14144
+Warning: Permanently added '172.20.70.14' (ECDSA) to the list of known hosts.
+6825 DataNode
+[2026-03-23_11:34:39] 172.20.70.14 DataNode检查完成，正常退出
+[2026-03-23_11:34:39] 检查DataNode：172.20.70.27
+[2026-03-23_11:34:39] 172.20.70.27 ssh进程PID：14152
+Warning: Permanently added '172.20.70.27' (ECDSA) to the list of known hosts.
+[2026-03-23_11:34:40] 172.20.70.27 DataNode检查完成，正常退出
+[2026-03-23_11:34:40] 检查DataNode：172.20.70.30
+[2026-03-23_11:34:40] 172.20.70.30 ssh进程PID：14160
+Warning: Permanently added '172.20.70.30' (ECDSA) to the list of known hosts.
+27977 DataNode
+[2026-03-23_11:34:41] 172.20.70.30 DataNode检查完成，正常退出
+[2026-03-23_11:34:41] 检查ConfigNode：172.20.70.5
+[2026-03-23_11:34:41] 172.20.70.5 ssh进程PID：14168
+Warning: Permanently added '172.20.70.5' (ECDSA) to the list of known hosts.
+13772 ConfigNode
+[2026-03-23_11:34:42] 172.20.70.5 ConfigNode检查完成，正常退出
+[2026-03-23_11:34:42] 检查ConfigNode：172.20.70.4
+[2026-03-23_11:34:42] 172.20.70.4 ssh进程PID：14176
+Warning: Permanently added '172.20.70.4' (ECDSA) to the list of known hosts.
+19164 ConfigNode
+[2026-03-23_11:34:43] 172.20.70.4 ConfigNode检查完成，正常退出
+[2026-03-23_11:34:43] 检查ConfigNode：172.20.70.26
+[2026-03-23_11:34:43] 172.20.70.26 ssh进程PID：14184
+Warning: Permanently added '172.20.70.26' (ECDSA) to the list of known hosts.
+[2026-03-23_11:34:44] 172.20.70.26 ConfigNode检查完成，正常退出
+===== 2026-03-23_11:34:44 节点进程检查结束 =====
+

@@ -429,8 +429,8 @@ resolve_object_columns() {
     return 1
   fi
 
-  query_table_base_object_sql="select D_DATETIME,device_id,length(read_object(${table_base_object_col})),sha256(cast(read_object(${table_base_object_col}) as string)) from ${table_db_name}.${table_base_name} order by D_DATETIME,device_id limit 20;"
-  query_table_view_object_sql="select D_DATETIME,device_id,length(read_object(${table_view_object_col})),sha256(cast(read_object(${table_view_object_col}) as string)) from ${table_db_name}.${table_view_name} order by D_DATETIME,device_id limit 20;"
+  query_table_base_object_sql="select D_DATETIME,device_id,length(read_object(${table_base_object_col})) from ${table_db_name}.${table_base_name} limit 20;"
+  query_table_view_object_sql="select D_DATETIME,device_id,length(read_object(${table_view_object_col})) from ${table_db_name}.${table_view_name} limit 20;"
   return 0
 }
 

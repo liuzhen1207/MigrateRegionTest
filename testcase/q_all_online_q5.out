@@ -1,18 +1,6 @@
-Require more params input, eg. ./start-cli.sh(start-cli.bat if Windows) -h xxx.xxx.xxx.xxx -p xxxx -u xxx.
-For more information, please check the following hint.
-usage: IoTDB [-c] [-disableISO8601] [-e <execute>] [-h <host>] [-help] [-p <port>] [-pw
-       <password>] [-timeout <queryTimeout>] [-tpw <trust_store_pwd>] [-ts
-       <trust_store>] -u <username> [-usessl <use_ssl>]
- -c                        Rpc Compression enabled or not
- -disableISO8601           Display timestamp in number(optional)
- -e <execute>              execute statement (optional)
- -h <host>                 Host Name (optional, default 127.0.0.1)
- -help                     Display help information(optional)
- -p <port>                 Port (optional, default 6667)
- -pw <password>            password (optional)
- -timeout <queryTimeout>   The timeout in second. Using the configuration of server if
-                           it's not set (optional)
- -tpw <trust_store_pwd>    trust_store_pwd statement (optional)
- -ts <trust_store>         trust_store statement (optional)
- -u <username>             User name (required)
- -usessl <use_ssl>         use_ssl statement (optional)
++---------+-----+
+|device_id|_col1|
++---------+-----+
++---------+-----+
+Empty set.
+It costs 0.072s

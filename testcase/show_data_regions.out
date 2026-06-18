@@ -1,27 +1,30 @@
-+--------+----------+-------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+
-|RegionId|      Type| Status|     Database|SeriesSlotNum|TimeSlotNum|DataNodeId|  RpcAddress|RpcPort|InternalAddress|    Role|             CreateTime|TsFileSize|
-+--------+----------+-------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+
-|       1|DataRegion|Running|    root.test|          200|        200|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2024-04-16T17:08:58.102|   8.85 GB|
-|       1|DataRegion|Running|    root.test|          200|        200|         6|172.20.70.27|   6667|   172.20.70.27|  Leader|2024-04-16T17:08:58.102|   8.85 GB|
-|       2|DataRegion|Running|    root.test|          200|        200|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2024-04-16T17:08:58.102|   8.79 GB|
-|       2|DataRegion|Running|    root.test|          200|        200|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-16T17:08:58.102|   8.83 GB|
-|       3|DataRegion|Running|    root.test|          200|        200|         5|172.20.70.14|   6667|   172.20.70.14|  Leader|2024-04-16T17:08:58.102|   8.77 GB|
-|       3|DataRegion|Running|    root.test|          200|        200|         6|172.20.70.27|   6667|   172.20.70.27|Follower|2024-04-16T17:08:58.102|   8.80 GB|
-|       4|DataRegion|Running|    root.test|          200|        200|         4|172.20.70.26|   6667|   172.20.70.26|  Leader|2024-04-16T17:08:58.102|   8.68 GB|
-|       4|DataRegion|Running|    root.test|          200|        200|         5|172.20.70.14|   6667|   172.20.70.14|Follower|2024-04-16T17:08:58.102|   8.68 GB|
-|       5|DataRegion|Running|    root.test|          200|        200|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-16T17:08:58.102|   8.74 GB|
-|       5|DataRegion|Running|    root.test|          200|        200|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-16T17:08:58.102|   8.73 GB|
-|       7|DataRegion|Running|root.__system|           20|         20|         3| 172.20.70.4|   6667|    172.20.70.4|  Leader|2024-04-16T17:09:24.838|  40.63 KB|
-|       9|DataRegion|Running|  root.db.g_0|          200|        200|         5|172.20.70.14|   6667|   172.20.70.14|Follower|2024-04-16T18:25:55.864|  13.13 GB|
-|       9|DataRegion|Running|  root.db.g_0|          200|        200|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-16T18:25:55.864|  13.09 GB|
-|      10|DataRegion|Running|  root.db.g_0|          200|        200|         4|172.20.70.26|   6667|   172.20.70.26|  Leader|2024-04-16T18:25:55.864|  13.09 GB|
-|      10|DataRegion|Running|  root.db.g_0|          200|        200|         6|172.20.70.27|   6667|   172.20.70.27|Follower|2024-04-16T18:25:55.864|  13.09 GB|
-|      11|DataRegion|Running|  root.db.g_0|          200|        200|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-16T18:25:55.864|  13.10 GB|
-|      11|DataRegion|Running|  root.db.g_0|          200|        200|         5|172.20.70.14|   6667|   172.20.70.14|  Leader|2024-04-16T18:25:55.864|  13.11 GB|
-|      12|DataRegion|Running|  root.db.g_0|          200|        200|         6|172.20.70.27|   6667|   172.20.70.27|  Leader|2024-04-16T18:25:55.864|  12.97 GB|
-|      12|DataRegion|Running|  root.db.g_0|          200|        200|         7|172.20.70.30|   6667|   172.20.70.30|Follower|2024-04-16T18:25:55.864|  12.95 GB|
-|      13|DataRegion|Running|  root.db.g_0|          200|        200|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-16T18:25:55.864|  13.02 GB|
-|      13|DataRegion|Running|  root.db.g_0|          200|        200|         4|172.20.70.26|   6667|   172.20.70.26|  Leader|2024-04-16T18:25:55.864|  13.02 GB|
-+--------+----------+-------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+
-Total line number = 21
-It costs 0.073s
+106473 [main] WARN  o.apache.iotdb.jdbc.IoTDBConnection - Warning: Your password has not been changed for over 30 days. For security best practices, please consider updating your password. 
++--------+----------+-------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+----------------+
+|RegionId|      Type| Status|     Database|SeriesSlotNum|TimeSlotNum|DataNodeId|  RpcAddress|RpcPort|InternalAddress|    Role|             CreateTime|TsFileSize|CompressionRatio|
++--------+----------+-------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+----------------+
+|       1|DataRegion|Unknown|    root.test|          200|        200|         4|172.20.70.26|   6667|   172.20.70.26|  Leader|2024-04-16T17:08:58.249|   Unknown|             NaN|
+|       1|DataRegion|Unknown|    root.test|          200|        200|         6|172.20.70.27|   6667|   172.20.70.27|Follower|2024-04-16T17:08:58.249|   Unknown|             NaN|
+|       2|DataRegion|Unknown|    root.test|          200|        200|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2024-04-16T17:08:58.249|   Unknown|             NaN|
+|       2|DataRegion|Running|    root.test|          200|        200|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-16T17:08:58.249|   8.64 GB|             NaN|
+|       3|DataRegion|Running|    root.test|          200|        200|         5|172.20.70.14|   6667|   172.20.70.14|  Leader|2024-04-16T17:08:58.249|   8.66 GB|             NaN|
+|       3|DataRegion|Unknown|    root.test|          200|        200|         6|172.20.70.27|   6667|   172.20.70.27|Follower|2024-04-16T17:08:58.249|   Unknown|             NaN|
+|       4|DataRegion|Unknown|    root.test|          200|        200|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2024-04-16T17:08:58.249|   Unknown|             NaN|
+|       4|DataRegion|Running|    root.test|          200|        200|         5|172.20.70.14|   6667|   172.20.70.14|  Leader|2024-04-16T17:08:58.249|   8.55 GB|             NaN|
+|       5|DataRegion|Unknown|    root.test|          200|        200|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-16T17:08:58.249|   Unknown|             NaN|
+|       5|DataRegion|Running|    root.test|          200|        200|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-16T17:08:58.249|   8.60 GB|             NaN|
+|       7|DataRegion|Unknown|root.__system|           20|         20|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-16T17:09:24.984|   Unknown|             NaN|
+|       9|DataRegion|Running|  root.db.g_0|          200|        200|         5|172.20.70.14|   6667|   172.20.70.14|Follower|2024-04-16T18:25:55.920|  13.10 GB|             NaN|
+|       9|DataRegion|Running|  root.db.g_0|          200|        200|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-16T18:25:55.920|  13.08 GB|             NaN|
+|      10|DataRegion|Unknown|  root.db.g_0|          200|        200|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2024-04-16T18:25:55.920|   Unknown|             NaN|
+|      10|DataRegion|Unknown|  root.db.g_0|          200|        200|         6|172.20.70.27|   6667|   172.20.70.27|Follower|2024-04-16T18:25:55.920|   Unknown|             NaN|
+|      11|DataRegion|Unknown|  root.db.g_0|          200|        200|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-16T18:25:55.920|   Unknown|             NaN|
+|      11|DataRegion|Running|  root.db.g_0|          200|        200|         5|172.20.70.14|   6667|   172.20.70.14|  Leader|2024-04-16T18:25:55.920|  13.08 GB|             NaN|
+|      12|DataRegion|Unknown|  root.db.g_0|          200|        200|         6|172.20.70.27|   6667|   172.20.70.27|Follower|2024-04-16T18:25:55.920|   Unknown|             NaN|
+|      12|DataRegion|Running|  root.db.g_0|          200|        200|         7|172.20.70.30|   6667|   172.20.70.30|  Leader|2024-04-16T18:25:55.920|  12.94 GB|             NaN|
+|      13|DataRegion|Unknown|  root.db.g_0|          200|        200|         3| 172.20.70.4|   6667|    172.20.70.4|Follower|2024-04-16T18:25:55.920|   Unknown|             NaN|
+|      13|DataRegion|Unknown|  root.db.g_0|          200|        200|         4|172.20.70.26|   6667|   172.20.70.26|Follower|2024-04-16T18:25:55.920|   Unknown|             NaN|
+|      16|DataRegion|Running| root.__audit|            1|          1|         5|172.20.70.14|   6667|   172.20.70.14|  Leader|2026-06-12T14:10:01.136|   1.03 KB|            0.34|
+|      16|DataRegion|Unknown| root.__audit|            1|          1|         6|172.20.70.27|   6667|   172.20.70.27|Follower|2026-06-12T14:10:01.136|   Unknown|             NaN|
++--------+----------+-------+-------------+-------------+-----------+----------+------------+-------+---------------+--------+-----------------------+----------+----------------+
+Total line number = 23
+It costs 0.016s

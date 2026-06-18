@@ -7,3 +7,4 @@ while read line <&3
 do
    sh -x ${line} >> ./${res_file}
 done
+set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"

@@ -8,7 +8,7 @@ db_dir=`cat ${conf_file}|grep ^db_dir|awk -F '=' '{print $2}'`
 function stop_cluster()
 {
 # stop all dn
-exec 3<${cur_dir}/../conf/datanode.txt
+exec 3<${cur_dir}/../conf/datanode_5d.txt
 while read line <&3 
 do
 	ssh ${u_name}@${line} "source /etc/profile;sudo ${db_dir}/sbin/stop-datanode.sh"
@@ -29,7 +29,7 @@ do
           fi
 	done
 done
-exec 3<${cur_dir}/../conf/confignode.txt
+exec 3<${cur_dir}/../conf/confignode_3c.txt
 while read line <&3
 do
 

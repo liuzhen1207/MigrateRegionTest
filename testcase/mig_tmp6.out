@@ -1,1 +1,1 @@
-Msg: The statement is executed successfully.
+Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: TConsensusGroupId(type:DataRegion, id:1) has some other region operation procedures in progress, their procedure id is: [pid=16, state=WAITING:CHECK_ADD_REGION_PEER, locked=true; org.apache.iotdb.confignode.procedure.impl.region.RegionMigrateProcedure, regionId=TConsensusGroupId(type:DataRegion, id:1), AddRegionPeerProcedure{regionId=TConsensusGroupId(type:DataRegion, id:1), coordinator=3@172.20.70.4, targetDataNode=4@172.20.70.26}]

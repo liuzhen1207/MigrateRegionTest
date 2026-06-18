@@ -44,11 +44,15 @@ db_dir=$(grep '^db_dir' "${conf_file}" | awk -F '=' '{print $2}')
 iotdb_host=$(grep test_ip "${conf_file}" | awk -F '=' '{print $2}')
 v_cur_db=$(grep v_cur_db "${conf_file}" | awk -F '=' '{print $2}')
 cli_dir=$(grep client_db_dir "${conf_file}" | awk -F '=' '{print $2}')
+testcase_res_db=$(grep '^testcase_res_db=' "${conf_file}" | awk -F '=' '{print $2}')
+testcase_res_port=$(grep '^testcase_res_port=' "${conf_file}" | awk -F '=' '{print $2}')
 res_file="${cur_dir}/../test_result/res_${v_cur_db}.out"
 clean_env_dir="${cur_dir}/../clean_env"
 prepare_env_dir="${cur_dir}/../prepare_env"
 check_res_dir="${cur_dir}/../check_res"
 SCRIPT_NAME=$(basename "$0")
+tc_num=$(echo "${SCRIPT_NAME}" | awk -F '_' '{print $1}' | awk -F 'tc' '{print $2}')
+testcase_ip=$(grep '^test_ip=' "${conf_file}" | awk -F '.' '{print $4}')
 seed_cn_ip="$(head -1 "${nodeinfo_dir}/confignode.txt"):10710"
 query_cn_ip=$(head -1 "${nodeinfo_dir}/confignode.txt")
 query_ip=$(head -1 "${nodeinfo_dir}/datanode.txt")
@@ -62,6 +66,7 @@ backup_dir_on_cn_dn_host=/data/iotdb/autotest_backup/3db_test_data
 fail_flag=0
 v_warnMessage=""
 test_begin_sec=$(date +%s)
+res_root_pw=TimechoDB@2021
 
 # Count query is a cheap per-device integrity check for root.test.g_0.
 q_count="select count(s_0) from root.test.g_0.** align by device;"
@@ -100,6 +105,117 @@ function clean_env() {
   sh -x "${clean_env_dir}/stop_cluster.sh"
   sh -x "${clean_env_dir}/clean_cluster.sh"
   sh -x "${clean_env_dir}/reset_conf.sh"
+}
+
+function write_test_result() {
+  test_end_sec=$(date +%s)
+  test_elp_sec=$((test_end_sec - test_begin_sec))
+  tc_res=true
+
+  if [[ "${fail_flag}" = 0 ]]; then
+    echo "${SCRIPT_NAME} : pass" | tee -a "${res_file}"
+  else
+    tc_res=false
+    echo "${SCRIPT_NAME} : fail" | tee -a "${res_file}"
+    if [[ -n "${v_warnMessage}" ]]; then
+      echo "${SCRIPT_NAME} : ${v_warnMessage}" >> "${res_file}"
+    fi
+  fi
+
+  if [[ -n "${testcase_res_db}" && -n "${testcase_res_port}" && -n "${testcase_ip}" && -n "${tc_num}" ]]; then
+    "${cli_dir}/sbin/start-cli.sh" \
+      -h "${testcase_res_db}" \
+      -p "${testcase_res_port}" \
+      -pw "${res_root_pw}" \
+      -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});" \
+      >> "${res_file}" 2>&1 || true
+  fi
+
+  if [[ -n "${v_warnMessage}" ]]; then
+    echo "warn_message=${v_warnMessage}"
+  fi
+  echo "elapsed=${test_elp_sec}s"
+}
+
+function check_log() {
+  local v_npe
+  local v_cn_err1
+  local v_cn_err2
+  local v_err
+  local v_err2
+  local v_err3
+  local v_err4
+  local v_err5
+  local v_err6
+  local v_err7
+  local v_err8
+  local v_err9
+  local v_err10
+  local v_err11
+  local v_err12
+  local v_err13
+  local v_err14
+  local v_dn_total_err
+
+  exec 3<"${nodeinfo_dir}/confignode.txt"
+  while read -r line <&3; do
+    ssh "${u_name}@${line}" "gunzip -f ${db_dir}/logs/*confignode*all*.gz 2>/dev/null || true"
+    v_npe=$(ssh "${u_name}@${line}" "grep NullPointer ${db_dir}/logs/*confignode*all* | wc -l")
+    v_cn_err1=$(ssh "${u_name}@${line}" "grep BufferUnderflowException ${db_dir}/logs/*confignode*all* | wc -l")
+    v_cn_err2=$(ssh "${u_name}@${line}" "grep \"but return HAS_MORE_STATE\" ${db_dir}/logs/*confignode*all* | wc -l")
+    if [[ ${v_npe} -gt 0 ]]; then
+      let fail_flag++
+      append_warn "CN NPE"
+    fi
+    if [[ $((v_cn_err1 + v_cn_err2)) -gt 0 ]]; then
+      let fail_flag++
+      append_warn "CN HAS_MORE_STATE"
+    fi
+  done
+  exec 3<&-
+
+  exec 3<"${nodeinfo_dir}/datanode.txt"
+  while read -r line <&3; do
+    ssh "${u_name}@${line}" "gunzip -f ${db_dir}/logs/*datanode*all*.gz 2>/dev/null || true"
+    v_npe=$(ssh "${u_name}@${line}" "grep NullPointer ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err=$(ssh "${u_name}@${line}" "grep CompactionTableSchemaNotMatchException ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err2=$(ssh "${u_name}@${line}" "grep \"has overlapped data\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err3=$(ssh "${u_name}@${line}" "grep \"which should be later than the last time\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err4=$(ssh "${u_name}@${line}" "grep \"DataTypeInconsistentException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err5=$(ssh "${u_name}@${line}" "grep \"ArrayIndexOutOfBoundsException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err6=$(ssh "${u_name}@${line}" "grep \"Alter timeseries .* data type from null to\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err7=$(ssh "${u_name}@${line}" "grep \"StatisticsClassException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err8=$(ssh "${u_name}@${line}" "grep \"BufferUnderflowException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err9=$(ssh "${u_name}@${line}" "grep \"NegativeArraySizeException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err10=$(ssh "${u_name}@${line}" "grep \"is not in tsFileMetaData\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err11=$(ssh "${u_name}@${line}" "grep \"The memory cost to be released is larger\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err12=$(ssh "${u_name}@${line}" "grep \"tsfile error\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err13=$(ssh "${u_name}@${line}" "grep \"which has not released all memory\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err14=$(ssh "${u_name}@${line}" "grep \"Error while reading timeseries metadata\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_dn_total_err=$((v_err + v_err2 + v_err3 + v_err4 + v_err5 + v_err6 + v_err7 + v_err8 + v_err9 + v_err10 + v_err11 + v_err12 + v_err13 + v_err14))
+    if [[ ${v_npe} -gt 0 ]]; then
+      let fail_flag++
+      append_warn "DN NPE"
+    fi
+    if [[ ${v_dn_total_err} -gt 0 ]]; then
+      let fail_flag++
+      append_warn "DN unexp log"
+    fi
+  done
+  exec 3<&-
+}
+
+function backup_logs() {
+  local case_name=${SCRIPT_NAME%.sh}
+  local backup_time
+
+  backup_time=$(date +"%Y_%m_%d_%H_%M_%S")
+  if ! sh -x "${clean_env_dir}/backup_cluster_logs.sh" "${case_name}" "${backup_time}"; then
+    append_warn "backup cluster logs failed"
+    let fail_flag++
+    return 1
+  fi
+  return 0
 }
 
 function set_sys_conf() {
@@ -515,15 +631,7 @@ clean_env
 start_db
 prepare_first_mig_repro
 
-test_end_sec=$(date +%s)
-test_elp_sec=$((test_end_sec - test_begin_sec))
-
-if [[ "${fail_flag}" = 0 ]]; then
-  echo "${SCRIPT_NAME} : pass" | tee -a "${res_file}"
-else
-  echo "${SCRIPT_NAME} : fail" | tee -a "${res_file}"
-fi
-if [[ -n "${v_warnMessage}" ]]; then
-  echo "warn_message=${v_warnMessage}"
-fi
-echo "elapsed=${test_elp_sec}s"
+sh -x "${clean_env_dir}/stop_cluster.sh"
+check_log
+backup_logs || true
+write_test_result

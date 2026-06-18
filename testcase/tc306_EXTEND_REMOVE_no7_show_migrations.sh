@@ -222,8 +222,8 @@ set_conf() {
   exec 3<"${nodeinfo_dir}/confignode.txt"
   while read -r line <&3
   do
-    ssh -n "${u_name}@${line}" "sed -i 's/#ON_HEAP_MEMORY=.*/ON_HEAP_MEMORY=\"2G\"/g' ${db_dir}/conf/confignode-env.sh"
-    ssh -n "${u_name}@${line}" "sed -i 's/#OFF_HEAP_MEMORY=.*/OFF_HEAP_MEMORY=\"1G\"/g' ${db_dir}/conf/confignode-env.sh"
+    ssh "${u_name}@${line}" "sed -i 's/#ON_HEAP_MEMORY=.*/ON_HEAP_MEMORY=\"2G\"/g' ${db_dir}/conf/confignode-env.sh"
+    ssh "${u_name}@${line}" "sed -i 's/#OFF_HEAP_MEMORY=.*/OFF_HEAP_MEMORY=\"1G\"/g' ${db_dir}/conf/confignode-env.sh"
     set_sys_conf "${line}" "${db_dir}" ".*cn_seed_config_node=.*" "cn_seed_config_node=${seed_cn_ip}"
     set_sys_conf "${line}" "${db_dir}" ".*cn_internal_address=.*" "cn_internal_address=${line}"
     set_sys_conf "${line}" "${db_dir}" ".*cn_metric_reporter_list=.*" "cn_metric_reporter_list=PROMETHEUS"
@@ -235,8 +235,8 @@ set_conf() {
   exec 3<"${nodeinfo_dir}/datanode.txt"
   while read -r line <&3
   do
-    ssh -n "${u_name}@${line}" "sed -i 's/#ON_HEAP_MEMORY=.*/ON_HEAP_MEMORY=\"20G\"/g' ${db_dir}/conf/datanode-env.sh"
-    ssh -n "${u_name}@${line}" "sed -i 's/#OFF_HEAP_MEMORY=.*/OFF_HEAP_MEMORY=\"2G\"/g' ${db_dir}/conf/datanode-env.sh"
+    ssh "${u_name}@${line}" "sed -i 's/#ON_HEAP_MEMORY=.*/ON_HEAP_MEMORY=\"20G\"/g' ${db_dir}/conf/datanode-env.sh"
+    ssh "${u_name}@${line}" "sed -i 's/#OFF_HEAP_MEMORY=.*/OFF_HEAP_MEMORY=\"2G\"/g' ${db_dir}/conf/datanode-env.sh"
     set_sys_conf "${line}" "${db_dir}" ".*dn_seed_config_node=.*" "dn_seed_config_node=${seed_cn_ip}"
     set_sys_conf "${line}" "${db_dir}" ".*dn_internal_address=.*" "dn_internal_address=${line}"
     set_sys_conf "${line}" "${db_dir}" ".*dn_rpc_address=.*" "dn_rpc_address=${line}"
@@ -1277,13 +1277,13 @@ wait_datanode_running() {
 stop_remote_datanode() {
   local dn_ip=$1
 
-  ssh -n "${u_name}@${dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh"
+  ssh "${u_name}@${dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh"
 }
 
 kill_remote_datanode() {
   local dn_ip=$1
 
-  ssh -n "${u_name}@${dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh -f"
+  ssh "${u_name}@${dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh -f"
 }
 
 start_remote_datanode() {
@@ -1291,7 +1291,7 @@ start_remote_datanode() {
   local start_time
 
   start_time=$(date +%s)
-  ssh -n "${u_name}@${dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/start-datanode.sh -H ${db_dir}/dn_${start_time}_heapdump.hprof > /dev/null 2>&1 &"
+  ssh "${u_name}@${dn_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/start-datanode.sh -H ${db_dir}/dn_${start_time}_heapdump.hprof > /dev/null 2>&1 &"
 }
 
 normalize_query_result() {
@@ -1404,7 +1404,7 @@ compare_query_result() {
     append_warn "${reason}"
     log "${reason}"
     sed -n '1,40p' "${cur_dir}/tmp_diff.out"
-#    let fail_flag++
+    let fail_flag++
     return 1
   fi
   return 0
@@ -1502,10 +1502,10 @@ check_log() {
   exec 3<"${nodeinfo_dir}/confignode.txt"
   while read -r line <&3
   do
-    ssh -n "${u_name}@${line}" "gunzip -f ${db_dir}/logs/*confignode*all*.gz 2>/dev/null || true"
-    v_npe=$(ssh -n "${u_name}@${line}" "grep NullPointer ${db_dir}/logs/*confignode*all* | wc -l")
-    v_cn_err1=$(ssh -n "${u_name}@${line}" "grep BufferUnderflowException ${db_dir}/logs/*confignode*all* | wc -l")
-    v_cn_err2=$(ssh -n "${u_name}@${line}" "grep \"but return HAS_MORE_STATE\" ${db_dir}/logs/*confignode*all* | wc -l")
+    ssh "${u_name}@${line}" "gunzip -f ${db_dir}/logs/*confignode*all*.gz 2>/dev/null || true"
+    v_npe=$(ssh "${u_name}@${line}" "grep NullPointer ${db_dir}/logs/*confignode*all* | wc -l")
+    v_cn_err1=$(ssh "${u_name}@${line}" "grep BufferUnderflowException ${db_dir}/logs/*confignode*all* | wc -l")
+    v_cn_err2=$(ssh "${u_name}@${line}" "grep \"but return HAS_MORE_STATE\" ${db_dir}/logs/*confignode*all* | wc -l")
     if [[ ${v_npe} -gt 0 ]]; then
       let fail_flag++
       append_warn "CN NPE"
@@ -1523,22 +1523,22 @@ check_log() {
   exec 3<"${nodeinfo_dir}/datanode.txt"
   while read -r line <&3
   do
-    ssh -n "${u_name}@${line}" "gunzip -f ${db_dir}/logs/*datanode*all*.gz 2>/dev/null || true"
-    v_npe=$(ssh -n "${u_name}@${line}" "grep NullPointer ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err=$(ssh -n "${u_name}@${line}" "grep CompactionTableSchemaNotMatchException ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err2=$(ssh -n "${u_name}@${line}" "grep \"has overlapped data\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err3=$(ssh -n "${u_name}@${line}" "grep \"which should be later than the last time\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err4=$(ssh -n "${u_name}@${line}" "grep \"DataTypeInconsistentException\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err5=$(ssh -n "${u_name}@${line}" "grep \"ArrayIndexOutOfBoundsException\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err6=$(ssh -n "${u_name}@${line}" "grep \"Alter timeseries .* data type from null to\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err7=$(ssh -n "${u_name}@${line}" "grep \"StatisticsClassException\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err8=$(ssh -n "${u_name}@${line}" "grep \"BufferUnderflowException\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err9=$(ssh -n "${u_name}@${line}" "grep \"NegativeArraySizeException\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err10=$(ssh -n "${u_name}@${line}" "grep \"is not in tsFileMetaData\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err11=$(ssh -n "${u_name}@${line}" "grep \"The memory cost to be released is larger\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err12=$(ssh -n "${u_name}@${line}" "grep \"tsfile error\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err13=$(ssh -n "${u_name}@${line}" "grep \"which has not released all memory\" ${db_dir}/logs/*datanode*all* | wc -l")
-    v_err14=$(ssh -n "${u_name}@${line}" "grep \"Error while reading timeseries metadata\" ${db_dir}/logs/*datanode*all* | wc -l")
+    ssh "${u_name}@${line}" "gunzip -f ${db_dir}/logs/*datanode*all*.gz 2>/dev/null || true"
+    v_npe=$(ssh "${u_name}@${line}" "grep NullPointer ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err=$(ssh "${u_name}@${line}" "grep CompactionTableSchemaNotMatchException ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err2=$(ssh "${u_name}@${line}" "grep \"has overlapped data\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err3=$(ssh "${u_name}@${line}" "grep \"which should be later than the last time\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err4=$(ssh "${u_name}@${line}" "grep \"DataTypeInconsistentException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err5=$(ssh "${u_name}@${line}" "grep \"ArrayIndexOutOfBoundsException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err6=$(ssh "${u_name}@${line}" "grep \"Alter timeseries .* data type from null to\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err7=$(ssh "${u_name}@${line}" "grep \"StatisticsClassException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err8=$(ssh "${u_name}@${line}" "grep \"BufferUnderflowException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err9=$(ssh "${u_name}@${line}" "grep \"NegativeArraySizeException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err10=$(ssh "${u_name}@${line}" "grep \"is not in tsFileMetaData\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err11=$(ssh "${u_name}@${line}" "grep \"The memory cost to be released is larger\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err12=$(ssh "${u_name}@${line}" "grep \"tsfile error\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err13=$(ssh "${u_name}@${line}" "grep \"which has not released all memory\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err14=$(ssh "${u_name}@${line}" "grep \"Error while reading timeseries metadata\" ${db_dir}/logs/*datanode*all* | wc -l")
     v_dn_total_err=$((v_err + v_err2 + v_err3 + v_err4 + v_err5 + v_err6 + v_err7 + v_err8 + v_err9 + v_err10 + v_err11 + v_err12 + v_err13 + v_err14))
     if [[ ${v_npe} -gt 0 ]]; then
       let fail_flag++

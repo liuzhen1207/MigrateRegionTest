@@ -29,13 +29,15 @@ total_node_num=$((cn_num+dn_num))
 backup_dir_on_cn_dn_host=/data/iotdb/autotest_backup/3db_test_data
 tmp_out_file="tc${tc_num}_tmp.out"
 fail_flag=0
+v_warnMessage=""
 testcase_ip=`cat ${conf_file}|grep test_ip|awk -F '.' '{print $4}'`
 tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
-loop_timeout_sec=300
-mig_submit_timeout_sec=180
+loop_timeout_sec=7200
+mig_submit_timeout_sec=7200
+query_sql="select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;"
 function clean_env()
 {
    #clean env
@@ -169,6 +171,7 @@ function write_test_result()
   test_end_sec=`date +%s`
   test_elp_sec=$((test_end_sec-test_begin_sec))
   tc_res=true
+  local warn_message_sql=""
 
   if [[ ${fail_flag} = 0 ]];then
      tc_res=true
@@ -176,8 +179,302 @@ function write_test_result()
   else
      tc_res=false
      echo "${SCRIPT_NAME} : fail" >>"${res_file}"
+     if [[ -n "${v_warnMessage}" ]];then
+        echo "${SCRIPT_NAME} : ${v_warnMessage}" >> "${res_file}"
+     fi
   fi
-  ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
+  if [[ -n "${v_warnMessage}" ]];then
+     echo "warn_message=${v_warnMessage}"
+     warn_message_sql=${v_warnMessage//;/,}
+     warn_message_sql=${warn_message_sql//\'/\'\'}
+  fi
+  ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time,warnMsg)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec},'${warn_message_sql}');"
+}
+
+function append_warn()
+{
+  local v_msg=$1
+  if [[ -z "${v_warnMessage}" ]];then
+     v_warnMessage="${v_msg}"
+  else
+     v_warnMessage="${v_warnMessage}; ${v_msg}"
+  fi
+}
+
+function query_output_has_error()
+{
+  local src_file=$1
+  grep -Eiq '(^Msg:|IoTDBSQLException|StatementExecutionException|executeStatement failed|^[[:space:]]*Exception|java\.lang\.)' "${src_file}"
+}
+
+function normalize_query_result()
+{
+  local src_file=$1
+  local dst_file=$2
+
+  awk '
+    /^\+/ { next }
+    /^It costs / { next }
+    /\|/ {
+      line = $0
+      gsub(/\r/, "", line)
+      gsub(/^[ \t]+|[ \t]+$/, "", line)
+      if (line == "") {
+        next
+      }
+      split(line, arr, "|")
+      out = ""
+      for (i = 2; i < length(arr); i++) {
+        val = arr[i]
+        gsub(/^[ \t]+|[ \t]+$/, "", val)
+        out = out val "|"
+      }
+      if (out ~ /^(Device|Time|time)\|/) {
+        next
+      }
+      if (out != "|") {
+        print out
+      }
+    }
+  ' "${src_file}" | sort > "${dst_file}"
+}
+
+function wait_migrate_region_finish()
+{
+   local v_start_time=`date +%s`
+   local v_remove_region_log=0
+   local v_mig_suc_log=0
+
+   while true
+   do
+      v_remove_region_log=0
+      v_mig_suc_log=0
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;" |grep -i Running|awk -F '|' '{gsub(" ","");print $4}'>${cur_dir}/all_cn_ip.txt
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show migrations;" > ${cur_dir}/show_migrations.out
+      v_mig_show_empty=`grep "Empty set" ${cur_dir}/show_migrations.out|wc -l`
+
+      exec 3<${cur_dir}/all_cn_ip.txt
+      while read line <&3
+      do
+         if [[ -z "${line}" ]];then
+            continue
+         fi
+         ssh ${u_name}@${line} "sudo gunzip -f ${db_dir}/logs/log-confignode-all*gz >/dev/null 2>&1 || true"
+         v_remove_region_log_tmp=`ssh ${u_name}@${line} "grep \"\\[RemoveRegion\\] success, region ${v_mig_id} has been removed from DataNode ${v_mig_from_dn_id}\" ${db_dir}/logs/*confignode*all*|wc -l"`
+         v_mig_suc_log_tmp=`ssh ${u_name}@${line} "grep \"\\[MigrateRegion\\] success\" ${db_dir}/logs/*confignode*all*|grep \" has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}\"|wc -l"`
+         v_remove_region_log=$((v_remove_region_log + v_remove_region_log_tmp))
+         v_mig_suc_log=$((v_mig_suc_log + v_mig_suc_log_tmp))
+      done
+
+      if [[ ${v_mig_show_empty} -gt 0 ]] && [[ ${v_remove_region_log} -gt 0 || ${v_mig_suc_log} -gt 0 ]];then
+         break
+      fi
+
+      v_end_time=`date +%s`
+      v_elp=$((v_end_time-v_start_time))
+      if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+         return 1
+      fi
+      sleep 5
+   done
+
+   return 0
+}
+
+function choose_query_host()
+{
+  local stop_dn_ip=$1
+  awk -v stop_ip="${stop_dn_ip}" '$0 != stop_ip {print; exit}' "${cur_dir}/running_datanodes.txt"
+}
+
+function wait_datanode_not_running()
+{
+  local query_host=$1
+  local stop_dn_ip=$2
+  local timeout_sec=$3
+  local start_time=`date +%s`
+
+  while true
+  do
+    v_check_status=`${cli_dir}/sbin/start-cli.sh -h ${query_host} -e "show datanodes"|grep ${stop_dn_ip}|grep -i Running|wc -l`
+    if [[ ${v_check_status} = 0 ]];then
+      return 0
+    fi
+    v_end_time=`date +%s`
+    v_elp=$((v_end_time-start_time))
+    if [[ ${v_elp} -gt ${timeout_sec} ]];then
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+function wait_datanode_running()
+{
+  local query_host=$1
+  local stop_dn_ip=$2
+  local timeout_sec=$3
+  local start_time=`date +%s`
+
+  while true
+  do
+    v_check_status=`${cli_dir}/sbin/start-cli.sh -h ${query_host} -e "show datanodes"|grep ${stop_dn_ip}|grep -i Running|wc -l`
+    if [[ ${v_check_status} -gt 0 ]];then
+      return 0
+    fi
+    v_end_time=`date +%s`
+    v_elp=$((v_end_time-start_time))
+    if [[ ${v_elp} -gt ${timeout_sec} ]];then
+      return 1
+    fi
+    sleep 2
+  done
+}
+
+function check_replica_consistency_when_stop_each_dn()
+{
+  local stop_dn_ip
+  local query_host
+  local v_ip
+  local start_time
+  local check_file
+  local check_norm_file
+  local query_failed
+
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes" > ${cur_dir}/show_datanodes_after_mig.out
+  awk -F '|' '/Running/ {gsub(/ /, "", $4); print $4}' ${cur_dir}/show_datanodes_after_mig.out | sort -u > ${cur_dir}/running_datanodes.txt
+
+  while read stop_dn_ip
+  do
+    if [[ -z "${stop_dn_ip}" ]];then
+      continue
+    fi
+    query_host=`choose_query_host ${stop_dn_ip}`
+    if [[ -z "${query_host}" ]];then
+      append_warn "no query host left after stopping ${stop_dn_ip}"
+      let fail_flag++
+      return 1
+    fi
+
+    ssh ${u_name}@${stop_dn_ip} "source /etc/profile;sudo ${db_dir}/sbin/stop-datanode.sh"
+    if ! wait_datanode_not_running ${query_host} ${stop_dn_ip} 180;then
+      append_warn "cluster state did not update after stopping ${stop_dn_ip}"
+      let fail_flag++
+      return 1
+    fi
+
+    v_ip=`echo ${stop_dn_ip}|awk -F '.' '{print $4}'`
+    check_file=${cur_dir}/q_stop_ip${v_ip}.out
+    check_norm_file=${cur_dir}/q_stop_ip${v_ip}.norm
+    query_failed=0
+    ${cli_dir}/sbin/start-cli.sh -h ${query_host} -timeout 36000 -e "${query_sql}" > ${check_file}
+    if query_output_has_error ${check_file};then
+      append_warn "replica consistency query execute failed when ${stop_dn_ip} is down"
+      let fail_flag++
+      query_failed=1
+    else
+      normalize_query_result ${check_file} ${check_norm_file}
+    fi
+    if [[ ${query_failed} -eq 0 ]] && ! diff -u ${cur_dir}/q_exp.norm ${check_norm_file} > ${cur_dir}/tmp_diff_stop_ip${v_ip}.out 2>&1;then
+      append_warn "replica consistency query result differs when ${stop_dn_ip} is down"
+      let fail_flag++
+    fi
+
+    start_time=`date +%s`
+    ssh ${u_name}@${stop_dn_ip} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_${start_time}_heapdump.hprof > /dev/null 2>&1 &"
+    if ! wait_datanode_running ${query_host} ${stop_dn_ip} 300;then
+      append_warn "failed to restart ${stop_dn_ip}"
+      let fail_flag++
+      return 1
+    fi
+  done < ${cur_dir}/running_datanodes.txt
+
+  return 0
+}
+
+function check_log()
+{
+  local v_npe
+  local v_cn_err1
+  local v_cn_err2
+  local v_err
+  local v_err2
+  local v_err3
+  local v_err4
+  local v_err5
+  local v_err6
+  local v_err7
+  local v_err8
+  local v_err9
+  local v_err10
+  local v_err11
+  local v_err12
+  local v_err13
+  local v_err14
+  local v_dn_total_err
+
+  exec 3<${nodeinfo_dir}/confignode.txt
+  while read line <&3
+  do
+    ssh ${u_name}@${line} "gunzip -f ${db_dir}/logs/*confignode*all*.gz 2>/dev/null || true"
+    v_npe=$(ssh ${u_name}@${line} "grep NullPointer ${db_dir}/logs/*confignode*all* | wc -l")
+    v_cn_err1=$(ssh ${u_name}@${line} "grep BufferUnderflowException ${db_dir}/logs/*confignode*all* | wc -l")
+    v_cn_err2=$(ssh ${u_name}@${line} "grep \"but return HAS_MORE_STATE\" ${db_dir}/logs/*confignode*all* | wc -l")
+    if [[ ${v_npe} -gt 0 ]]; then
+      let fail_flag++
+      append_warn "CN NPE"
+    fi
+    if [[ $((v_cn_err1 + v_cn_err2)) -gt 0 ]]; then
+      let fail_flag++
+      append_warn "CN HAS_MORE_STATE"
+    fi
+  done
+  exec 3<&-
+
+  exec 3<${nodeinfo_dir}/datanode.txt
+  while read line <&3
+  do
+    ssh ${u_name}@${line} "gunzip -f ${db_dir}/logs/*datanode*all*.gz 2>/dev/null || true"
+    v_npe=$(ssh ${u_name}@${line} "grep NullPointer ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err=$(ssh ${u_name}@${line} "grep CompactionTableSchemaNotMatchException ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err2=$(ssh ${u_name}@${line} "grep \"has overlapped data\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err3=$(ssh ${u_name}@${line} "grep \"which should be later than the last time\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err4=$(ssh ${u_name}@${line} "grep \"DataTypeInconsistentException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err5=$(ssh ${u_name}@${line} "grep \"ArrayIndexOutOfBoundsException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err6=$(ssh ${u_name}@${line} "grep \"Alter timeseries .* data type from null to\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err7=$(ssh ${u_name}@${line} "grep \"StatisticsClassException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err8=$(ssh ${u_name}@${line} "grep \"BufferUnderflowException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err9=$(ssh ${u_name}@${line} "grep \"NegativeArraySizeException\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err10=$(ssh ${u_name}@${line} "grep \"is not in tsFileMetaData\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err11=$(ssh ${u_name}@${line} "grep \"The memory cost to be released is larger\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err12=$(ssh ${u_name}@${line} "grep \"tsfile error\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err13=$(ssh ${u_name}@${line} "grep \"which has not released all memory\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_err14=$(ssh ${u_name}@${line} "grep \"Error while reading timeseries metadata\" ${db_dir}/logs/*datanode*all* | wc -l")
+    v_dn_total_err=$((v_err + v_err2 + v_err3 + v_err4 + v_err5 + v_err6 + v_err7 + v_err8 + v_err9 + v_err10 + v_err11 + v_err12 + v_err13 + v_err14))
+    if [[ ${v_npe} -gt 0 ]]; then
+      let fail_flag++
+      append_warn "DN NPE"
+    fi
+    if [[ ${v_dn_total_err} -gt 0 ]]; then
+      let fail_flag++
+      append_warn "DN unexp log"
+    fi
+  done
+  exec 3<&-
+}
+
+function backup_logs()
+{
+  local case_name=${SCRIPT_NAME%.sh}
+  local backup_time
+
+  backup_time=$(date +"%Y_%m_%d_%H_%M_%S")
+  if ! sh -x "${clean_env_dir}/backup_cluster_logs.sh" "${case_name}" "${backup_time}"; then
+    append_warn "backup cluster logs failed"
+    let fail_flag++
+    return 1
+  fi
+  return 0
 }
 
 function start_db()
@@ -225,7 +522,8 @@ done
 
 function pre_and_exec_mig_region()
 {
- ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_exp.out
+ ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "${query_sql}">${cur_dir}/q_exp.out
+ normalize_query_result ${cur_dir}/q_exp.out ${cur_dir}/q_exp.norm
 
   v_mig_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep root.test|head -1|awk -F '|' '{gsub(" ","");print $2}'`
   refresh_region_runtime_info
@@ -360,7 +658,7 @@ do
    if [[ ${v_check_mig_regionid} != ${dr_rep_num} ]];then
       v_end_sec=`date +%s`
 	  v_elp=$((v_end_sec-v_beg_sec))
-	  if [[ ${v_elp} -gt 180 ]];then
+	  if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
 	     let fail_flag++
 		 break
 	  fi
@@ -436,40 +734,43 @@ v_mig_to_dn_id=-1
       return 1
    fi
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-# check Removing success
+# check migration finish
  v_mig_to_dn_ip=`grep "${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
  v_mig_from_dn_ip=`grep "${v_mig_from_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
-   v_start_time=`date +%s`
-   while true
-   do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip -f ${db_dir}/logs/log-confignode-all*gz >/dev/null 2>&1 || true"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|grep \" has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}\"|wc -l"`
-              if [[ ${v_mig_suc_log} = 1 ]];then
-                 break
-              else
-                 v_end_time=`date +%s`
-                 v_elp=$((v_end_time-v_start_time))
-                 if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
-                    let fail_flag++
-                    write_test_result
-                    return 1
-                 fi
-                 sleep 2
-              fi
+   if ! wait_migrate_region_finish;then
+      let fail_flag++
+      write_test_result
+      return 1
+   fi
 
-   done
-
- ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
- v_check_res=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out |grep root|wc -l`
+ ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "${query_sql}">${cur_dir}/q_act.out
+ normalize_query_result ${cur_dir}/q_act.out ${cur_dir}/q_act.norm
+ if diff -u ${cur_dir}/q_act.norm ${cur_dir}/q_exp.norm > ${cur_dir}/tmp_diff_final.out 2>&1;then
+    v_check_res=0
+ else
+    v_check_res=`grep -c '^[+-].*root\.' ${cur_dir}/tmp_diff_final.out`
+    if [[ ${v_check_res} = 0 ]];then
+       v_check_res=1
+    fi
+ fi
  if [[ ${v_check_res} != 0 ]];then
+    append_warn "final query result diff count is ${v_check_res}"
     let fail_flag++
  fi
 
 v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|wc -l`
 if [[ ${v_check_mig_regionid} != ${dr_rep_num} ]];then
+   append_warn "final region ${v_mig_id} replica count is ${v_check_mig_regionid}, expected ${dr_rep_num}"
    let fail_flag++
 fi
 
+if [[ ${v_check_res} = 0 ]] && [[ ${v_check_mig_regionid} = ${dr_rep_num} ]];then
+   check_replica_consistency_when_stop_each_dn
+fi
+
+sh -x "${clean_env_dir}/stop_cluster.sh"
+check_log
+backup_logs || true
 write_test_result
 
  

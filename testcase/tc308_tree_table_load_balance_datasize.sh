@@ -592,9 +592,9 @@ summarize_table_regions_by_dn() {
       type = trim(\$3)
       status = trim(\$4)
       database = trim(\$5)
-      dn_id = trim(\$7)
-      role = trim(\$11)
-      size_raw = trim(\$13)
+      dn_id = trim(\$8)
+      role = trim(\$12)
+      size_raw = trim(\$14)
       if (region_id !~ /^[0-9]+$/ || type != \"DataRegion\" || status != \"Running\" || database != \"${table_db_name}\" || dn_id == \"\") {
         next
       }
@@ -696,8 +696,8 @@ build_region_member_map() {
       type = trim(\$3)
       status = trim(\$4)
       database = trim(\$5)
-      dn_id = trim(\$7)
-      size_raw = trim(\$13)
+      dn_id = trim(\$8)
+      size_raw = trim(\$14)
       if (region_id !~ /^[0-9]+$/ || type != \"DataRegion\" || status != \"Running\" || database != \"${table_db_name}\" || dn_id == \"\") {
         next
       }

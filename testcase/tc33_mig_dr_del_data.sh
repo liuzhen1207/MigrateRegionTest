@@ -17,7 +17,7 @@ query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 bm_ip=`head -1 ${nodeinfo_dir}/bm_node.txt`
 bm_dir=/data1/benchmark/bm_20240320_76af1a40
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
-# https://jira.infra.timecho.com:8443/browse/TIMECHODB-456 
+# https://jira.infra.timecho.com:8443/browse/TIMECHODB-456
 fail_file="fail.log"
 cn_num=3
 dn_num=5
@@ -85,7 +85,7 @@ set_sys_conf ${line} ${db_dir} ".*schema_region_group_extension_policy=.*" "sche
 set_sys_conf ${line} ${db_dir} ".*data_region_group_extension_policy=.*" "data_region_group_extension_policy=CUSTOM"
 set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=1"
 set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=5"
-set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"     
+set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"
   done
 
   exec 3<${nodeinfo_dir}/datanode.txt
@@ -107,7 +107,7 @@ set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*"
 set_sys_conf ${line} ${db_dir} ".*datanode_memory_proportion=.*"  "datanode_memory_proportion=1:5:1:1:1:1"
 set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"
   done
- 
+
 }
 
 function start_db()
@@ -117,7 +117,7 @@ function start_db()
    sh -x ${clean_env_dir}/clean_cluster.sh
    sh -x ${clean_env_dir}/reset_conf.sh
    #start cluster
-   head -n $cn_num ${nodeinfo_dir}/total_node.txt > ${nodeinfo_dir}/confignode.txt 
+   head -n $cn_num ${nodeinfo_dir}/total_node.txt > ${nodeinfo_dir}/confignode.txt
    set_conf
 #copy data
 exec 3<${nodeinfo_dir}/datanode.txt
@@ -153,6 +153,35 @@ done
 
 }
 
+function wait_migrate_region_success_since()
+{
+   local v_bef_mig_sec=$1
+   while true
+   do
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep -i Running|awk -F '|' '{gsub(" ","");print $4}'>${cur_dir}/running_cn_ip.txt
+      exec 4<${cur_dir}/running_cn_ip.txt
+      while read v_cn_ip <&4
+      do
+         ssh ${u_name}@${v_cn_ip} "sudo gunzip -f ${db_dir}/logs/log-confignode-all*gz >/dev/null 2>&1 || true"
+         v_mig_suc_log=`ssh ${u_name}@${v_cn_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all* 2>/dev/null|tail -1"`
+         if [[ -z ${v_mig_suc_log} ]];then
+            continue
+         fi
+         v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
+         if [[ -z ${v_mig_suc_time} ]];then
+            continue
+         fi
+         v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
+         if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
+            exec 4<&-
+            return 0
+         fi
+      done
+      exec 4<&-
+      sleep 2
+   done
+}
+
 function pre_and_exec_mig_region()
 {
 
@@ -185,25 +214,11 @@ do
    sleep 2
    if [[ ${v_del_flag} -gt 0 ]];then
       echo "have been executed delete timeseries;"
-   else 
+   else
       ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "delete from root.test.g_0.*.s_40;">${cur_dir}/del_s_40.out &
       let v_del_flag++
    fi
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   while true
-   do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all.log|tail -1"`
-              v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-              v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
-
-              if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-                 break
-              else
-                 sleep 2 
-              fi
-
-   done
+   wait_migrate_region_success_since ${v_bef_mig_sec}
    v_mig_to_dn_id=${v_mig_from_dn_id}
 
 done
@@ -245,8 +260,8 @@ tc_res=true
   fi
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
 
- 
-} 
+
+}
 clean_env
 start_db
 pre_and_exec_mig_region

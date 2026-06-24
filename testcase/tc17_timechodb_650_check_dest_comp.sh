@@ -111,6 +111,23 @@ set_sys_conf ${line} ${db_dir} ".*compaction_schedule_interval_in_ms=.*" "compac
  
 }
 
+function get_leader_confignode_ip()
+{
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'
+}
+
+function refresh_confignode_all_logs()
+{
+  local v_ip=$1
+  ssh ${u_name}@${v_ip} "sudo gunzip -f ${db_dir}/logs/log-confignode-all*.gz ${db_dir}/logs/log_confignode_all*.gz >/dev/null 2>&1 || true"
+}
+
+function refresh_datanode_all_logs()
+{
+  local v_ip=$1
+  ssh ${u_name}@${v_ip} "sudo gunzip -f ${db_dir}/logs/log-datanode-all*.gz ${db_dir}/logs/log_datanode_all*.gz >/dev/null 2>&1 || true"
+}
+
 function start_db()
 {
    #clean env
@@ -178,31 +195,48 @@ do
    fi
   v_check_comp_dn_ip=`grep "^${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
 
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
+   v_cn_leader_ip=`get_leader_confignode_ip`
    v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
    v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
-    v_mig_from_dn_ip=`grep "^${v_mig_from_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
+   v_mig_from_dn_ip=`grep "^${v_mig_from_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
+   v_mig_wait_begin_sec=`date +%s`
+   v_mig_wait_timeout_sec=600
    sleep 10
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    while true
    do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-      	      v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|tail -1"`
-	      v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-	      v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
+      v_cn_leader_ip=`get_leader_confignode_ip`
+      if [[ -n "${v_cn_leader_ip}" ]];then
+         refresh_confignode_all_logs ${v_cn_leader_ip}
+         v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all* 2>/dev/null|tail -1"`
+         v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
+         if [[ -n "${v_mig_suc_time}" ]];then
+            v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s 2>/dev/null`
+         else
+            v_mig_suc_sec=
+         fi
+      else
+         v_mig_suc_sec=
+      fi
 
-	      if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
+      if [[ -n "${v_mig_suc_sec}" ]] && [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
 #check dest dn dir
    if ssh ${u_name}@${v_mig_from_dn_ip} "[ -d ${db_dir}/data/datanode/data/sequence/root.test.g_0/${v_mig_id} ]"; then
      let fail_flag++ 
    else
      echo "dir is clean."
    fi
-		 break
-	      else
-		 sleep 10 
-	      fi
+         break
+      fi
+
+      v_mig_wait_elp_sec=$((`date +%s`-v_mig_wait_begin_sec))
+      if [[ ${v_mig_wait_elp_sec} -gt ${v_mig_wait_timeout_sec} ]];then
+         echo "[timeout] no post-migration success log found within ${v_mig_wait_timeout_sec}s" >>"${res_file}"
+         let fail_flag++
+         break
+      fi
+
+      sleep 10
 
    done
    v_mig_to_dn_id=${v_mig_from_dn_id} 
@@ -219,11 +253,11 @@ if [[ ${v_check_mig_regionid} != 3 ]];then
    let fail_flag++
 fi
 #check dest dn comp log
-ssh ${u_name}@${v_check_comp_dn_ip} "sudo gunzip ${db_dir}/logs/log-datanode-all*"
+refresh_datanode_all_logs ${v_check_comp_dn_ip}
 v_beg_sec=`date +%s`
 while true
 do
-v_comp_log_str=`ssh ${u_name}@${v_check_comp_dn_ip} "grep \"compaction with.*root.test.g_0/${v_mig_id}\" ${db_dir}/logs/*datanode*all*|wc -l"`
+v_comp_log_str=`ssh ${u_name}@${v_check_comp_dn_ip} "grep \"compaction with.*root.test.g_0/${v_mig_id}\" ${db_dir}/logs/*datanode*all* 2>/dev/null|wc -l"`
 if [[ ${v_comp_log_str} -gt 0 ]];then
 break
 else
@@ -232,7 +266,7 @@ sleep 5
 fi
 v_elp=$((v_end_sec-v_beg_sec))
 if [[ ${v_elp} -gt 120 ]];then
-let fail_flat++
+let fail_flag++
 break
 fi
 done

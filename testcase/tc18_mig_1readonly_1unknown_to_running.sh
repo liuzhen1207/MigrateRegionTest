@@ -17,7 +17,7 @@ query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 bm_ip=`head -1 ${nodeinfo_dir}/bm_node.txt`
 bm_dir=/data1/benchmark/bm_20240320_76af1a40
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
-# https://jira.infra.timecho.com:8443/browse/TIMECHODB-456 
+# https://jira.infra.timecho.com:8443/browse/TIMECHODB-456
 fail_file="fail.log"
 cn_num=3
 dn_num=5
@@ -33,6 +33,7 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+
 function clean_env()
 {
    #clean env
@@ -84,7 +85,7 @@ set_sys_conf ${line} ${db_dir} ".*schema_region_group_extension_policy=.*" "sche
 set_sys_conf ${line} ${db_dir} ".*data_region_group_extension_policy=.*" "data_region_group_extension_policy=CUSTOM"
 set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=1"
 set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=5"
-set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"     
+set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"
   done
 
   exec 3<${nodeinfo_dir}/datanode.txt
@@ -106,7 +107,7 @@ set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*"
    set_sys_conf ${line} ${db_dir} ".*datanode_memory_proportion=.*"  "datanode_memory_proportion=1:5:1:1:1:1"
 set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"
   done
- 
+
 }
 
 function start_db()
@@ -116,7 +117,7 @@ function start_db()
    sh -x ${clean_env_dir}/clean_cluster.sh
    sh -x ${clean_env_dir}/reset_conf.sh
    #start cluster
-   head -n $cn_num ${nodeinfo_dir}/total_node.txt > ${nodeinfo_dir}/confignode.txt 
+   head -n $cn_num ${nodeinfo_dir}/total_node.txt > ${nodeinfo_dir}/confignode.txt
    set_conf
 #copy data
 exec 3<${nodeinfo_dir}/datanode.txt
@@ -156,31 +157,38 @@ function mig_region()
    v_mig_id=$1
    v_mig_from_dn_id=$2
    v_mig_dest_dn_id=$3
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
-   v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
+   local show_migrations_file="${cur_dir}/show_migrations_${v_mig_id}_${v_mig_from_dn_id}_${v_mig_dest_dn_id}.out"
+   local show_regions_file="${cur_dir}/show_regions_${v_mig_id}_${v_mig_from_dn_id}_${v_mig_dest_dn_id}.out"
+   local stable_empty_cnt=0
+   local poll_interval_sec=10
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_dest_dn_id};" >> ${cur_dir}/mig.out
    sleep 2
    v_mig_start_sec=`date +%s`
    while true
    do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|tail -1"`
-              v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-              v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show migrations;" > "${show_migrations_file}" 2>&1
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show regions;" > "${show_regions_file}" 2>&1
+      v_mig_has_error=`grep -Ec "Exception|ERROR|Error" "${show_migrations_file}"`
+      v_region_has_error=`grep -Ec "Exception|ERROR|Error" "${show_regions_file}"`
+      v_mig_is_empty=`grep -Ec '^Empty set' "${show_migrations_file}"`
+      v_region_transition_cnt=`grep -E "Adding|Removing" "${show_regions_file}" | wc -l`
 
-              if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-                 break
-              else
-                 v_mig_cur_sec=`date +%s`
-                 v_mig_elp=$((v_mig_cur_sec-v_mig_start_sec))
-                 if [[ ${v_mig_elp} -gt 1200 ]];then
-                    let fail_flag++
-                    break
-                 fi 
-                 sleep 5 
-              fi
+      if [[ ${v_mig_has_error} = 0 && ${v_region_has_error} = 0 && ${v_mig_is_empty} -gt 0 && ${v_region_transition_cnt} = 0 ]];then
+         stable_empty_cnt=$((stable_empty_cnt+1))
+         if [[ ${stable_empty_cnt} -ge 3 ]];then
+            break
+         fi
+      else
+         stable_empty_cnt=0
+      fi
 
+      v_mig_cur_sec=`date +%s`
+      v_mig_elp=$((v_mig_cur_sec-v_mig_start_sec))
+      if [[ ${v_mig_elp} -gt 3600 ]];then
+         let fail_flag++
+         break
+      fi
+      sleep ${poll_interval_sec}
    done
 
 }
@@ -202,7 +210,7 @@ function pre_and_exec_mig_region()
   query_ip=`grep -v ${v_mig_from_dn_ip1} ${cur_dir}/all_dn_id_ip.txt|grep -v ${v_mig_from_dn_ip2}|head -1 |awk -F ',' '{print $2}'`
   v_mig_dest_dn_id1=`grep -v ${v_mig_from_dn_ip1} ${cur_dir}/all_dn_id_ip.txt|grep -v ${v_mig_from_dn_ip2}|head -1 |awk -F ',' '{print $1}'`
   v_mig_dest_dn_id2=`grep -v ${v_mig_from_dn_ip1} ${cur_dir}/all_dn_id_ip.txt|grep -v ${v_mig_from_dn_ip2}|tail -1 |awk -F ',' '{print $1}'`
-   
+
   while true
   do
       v_check_status=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep -i readonly|wc -l`
@@ -210,7 +218,7 @@ function pre_and_exec_mig_region()
          break
       else
          sleep 2
-      fi 
+      fi
   done
   while true
   do
@@ -221,7 +229,7 @@ function pre_and_exec_mig_region()
          sleep 2
       fi
   done
-  mig_region "${v_mig_id}" "${v_mig_from_dn_id1}" "${v_mig_dest_dn_id1}"  
+  mig_region "${v_mig_id}" "${v_mig_from_dn_id1}" "${v_mig_dest_dn_id1}"
   mig_region "${v_mig_id}" "${v_mig_from_dn_id2}" "${v_mig_dest_dn_id2}"
   # restart unknown
  v_start_time=`date +%s`
@@ -241,7 +249,7 @@ function pre_and_exec_mig_region()
          sleep 2
       fi
    done
- 
+
   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
    v_query_is_same=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out|grep root|wc -l`
    if [[ ${v_query_is_same} -gt 0 ]];then
@@ -265,8 +273,8 @@ tc_res=true
   fi
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
 
- 
-} 
+
+}
 clean_env
 start_db
 pre_and_exec_mig_region

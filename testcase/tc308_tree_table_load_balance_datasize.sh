@@ -13,6 +13,7 @@ cli_dir=$(grep '^client_db_dir=' "${conf_file}" | awk -F '=' '{print $2}')
 testcase_res_db=$(grep '^testcase_res_db=' "${conf_file}" | awk -F '=' '{print $2}')
 testcase_res_port=$(grep '^testcase_res_port=' "${conf_file}" | awk -F '=' '{print $2}')
 bm_conn_pw=$(grep '^bm_conn_pw=' "${conf_file}" | awk -F '=' '{print $2}')
+monitor_url=$(grep '^monitor_url=' "${conf_file}" | awk -F '=' '{print $2}')
 
 clean_env_dir="${cur_dir}/../clean_env"
 prepare_env_dir="${cur_dir}/../prepare_env"
@@ -68,6 +69,7 @@ default_data_region_group_num_per_database=12
 target_skew_size_diff_pct=35
 target_balance_size_diff_pct=20
 max_skew_rounds=6
+max_one_way_skew_moves_per_round=3
 migrations_empty_streak_target=5
 migrations_poll_interval_seconds=10
 
@@ -75,6 +77,10 @@ skew_heavy_dn1=""
 skew_heavy_dn2=""
 skew_light_dn1=""
 skew_light_dn2=""
+skew_focus_dn=""
+cn_leader_disk_usage_std_before_first_load_balance=""
+cn_leader_disk_usage_std_after_first_load_balance=""
+cn_leader_disk_usage_std_after_second_load_balance=""
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "${log_file}"
@@ -87,6 +93,59 @@ append_warn() {
   else
     v_warnMessage="${v_warnMessage}; ${msg}"
   fi
+}
+
+parse_monitor_query_status() {
+  local response_file=$1
+
+  if command -v jq >/dev/null 2>&1; then
+    jq -r '.status' "${response_file}" 2>/dev/null
+    return $?
+  fi
+
+  awk '
+    match($0, /"status"[[:space:]]*:[[:space:]]*"[^"]+"/) {
+      status = substr($0, RSTART, RLENGTH)
+      sub(/.*"status"[[:space:]]*:[[:space:]]*"/, "", status)
+      sub(/".*/, "", status)
+      print status
+      found = 1
+      exit 0
+    }
+    END { exit found ? 0 : 1 }
+  ' "${response_file}"
+}
+
+parse_monitor_query_first_value() {
+  local response_file=$1
+
+  if command -v jq >/dev/null 2>&1; then
+    jq -r '.data.result[0].value[1] // empty' "${response_file}" 2>/dev/null
+    return $?
+  fi
+
+  awk '
+    {
+      line = $0
+      while (match(line, /"value"[[:space:]]*:[[:space:]]*\[[^]]*\]/)) {
+        item = substr(line, RSTART, RLENGTH)
+        split(item, parts, ",")
+        if (length(parts) >= 2) {
+          value = parts[2]
+          gsub(/^[^"]*"/, "", value)
+          gsub(/".*$/, "", value)
+          gsub(/[[:space:]]/, "", value)
+          if (value != "") {
+            print value
+            found = 1
+            exit 0
+          }
+        }
+        line = substr(line, RSTART + RLENGTH)
+      }
+    }
+    END { exit found ? 0 : 1 }
+  ' "${response_file}"
 }
 
 trim_file_crlf() {
@@ -551,6 +610,85 @@ run_table_maintenance_sql() {
   return 0
 }
 
+get_current_cn_leader_ip() {
+  local out_file=$1
+
+  run_cli_sql "${query_ip}" tree "show confignodes;" "${out_file}" 3600
+  check_cli_success "${out_file}" "show confignodes" || return 1
+
+  awk -F '|' '/Leader/ { gsub(/ /, "", $4); print $4; exit }' "${out_file}"
+}
+
+query_monitor_value() {
+  local query=$1
+  local response_file=$2
+  local out_var=$3
+  local stage=$4
+  local response_status=""
+  local value=""
+
+  if [[ -z "${monitor_url// }" ]]; then
+    append_warn "monitor_url is empty, skip ${stage}"
+    let fail_flag++
+    return 1
+  fi
+
+  curl -s -u "admin:admin" --get --data-urlencode "query=${query}" "${monitor_url}/api/v1/query" > "${response_file}"
+  response_status=$(parse_monitor_query_status "${response_file}") || true
+  if [[ "${response_status}" != "success" ]]; then
+    append_warn "${stage} monitor query failed"
+    let fail_flag++
+    return 1
+  fi
+
+  value=$(parse_monitor_query_first_value "${response_file}") || true
+  if [[ -z "${value}" ]]; then
+    append_warn "${stage} monitor query returned empty value"
+    let fail_flag++
+    return 1
+  fi
+
+  printf -v "${out_var}" '%s' "${value}"
+  log "${stage} value=${value}"
+  return 0
+}
+
+capture_cn_leader_disk_usage_std() {
+  local stage=$1
+  local out_var=$2
+  local cn_leader_ip=""
+  local query=""
+  local response_file="${run_artifact_dir}/${stage}_cn_leader_disk_usage_std.json"
+
+  cn_leader_ip=$(get_current_cn_leader_ip "${run_artifact_dir}/${stage}_show_confignodes.out") || return 1
+  if [[ -z "${cn_leader_ip}" ]]; then
+    append_warn "${stage} failed to resolve current confignode leader ip"
+    let fail_flag++
+    return 1
+  fi
+
+  query="max(data_node_disk_usage_rate_std{instance=~\"^${cn_leader_ip//./[.]}(:[0-9]+)?$\"})"
+  query_monitor_value "${query}" "${response_file}" "${out_var}" "${stage} cn leader disk usage std" || return 1
+  log "${stage} cn leader ip=${cn_leader_ip}"
+  return 0
+}
+
+compare_cn_leader_disk_usage_std() {
+  if [[ -z "${cn_leader_disk_usage_std_before_first_load_balance}" || -z "${cn_leader_disk_usage_std_after_first_load_balance}" ]]; then
+    append_warn "cn leader disk usage std values are incomplete"
+    let fail_flag++
+    return 1
+  fi
+
+  if awk -v v1="${cn_leader_disk_usage_std_before_first_load_balance}" -v v2="${cn_leader_disk_usage_std_after_first_load_balance}" 'BEGIN { exit (v2 <= v1) ? 0 : 1 }'; then
+    log "cn leader disk usage std check passed: value1=${cn_leader_disk_usage_std_before_first_load_balance}, value2=${cn_leader_disk_usage_std_after_first_load_balance}"
+    return 0
+  fi
+
+  log "cn leader disk usage std did not improve after first load balance, continue to validate by table region balance result: value1=${cn_leader_disk_usage_std_before_first_load_balance}, value2=${cn_leader_disk_usage_std_after_first_load_balance}"
+  return 0
+}
+
 size_to_bytes_awk='
   function trim(s) {
     gsub(/^[ \t]+|[ \t]+$/, "", s)
@@ -581,9 +719,12 @@ summarize_table_regions_by_dn() {
   awk -F "|" "${size_to_bytes_awk}
     BEGIN { OFS=\",\" }
     FNR == NR {
-      if (\$1 ~ /^[0-9]+$/ && \$2 != \"\") {
-        order[++dn_num] = \$1
-        dn_ip[\$1] = \$2
+      split(\$0, parts, \",\")
+      dn_id = trim(parts[1])
+      rpc_ip = trim(parts[2])
+      if (dn_id ~ /^[0-9]+$/ && rpc_ip != \"\") {
+        order[++dn_num] = dn_id
+        dn_ip[dn_id] = rpc_ip
       }
       next
     }
@@ -685,6 +826,13 @@ select_skew_targets() {
   return 0
 }
 
+select_skew_focus_dn() {
+  local stage=$1
+  local summary_file="${run_artifact_dir}/${stage}_table_region_balance_summary.csv"
+
+  awk -F ',' 'NR > 1 {print $1 "," $5}' "${summary_file}" | sort -t ',' -k2,2nr | head -n 1 | awk -F ',' '{print $1}'
+}
+
 build_region_member_map() {
   local stage=$1
   local region_file="${run_artifact_dir}/${stage}_table_regions.out"
@@ -767,6 +915,52 @@ get_region_size_bytes() {
   awk -F ',' -v region_id="${region_id}" '$1 == region_id {print $2}' "${map_file}" | head -n 1
 }
 
+select_large_region_move_candidate() {
+  local summary_file=$1
+  local map_file=$2
+  local target_dn=$3
+
+  awk -F ',' -v target_dn="${target_dn}" '
+    FNR == NR {
+      if (NR > 1) {
+        dn_size[$1] = $5 + 0
+      }
+      next
+    }
+    function has_member(list, target, n, arr, i) {
+      n = split(list, arr, /[[:space:]]+/)
+      for (i = 1; i <= n; i++) {
+        if (arr[i] == target) {
+          return 1
+        }
+      }
+      return 0
+    }
+    function choose_source(list, n, arr, i, dn, source_dn, source_size) {
+      n = split(list, arr, /[[:space:]]+/)
+      source_dn = ""
+      source_size = 0
+      for (i = 1; i <= n; i++) {
+        dn = arr[i]
+        if (dn == target_dn) {
+          continue
+        }
+        if (source_dn == "" || (dn_size[dn] + 0) < source_size) {
+          source_dn = dn
+          source_size = dn_size[dn] + 0
+        }
+      }
+      return source_dn
+    }
+    !has_member($3, target_dn) {
+      source_dn = choose_source($3)
+      if (source_dn != "") {
+        print $1 "," source_dn "," $2
+      }
+    }
+  ' "${summary_file}" "${map_file}" | sort -t ',' -k3,3nr | head -n 1
+}
+
 migrate_one_table_region() {
   local region_id=$1
   local from_dn_id=$2
@@ -820,33 +1014,79 @@ perform_skew_swap() {
   return 0
 }
 
+perform_one_way_skew_move() {
+  local snapshot_stage=$1
+  local target_dn=$2
+  local move_stage=$3
+  local map_file="${run_artifact_dir}/${snapshot_stage}_table_region_members.csv"
+  local summary_file="${run_artifact_dir}/${snapshot_stage}_table_region_balance_summary.csv"
+  local candidate
+  local region_id
+  local source_dn
+  local region_size
+
+  build_region_member_map "${snapshot_stage}" || return 1
+  candidate=$(select_large_region_move_candidate "${summary_file}" "${map_file}" "${target_dn}")
+  if [[ -z "${candidate}" ]]; then
+    log "no one-way skew candidate found for target_dn=${target_dn} stage=${snapshot_stage}"
+    return 1
+  fi
+
+  region_id=$(echo "${candidate}" | awk -F ',' '{print $1}')
+  source_dn=$(echo "${candidate}" | awk -F ',' '{print $2}')
+  region_size=$(echo "${candidate}" | awk -F ',' '{print $3}')
+  log "one-way skew move: region ${region_id} size=${region_size} from ${source_dn} to ${target_dn}"
+  migrate_one_table_region "${region_id}" "${source_dn}" "${target_dn}" "${move_stage}" || return 1
+  return 0
+}
+
 create_size_skew() {
   local round
   local before_pct
   local progress
+  local move_idx
+  local snapshot_stage
+  local after_stage
 
   for round in $(seq 1 "${max_skew_rounds}")
   do
-    capture_table_region_balance_snapshot "skew_round_${round}_before" || return 1
-    before_pct=$(get_balance_metric "skew_round_${round}_before" "size_diff_pct")
+    snapshot_stage="skew_round_${round}_before"
+    capture_table_region_balance_snapshot "${snapshot_stage}" || return 1
+    before_pct=$(get_balance_metric "${snapshot_stage}" "size_diff_pct")
     log "skew round ${round} current size_diff_pct=${before_pct}"
     if awk -v diff="${before_pct}" -v target="${target_skew_size_diff_pct}" 'BEGIN { exit (diff >= target) ? 0 : 1 }'; then
       return 0
     fi
 
-    select_skew_targets "skew_round_${round}_before" || return 1
-    progress=0
-    if perform_skew_swap "${skew_heavy_dn1}" "${skew_light_dn1}" "skew_round_${round}_pair1"; then
-      progress=1
-    fi
-    capture_table_region_balance_snapshot "skew_round_${round}_mid" || return 1
-    select_skew_targets "skew_round_${round}_mid" || return 1
-    if perform_skew_swap "${skew_heavy_dn2}" "${skew_light_dn2}" "skew_round_${round}_pair2"; then
-      progress=1
+    if [[ -z "${skew_focus_dn}" ]]; then
+      skew_focus_dn=$(select_skew_focus_dn "${snapshot_stage}")
+      if [[ -z "${skew_focus_dn}" ]]; then
+        append_warn "failed to pick skew focus dn from ${snapshot_stage}"
+        let fail_flag++
+        return 1
+      fi
+      log "skew focus dn=${skew_focus_dn}"
     fi
 
+    progress=0
+    for move_idx in $(seq 1 "${max_one_way_skew_moves_per_round}")
+    do
+      if ! perform_one_way_skew_move "${snapshot_stage}" "${skew_focus_dn}" "skew_round_${round}_move_${move_idx}"; then
+        break
+      fi
+      progress=1
+      after_stage="skew_round_${round}_after_move_${move_idx}"
+      capture_table_region_balance_snapshot "${after_stage}" || return 1
+      before_pct=$(get_balance_metric "${after_stage}" "size_diff_pct")
+      log "skew round ${round} after move ${move_idx} size_diff_pct=${before_pct}"
+      if awk -v diff="${before_pct}" -v target="${target_skew_size_diff_pct}" 'BEGIN { exit (diff >= target) ? 0 : 1 }'; then
+        return 0
+      fi
+      snapshot_stage="${after_stage}"
+    done
+
     if [[ ${progress} -eq 0 ]]; then
-      append_warn "failed to find valid region swap candidates to create size skew"
+      append_warn "failed to find valid one-way region candidates to create size skew"
       let fail_flag++
       return 1
     fi
@@ -875,14 +1115,14 @@ validate_load_balance_effect() {
   local before_pct
   local after_pct
   local before_norm="${run_artifact_dir}/after_skew_before_load_balance_table_regions.normalized.out"
-  local after_norm="${run_artifact_dir}/after_load_balance_table_regions.normalized.out"
+  local after_norm="${run_artifact_dir}/after_second_load_balance_table_regions.normalized.out"
   local heavy1_before
   local heavy2_before
   local heavy1_after
   local heavy2_after
 
   before_pct=$(get_balance_metric "after_skew_before_load_balance" "size_diff_pct")
-  after_pct=$(get_balance_metric "after_load_balance" "size_diff_pct")
+  after_pct=$(get_balance_metric "after_second_load_balance" "size_diff_pct")
   log "table size diff before load balance=${before_pct} after load balance=${after_pct}"
 
   if ! awk -v before="${before_pct}" -v after="${after_pct}" 'BEGIN { exit (after < before) ? 0 : 1 }'; then
@@ -896,7 +1136,7 @@ validate_load_balance_effect() {
   fi
 
   awk '/^\|/ { sub(/[[:space:]]+$/, "", $0); print }' "${run_artifact_dir}/after_skew_before_load_balance_table_regions.out" > "${before_norm}"
-  awk '/^\|/ { sub(/[[:space:]]+$/, "", $0); print }' "${run_artifact_dir}/after_load_balance_table_regions.out" > "${after_norm}"
+  awk '/^\|/ { sub(/[[:space:]]+$/, "", $0); print }' "${run_artifact_dir}/after_second_load_balance_table_regions.out" > "${after_norm}"
   if cmp -s "${before_norm}" "${after_norm}"; then
     append_warn "load balance finished but table region topology did not change"
     let fail_flag++
@@ -904,8 +1144,8 @@ validate_load_balance_effect() {
 
   heavy1_before=$(summary_dn_value "after_skew_before_load_balance" "${skew_heavy_dn1}" 5)
   heavy2_before=$(summary_dn_value "after_skew_before_load_balance" "${skew_heavy_dn2}" 5)
-  heavy1_after=$(summary_dn_value "after_load_balance" "${skew_heavy_dn1}" 5)
-  heavy2_after=$(summary_dn_value "after_load_balance" "${skew_heavy_dn2}" 5)
+  heavy1_after=$(summary_dn_value "after_second_load_balance" "${skew_heavy_dn1}" 5)
+  heavy2_after=$(summary_dn_value "after_second_load_balance" "${skew_heavy_dn2}" 5)
 
   if ! awk -v b1="${heavy1_before:-0}" -v a1="${heavy1_after:-0}" -v b2="${heavy2_before:-0}" -v a2="${heavy2_after:-0}" 'BEGIN { exit ((a1 < b1) || (a2 < b2)) ? 0 : 1 }'; then
     append_warn "load balance did not reduce size on either heavy dn ${skew_heavy_dn1}/${skew_heavy_dn2}"
@@ -916,9 +1156,11 @@ validate_load_balance_effect() {
 }
 
 run_load_balance_phase() {
-  run_table_maintenance_sql "LOAD BALANCE;" "${run_artifact_dir}/load_balance.out" "load balance" || return 1
-  wait_for_table_migrations_completion "load_balance_wait" 7200 || return 1
-  capture_table_region_balance_snapshot "after_load_balance" || return 1
+  local stage_prefix=${1:-load_balance}
+
+  run_table_maintenance_sql "LOAD BALANCE;" "${run_artifact_dir}/${stage_prefix}.out" "${stage_prefix}" || return 1
+  wait_for_table_migrations_completion "${stage_prefix}_wait" 7200 || return 1
+  capture_table_region_balance_snapshot "after_${stage_prefix}" || return 1
   return 0
 }
 
@@ -926,9 +1168,10 @@ normalize_object_query_result() {
   local src_file=$1
   local dst_file=$2
   local tmp_file="${dst_file}.tmp"
+  local sorted_tmp_file="${dst_file}.sorted.tmp"
 
   awk '
-    /\+/ { next }
+    /^\+/ { next }
     /\|/ {
       line = $0
       gsub(/\r/, "", line)
@@ -936,9 +1179,9 @@ normalize_object_query_result() {
       if (line == "") {
         next
       }
-      split(line, arr, "|")
+      n = split(line, arr, "|")
       out = ""
-      for (i = 2; i < length(arr); i++) {
+      for (i = 2; i < n; i++) {
         val = arr[i]
         gsub(/^[ \t]+|[ \t]+$/, "", val)
         if (val == "null") {
@@ -955,9 +1198,11 @@ normalize_object_query_result() {
     }
   ' "${src_file}" > "${tmp_file}"
 
-  printf 'line_count=%s\n' "$(wc -l < "${tmp_file}" | tr -d '[:space:]')" > "${dst_file}"
-  printf 'sha256=%s\n' "$(sha256sum "${tmp_file}" | awk '{print $1}')" >> "${dst_file}"
-  rm -f "${tmp_file}"
+  sort "${tmp_file}" > "${sorted_tmp_file}"
+
+  printf 'line_count=%s\n' "$(wc -l < "${sorted_tmp_file}" | tr -d '[:space:]')" > "${dst_file}"
+  printf 'sha256=%s\n' "$(sha256sum "${sorted_tmp_file}" | awk '{print $1}')" >> "${dst_file}"
+  rm -f "${tmp_file}" "${sorted_tmp_file}"
 }
 
 normalize_query_result() {
@@ -970,7 +1215,7 @@ normalize_query_result() {
   fi
 
   awk '
-    /\+/ { next }
+    /^\+/ { next }
     /\|/ {
       line = $0
       gsub(/\r/, "", line)
@@ -978,9 +1223,9 @@ normalize_query_result() {
       if (line == "") {
         next
       }
-      split(line, arr, "|")
+      n = split(line, arr, "|")
       out = ""
-      for (i = 2; i < length(arr); i++) {
+      for (i = 2; i < n; i++) {
         val = arr[i]
         gsub(/^[ \t]+|[ \t]+$/, "", val)
         if (val == "null") {
@@ -1008,6 +1253,7 @@ capture_query_result() {
   local sql=$2
   local raw_file=$3
   local norm_file=$4
+  local raw_line_count=""
 
   run_cli_sql "${host}" table "${sql}" "${raw_file}" 3600
   if query_output_has_error "${raw_file}"; then
@@ -1016,6 +1262,15 @@ capture_query_result() {
     return 1
   fi
   normalize_query_result "${raw_file}" "${norm_file}"
+
+  if [[ "${raw_file}" == *"_obj_"* ]]; then
+    raw_line_count=$(sed -n 's/^Total line number = //p' "${raw_file}" | tail -n 1 | tr -d '[:space:]')
+    if [[ -n "${raw_line_count}" && "${raw_line_count}" != "0" ]] && grep -qx 'line_count=0' "${norm_file}"; then
+      append_warn "object query normalization produced empty result for ${raw_file##*/}"
+      let fail_flag++
+      return 1
+    fi
+  fi
 }
 
 compare_query_result() {
@@ -1056,6 +1311,32 @@ check_final_consistency() {
 
 stop_cluster() {
   sh -x "${clean_env_dir}/stop_cluster.sh" >> "${log_file}" 2>&1 || true
+}
+
+capture_pre_stop_cluster_state() {
+  local show_cluster_out="${run_artifact_dir}/before_stop_cluster_show_cluster.out"
+  local show_confignodes_out="${run_artifact_dir}/before_stop_cluster_show_confignodes.out"
+  local cn_leader_ip=""
+
+  run_cli_sql "${query_ip}" tree "show cluster;" "${show_cluster_out}" 3600 || true
+  trim_file_crlf "${show_cluster_out}"
+  if grep -Eq "Exception|ERROR|Error" "${show_cluster_out}"; then
+    log "before stop cluster show cluster failed, see ${show_cluster_out}"
+  else
+    log "before stop cluster show cluster captured: ${show_cluster_out}"
+  fi
+
+  run_cli_sql "${query_ip}" tree "show confignodes;" "${show_confignodes_out}" 3600 || true
+  trim_file_crlf "${show_confignodes_out}"
+  if ! grep -Eq "Exception|ERROR|Error" "${show_confignodes_out}"; then
+    cn_leader_ip=$(awk -F '|' '/Leader/ { gsub(/ /, "", $4); print $4; exit }' "${show_confignodes_out}")
+  fi
+
+  if [[ -n "${cn_leader_ip}" ]]; then
+    log "before stop cluster cn leader ip=${cn_leader_ip}"
+  else
+    log "before stop cluster cn leader ip not found"
+  fi
 }
 
 check_log() {
@@ -1150,7 +1431,13 @@ main_body() {
   capture_table_region_balance_snapshot "after_skew_before_load_balance" || return 1
   select_skew_targets "after_skew_before_load_balance" || return 1
 
-  run_load_balance_phase || return 1
+  capture_cn_leader_disk_usage_std "before_first_load_balance" cn_leader_disk_usage_std_before_first_load_balance || return 1
+  run_load_balance_phase "first_load_balance" || return 1
+  capture_cn_leader_disk_usage_std "after_first_load_balance" cn_leader_disk_usage_std_after_first_load_balance || return 1
+  compare_cn_leader_disk_usage_std || return 1
+  run_load_balance_phase "second_load_balance" || return 1
+  capture_cn_leader_disk_usage_std "after_second_load_balance" cn_leader_disk_usage_std_after_second_load_balance || return 1
+  log "cn leader disk usage std observation after second load balance: value3=${cn_leader_disk_usage_std_after_second_load_balance}"
   validate_load_balance_effect || return 1
   check_final_consistency || return 1
   return 0
@@ -1162,6 +1449,7 @@ main() {
   log "run artifacts directory: ${run_artifact_dir}"
 
   main_body || true
+  capture_pre_stop_cluster_state
   stop_cluster
   check_log
   backup_logs

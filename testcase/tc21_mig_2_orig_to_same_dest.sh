@@ -167,42 +167,59 @@ function check_res()
    fi
 }
 
+function wait_migration_complete()
+{
+   local v_mig_id=$1
+   local v_mig_from_dn_id1=$2
+   local v_mig_from_dn_id2=$3
+   local v_mig_dest_dn_id=$4
+   local show_migrations_file="${cur_dir}/show_migrations_${v_mig_id}_${v_mig_from_dn_id1}_${v_mig_from_dn_id2}_${v_mig_dest_dn_id}.out"
+   local show_regions_file="${cur_dir}/show_regions_${v_mig_id}_${v_mig_from_dn_id1}_${v_mig_from_dn_id2}_${v_mig_dest_dn_id}.out"
+   local stable_complete_cnt=0
+   local poll_interval_sec=10
+   local wait_start_sec=`date +%s`
+
+   while true
+   do
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show migrations;" > "${show_migrations_file}" 2>&1
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show regions;" > "${show_regions_file}" 2>&1
+
+      local mig_has_error=`grep -Ec "Exception|ERROR|Error" "${show_migrations_file}"`
+      local region_has_error=`grep -Ec "Exception|ERROR|Error" "${show_regions_file}"`
+      local mig_is_empty=`grep -Ec '^Empty set' "${show_migrations_file}"`
+      local region_transition_cnt=`grep -E "Adding|Removing" "${show_regions_file}" | wc -l`
+
+      if [[ ${mig_has_error} = 0 && ${region_has_error} = 0 && ${mig_is_empty} -gt 0 && ${region_transition_cnt} = 0 ]];then
+         stable_complete_cnt=$((stable_complete_cnt+1))
+         if [[ ${stable_complete_cnt} -ge 3 ]];then
+            break
+         fi
+      else
+         stable_complete_cnt=0
+      fi
+
+      local wait_cur_sec=`date +%s`
+      local wait_elp=$((wait_cur_sec-wait_start_sec))
+      if [[ ${wait_elp} -gt 3600 ]];then
+         let fail_flag++
+         break
+      fi
+      sleep ${poll_interval_sec}
+   done
+}
+
 function mig_region()
 {
    local v_mig_id=$1
    local v_mig_from_dn_id1=$2
    local v_mig_from_dn_id2=$3
    local v_mig_dest_dn_id=$4
-   local v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   local v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
-   local v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id1} TO ${v_mig_dest_dn_id};" > ${cur_dir}/mig.out
    check_res "Msg: The statement is executed successfully" 1 ${SCRIPT_NAME} ${cur_dir}/mig.out
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id2} TO ${v_mig_dest_dn_id};"> ${cur_dir}/mig.out
    check_res "has some other region operation procedures in progress" 1 ${SCRIPT_NAME} ${cur_dir}/mig.out
    sleep 2
-   local v_mig_start_sec=`date +%s`
-   while true
-   do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              local v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|tail -1"`
-              local v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-              local v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
-
-              if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-                 break
-              else
-                 local v_mig_cur_sec=`date +%s`
-                 local v_mig_elp=$((v_mig_cur_sec-v_mig_start_sec))
-                 if [[ ${v_mig_elp} -gt 600 ]];then
-                    let fail_flag++
-                    break
-                 fi 
-                 sleep 5 
-              fi
-
-   done
-
+   wait_migration_complete "${v_mig_id}" "${v_mig_from_dn_id1}" "${v_mig_from_dn_id2}" "${v_mig_dest_dn_id}"
 }
 
 function pre_and_exec_mig_region()

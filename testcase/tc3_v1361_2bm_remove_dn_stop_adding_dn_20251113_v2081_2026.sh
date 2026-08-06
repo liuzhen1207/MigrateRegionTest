@@ -17,7 +17,7 @@ SCRIPT_NAME=$(basename "$0")
 seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
 query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
-bm_dir=`cat ${conf_file}|grep bm_v13_dir|awk -F '=' '{print $2}'`
+bm_dir="${cur_dir}/../benchmark/bm_20251017_b6be9bd"
 cn_num=3
 dn_num=5
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode.txt > ${nodeinfo_dir}/datanode.txt

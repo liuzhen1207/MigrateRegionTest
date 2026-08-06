@@ -12,26 +12,26 @@ clean_env_dir="${cur_dir}/../clean_env"
 prepare_env_dir="${cur_dir}/../prepare_env"
 check_res_dir="${cur_dir}/../check_res"
 SCRIPT_NAME=$(basename "$0")
-seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
-query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
-bm_ip=`head -1 ${nodeinfo_dir}/bm_node.txt`
-query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
-query_ip2=`head -2 ${nodeinfo_dir}/datanode.txt|tail -1`
-# https://jira.infra.timecho.com:8443/browse/TIMECHODB-456 
-fail_file="fail.log"
 cn_num=3
 dn_num=5
+head -n ${cn_num} ${nodeinfo_dir}/total_node.txt > ${nodeinfo_dir}/confignode.txt
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode.txt > ${nodeinfo_dir}/datanode.txt
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode_port.txt > ${nodeinfo_dir}/datanode_port.txt
 total_node_num=$((cn_num+dn_num))
-backup_dir_on_cn_dn_host=/data/iotdb/autotest_backup/tree_table_view_IoT_remove
-tmp_out_file="tc${tc_num}_tmp.out"
+seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
+query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
+query_ip2=`head -2 ${nodeinfo_dir}/datanode.txt|tail -1`
 fail_flag=0
 testcase_ip=`cat ${conf_file}|grep test_ip|awk -F '.' '{print $4}'`
 tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
+bm_conn_pw=`cat ${conf_file}|grep ^bm_conn_pw|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+bm_dir="/data1/iotdb/testcase/MigrateRegionTest/benchmark/bm_20260508_interval_v20"
+bm_case_root="${bm_dir}/remove"
+bm_work_root="${cur_dir}/bm_work_${tc_num}_${test_begin_sec}"
+bm_log_root="${bm_work_root}/logs"
 function clean_env()
 {
    #clean env
@@ -109,184 +109,257 @@ set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*"
 
 function start_db()
 {
-   #clean env
    sh -x ${clean_env_dir}/stop_cluster.sh
    sh -x ${clean_env_dir}/clean_cluster.sh
    sh -x ${clean_env_dir}/reset_conf.sh
-   #start cluster
    head -n $cn_num ${nodeinfo_dir}/total_node.txt > ${nodeinfo_dir}/confignode.txt 
-   set_conf
-#copy data
-exec 3<${nodeinfo_dir}/datanode.txt
-while read line<&3
-do
-ssh ${u_name}@${line} "sudo cp -rl ${backup_dir_on_cn_dn_host}/data ${db_dir}/data"
-done
-exec 3<${nodeinfo_dir}/datanode.txt
-while read line<&3
-do
-        while true
-        do
-        v_check_cp=`ssh ${u_name}@${line} "sudo ps -ef|grep \"cp -rl\"|grep -v grep|wc -l"`
-        if [[ ${v_check_cp} = 0 ]];then
-           ssh ${u_name}@${line} "sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"";
-           break
-        else
-           sleep 5
-        fi
-        done
-done
-exec 3<${nodeinfo_dir}/confignode.txt
-while read line<&3
-do
-v_check=`grep ${line} ${nodeinfo_dir}/datanode.txt |wc -l`
-if [[ ${v_check} = 0 ]];then
-ssh ${u_name}@${line} "sudo cp -rl ${backup_dir_on_cn_dn_host}/data ${db_dir}/data"
-ssh ${u_name}@${line} "sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"";
-fi
-done
-
-   sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"
-
+   set_conf || return 1
+   if ! timeout 900 sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}";then
+      echo "Cluster did not start ${total_node_num} nodes within 900 seconds."
+      return 1
+   fi
+   return 0
 }
+function run_query()
+{
+   local host=$1
+   local dialect=$2
+   local sql=$3
+   local output_file=$4
+   if [[ "${dialect}" = "table" ]];then
+      ${cli_dir}/sbin/start-cli.sh -h ${host} -sql_dialect table -timeout 3600000 -e "${sql}" >"${output_file}" 2>&1
+   else
+      ${cli_dir}/sbin/start-cli.sh -h ${host} -sql_dialect tree -timeout 3600000 -e "${sql}" >"${output_file}" 2>&1
+   fi
+   if grep -qiE "(Exception|Error|failed)" "${output_file}";then
+      cat "${output_file}"
+      return 1
+   fi
+   return 0
+}
+
+function prepare_fresh_data()
+{
+   local workload
+   local pid
+   local running_num
+   local start_time
+   local output_file
+
+   run_query ${query_ip} tree "create user santos '${bm_conn_pw}';" "${cur_dir}/create_bm_user.out" || return 1
+   run_query ${query_ip} table "grant all to user santos;" "${cur_dir}/grant_bm_user.out" || return 1
+   run_query ${query_ip} tree "create database root.view;" "${cur_dir}/create_root_view.out" || return 1
+
+   mkdir -p "${bm_log_root}" || return 1
+   for workload in tree_nonaligned tree_aligned tree_aligned_temp table
+   do
+      cp -rp "${bm_case_root}/${workload}" "${bm_work_root}/${workload}" || return 1
+      sed -i "s/^HOST=.*/HOST=${query_ip}/g" "${bm_work_root}/${workload}/config.properties"
+      sed -i "s/^LOOP=.*/LOOP=500/g" "${bm_work_root}/${workload}/config.properties"
+      if [[ "${workload}" != "table" ]];then
+         sed -i "s/^USERNAME=.*/USERNAME=root/g" "${bm_work_root}/${workload}/config.properties"
+         sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "${bm_work_root}/${workload}/config.properties"
+      fi
+      nohup sh -x "${bm_dir}/benchmark.sh" -cf "${bm_work_root}/${workload}" >"${bm_log_root}/${workload}.out" 2>&1 &
+      echo $! >"${bm_log_root}/${workload}.pid"
+   done
+
+   start_time=`date +%s`
+   while true
+   do
+      running_num=0
+      for workload in tree_nonaligned tree_aligned tree_aligned_temp table
+      do
+         pid=`cat "${bm_log_root}/${workload}.pid"`
+         kill -0 ${pid} 2>/dev/null && let running_num++
+      done
+      [[ ${running_num} = 0 ]] && break
+      if [[ $((`date +%s`-start_time)) -gt 7200 ]];then
+         echo "Fresh-data benchmarks did not finish within 7200 seconds."
+         return 1
+      fi
+      sleep 10
+   done
+
+   for workload in tree_nonaligned tree_aligned tree_aligned_temp table
+   do
+      output_file="${bm_log_root}/${workload}.out"
+      if ! grep -q "Result Matrix" "${output_file}" || grep -Eq "Execution fail:|Failed to do |StatementExecutionException|WorkloadException|Connection error" "${output_file}";then
+         echo "Fresh-data benchmark failed: ${workload}."
+         tail -n 80 "${output_file}"
+         return 1
+      fi
+   done
+
+   run_query ${query_ip} tree "create view root.view.\${2}.view_from_\${3}(\${4}) as select * from root.db.**;" "${cur_dir}/create_view.out" || return 1
+   run_query ${query_ip} tree "show devices root.view.g_0.**;" "${cur_dir}/show_view_devices.out" || return 1
+   if ! grep -q "root.view.g_0." "${cur_dir}/show_view_devices.out";then
+      echo "Fresh view data was not created."
+      return 1
+   fi
+   return 0
+}
+
+function wait_dn_state()
+{
+   local host=$1
+   local dn_ip=$2
+   local state=$3
+   local timeout_sec=$4
+   local begin=`date +%s`
+   while true
+   do
+      run_query ${host} tree "show datanodes;" "${cur_dir}/show_datanodes.out" || true
+      if grep "${dn_ip}|" "${cur_dir}/show_datanodes.out" | grep -qi "${state}";then
+         return 0
+      fi
+      if [[ $((`date +%s`-begin)) -gt ${timeout_sec} ]];then
+         return 1
+      fi
+      sleep 2
+   done
+}
+
 function check_data_consistent()
 {
-   # all node online,query
-    q1="select count(s_0) from root.test.g_0.** align by device;"
-    q2="select count(s_0) from root.db.g_0.** align by device;"
-    q3="select count(s_0) from root.view.g_0.** align by device;"
-    q4="select device_id,count(s_0) from db_table_g_0.table_0  group by device_id order by device_id;"
-    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -sql_dialect tree -timeout 3600000  -e "${q1}" > ${cur_dir}/q_all_online_q1.out
-    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -sql_dialect tree -timeout 3600000  -e "${q2}" > ${cur_dir}/q_all_online_q2.out
-    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -sql_dialect tree -timeout 3600000  -e "${q3}" > ${cur_dir}/q_all_online_q3.out
-    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -sql_dialect table -timeout 3600000  -e "${q4}" > ${cur_dir}/q_all_online_q4.out
+   local q1="select count(s_0) from root.test.g_0.** align by device;"
+   local q2="select count(s_0) from root.db.g_0.** align by device;"
+   local q3="select count(s_0) from root.view.g_0.** align by device;"
+   local q4="select device_id,count(s_0) from db_table_g_0.table_0 group by device_id order by device_id;"
+   local line q_node v_ip i node_fail
+
+   run_query ${query_ip} tree "${q1}" "${cur_dir}/q_all_online_q1.out" || return 1
+   run_query ${query_ip} tree "${q2}" "${cur_dir}/q_all_online_q2.out" || return 1
+   run_query ${query_ip} tree "${q3}" "${cur_dir}/q_all_online_q3.out" || return 1
+   run_query ${query_ip} table "${q4}" "${cur_dir}/q_all_online_q4.out" || return 1
    for i in {1..4}
    do
-      res_row_num=`grep "100000|" ${cur_dir}/q_all_online_q${i}.out|wc -l`
-	   if [[ ${res_row_num} = 0 ]];then
-	      let fail_flag++
-	      return 1
-	   fi
+      if ! grep -E 'root\.|d[0-9_]+\|' "${cur_dir}/q_all_online_q${i}.out" | grep -qE '\|[[:space:]]*[1-9][0-9]*[[:space:]]*\|?$';then
+         echo "Fresh-data baseline q${i} is empty or has no positive count."
+         cat "${cur_dir}/q_all_online_q${i}.out"
+         return 1
+      fi
    done
-   # stop 1 datanode,query
-exec 3<${nodeinfo_dir}/datanode.txt
-while read line <&3
-do
-   v_ignore=`grep "${line}," ${cur_dir}/ignore_dn_list.txt|wc -l`
-   if [[ ${v_ignore} = 0 ]];then
-	   ssh ${u_name}@${line} "source /etc/profile;sudo ${db_dir}/sbin/stop-datanode.sh"
-	   if [[ "${line}" = "${query_ip}" ]];then
-	      q_node="${query_ip2}"
-	   else
-	      q_node="${query_ip}"
-	   fi
-	   while true
-	   do
-		   sleep 1
-	      v_running=`${cli_dir}/sbin/start-cli.sh -h ${q_node} -timeout 3600  -e "show cluster;" |grep ${line} |grep DataNode|grep Running|wc -l`
-	      v_jps=`ssh ${u_name}@${line} "source /etc/profile;sudo jps|grep DataNode|wc -l"`
-	      if [[ ${v_running} = 1 ]];then
-		      sleep 2
-	      else
-		      if [[ ${v_jps} = 0 ]];then
-			 break
-		      else
-			 sleep 2
-		      fi
-	      fi
-	   done
-	   v_ip=`echo ${line} |awk -F '.' '{print $4}'`
-           ${cli_dir}/sbin/start-cli.sh -h ${q_node} -sql_dialect tree -timeout 3600000  -e "${q1}" > ${cur_dir}/q_stop_ip${v_ip}_q1.out
-           ${cli_dir}/sbin/start-cli.sh -h ${q_node} -sql_dialect tree -timeout 3600000  -e "${q2}" > ${cur_dir}/q_stop_ip${v_ip}_q2.out
-           ${cli_dir}/sbin/start-cli.sh -h ${q_node} -sql_dialect tree -timeout 3600000  -e "${q3}" > ${cur_dir}/q_stop_ip${v_ip}_q3.out
-           ${cli_dir}/sbin/start-cli.sh -h ${q_node} -sql_dialect table -timeout 3600000  -e "${q4}" > ${cur_dir}/q_stop_ip${v_ip}_q4.out
-	   v_diff1=`diff ${cur_dir}/q_all_online_q1.out ${cur_dir}/q_stop_ip${v_ip}_q1.out|grep root|wc -l` 
-	   v_diff2=`diff ${cur_dir}/q_all_online_q2.out ${cur_dir}/q_stop_ip${v_ip}_q2.out|grep root|wc -l` 
-	   v_diff3=`diff ${cur_dir}/q_all_online_q3.out ${cur_dir}/q_stop_ip${v_ip}_q3.out|grep root|wc -l` 
-	   v_diff4=`diff ${cur_dir}/q_all_online_q4.out ${cur_dir}/q_stop_ip${v_ip}_q4.out|grep d1_|wc -l` 
-	   if [[ ${v_diff1} -gt 0 ]];then
-	      echo "stop ${line} q1 result diff all online."
-	      let fail_flag++
-	      return 1
-	   fi
-	   if [[ ${v_diff2} -gt 0 ]];then
-	      echo "stop ${line} q2 result diff all online."
-	      let fail_flag++
-	      return 1
-	   fi
-           if [[ ${v_diff3} -gt 0 ]];then
-              echo "stop ${line} q3 result diff all online."
-              let fail_flag++
-              return 1
-           fi
-           if [[ ${v_diff4} -gt 0 ]];then
-              echo "stop ${line} q4 result diff all online."
-              let fail_flag++
-              return 1
-           fi
 
-	#   echo "stop_node,${line};q_node,${q_node}"
-	   ssh ${u_name}@${line} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/${test_begin_sec}_query_dn.hprof > /dev/null 2>&1 &"
-	   while true
-	   do
-		   sleep 5
-	      v_running=`${cli_dir}/sbin/start-cli.sh -h ${q_node} -timeout 3600  -e "show cluster;" |grep ${line} |grep DataNode|grep Running|wc -l`
-	      if [[ ${v_running} = 1 ]];then
-		      break
-	      else
-		      sleep 5
-	      fi
-	   done
+   exec 3<${nodeinfo_dir}/datanode.txt
+   while read line <&3
+   do
+      grep -q "${line}," "${cur_dir}/ignore_dn_list.txt" && continue
+      node_fail=0
+      if [[ "${line}" = "${query_ip}" ]];then q_node=${query_ip2}; else q_node=${query_ip}; fi
+      if ! ssh ${u_name}@${line} "source /etc/profile;sudo ${db_dir}/sbin/stop-datanode.sh";then
+         echo "Failed to stop DataNode ${line}."
+         node_fail=1
+      fi
+      if ! wait_dn_state ${q_node} ${line} "Unknown" 300;then
+         echo "DataNode ${line} did not become Unknown within 300 seconds."
+         node_fail=1
+      fi
+      v_ip=${line##*.}
+      if [[ ${node_fail} = 0 ]];then
+         run_query ${q_node} tree "${q1}" "${cur_dir}/q_stop_ip${v_ip}_q1.out" || node_fail=1
+         run_query ${q_node} tree "${q2}" "${cur_dir}/q_stop_ip${v_ip}_q2.out" || node_fail=1
+         run_query ${q_node} tree "${q3}" "${cur_dir}/q_stop_ip${v_ip}_q3.out" || node_fail=1
+         run_query ${q_node} table "${q4}" "${cur_dir}/q_stop_ip${v_ip}_q4.out" || node_fail=1
+         for i in {1..4}
+         do
+            if ! diff -q <(grep -E 'root\.|d[0-9_]+\|' "${cur_dir}/q_all_online_q${i}.out" | sed 's/ //g' | sort) <(grep -E 'root\.|d[0-9_]+\|' "${cur_dir}/q_stop_ip${v_ip}_q${i}.out" | sed 's/ //g' | sort) >/dev/null;then
+               echo "Stopping ${line} changed q${i} query result."
+               node_fail=1
+            fi
+         done
+      fi
 
-	   let i++
-   fi
-done
- 
+      if ! ssh ${u_name}@${line} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh > /dev/null 2>&1";then
+         echo "Failed to restart DataNode ${line}."
+         node_fail=1
+      elif ! wait_dn_state ${q_node} ${line} "Running" 300;then
+         echo "DataNode ${line} did not return to Running within 300 seconds."
+         node_fail=1
+      fi
+      if [[ ${node_fail} -ne 0 ]];then
+         let fail_flag++
+         return 1
+      fi
+   done
+   return 0
 }
 function remove_datanode()
 {
-	rm_dn_ip=$1
-	exec_rm_ip=$2
-        rm_flag="success"
-        v_rm_datanode_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;"|grep "${rm_dn_ip}|"|awk -F '|' '{gsub(" ","");print $2}'`
-        # stop rm_dn_ip 
-        ssh ${u_name}@${rm_dn_ip} "sudo ${db_dir}/sbin/stop-datanode.sh"
+        local rm_dn_ip=$1
+        local exec_rm_ip=$2
+        local v_rm_datanode_id
+        local start_time
+        local v_dn_num
+        local active_num
+        local stable_done=0
+        local query_ok
+        local ip_suffix=${rm_dn_ip##*.}
+
+        run_query ${query_ip} tree "show datanodes;" "${cur_dir}/show_datanodes_before_remove.out" || {
+           let fail_flag++
+           return 1
+        }
+        v_rm_datanode_id=`grep "${rm_dn_ip}|" "${cur_dir}/show_datanodes_before_remove.out"|awk -F '|' '{gsub(" ","",$2);print $2}'|tail -1`
+        if [[ -z "${v_rm_datanode_id}" ]];then
+           echo "Cannot find DataNode id for ${rm_dn_ip}."
+           let fail_flag++
+           return 1
+        fi
+        if ! ssh ${u_name}@${rm_dn_ip} "sudo ${db_dir}/sbin/stop-datanode.sh";then
+           echo "Failed to stop remove target ${rm_dn_ip}."
+           let fail_flag++
+           return 1
+        fi
+        if ! wait_dn_state ${query_ip} ${rm_dn_ip} "Unknown" 300;then
+           echo "Remove target ${rm_dn_ip} did not become Unknown within 300 seconds."
+           let fail_flag++
+           return 1
+        fi
+
+        run_query ${query_ip} tree "remove datanode ${v_rm_datanode_id};" "${cur_dir}/rm_cmd_res.out" || {
+           let fail_flag++
+           return 1
+        }
+        if ! grep -qi "successfully" "${cur_dir}/rm_cmd_res.out";then
+           cat "${cur_dir}/rm_cmd_res.out"
+           let fail_flag++
+           return 1
+        fi
+
+        start_time=`date +%s`
         while true
         do
-           v_unknown=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;"|grep "${rm_dn_ip}|"|grep -i unknown|wc -l`
-           if [[ ${v_unknown} -gt 0 ]];then
-              break 
+           query_ok=1
+           run_query ${query_ip} tree "show datanodes;" "${cur_dir}/tc109_show_dn_${ip_suffix}.out" || query_ok=0
+           v_dn_num=`grep "${rm_dn_ip}|" "${cur_dir}/tc109_show_dn_${ip_suffix}.out"|wc -l`
+           run_query ${query_ip} tree "show regions;" "${cur_dir}/tc109_regions_tree_${ip_suffix}.out" || query_ok=0
+           run_query ${query_ip} table "show regions;" "${cur_dir}/tc109_regions_table_${ip_suffix}.out" || query_ok=0
+           active_num=`grep -E "Adding|Removing" "${cur_dir}/tc109_regions_tree_${ip_suffix}.out" "${cur_dir}/tc109_regions_table_${ip_suffix}.out"|wc -l`
+           if [[ ${query_ok} = 1 && ${v_dn_num} = 0 && ${active_num} = 0 ]];then
+              let stable_done++
            else
-              sleep 1 
+              stable_done=0
            fi
-        done
-        ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "remove datanode  ${v_rm_datanode_id};">${cur_dir}/rm_cmd_res.out 2>>${cur_dir}/rm_cmd_res.out
-        v_rm_fail=`cat ${cur_dir}/rm_cmd_res.out|grep "successfully"|wc -l`
-        if [[ ${v_rm_fail} = 0 ]];then
-           let fail_flag++
-        fi
-# check remove 
-        v_loop=0
-        while true 
-        do
-            v_dn_num=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;"|grep "${rm_dn_ip}|" |wc -l`
-            if [[ ${v_dn_num} -gt 0 ]];then
-               sleep 10 
-            else
-               echo "${rm_dn_ip}," >> ${cur_dir}/ignore_dn_list.txt
-               break 
-            fi
-            let v_loop++
-            if [[ ${v_loop} -gt 180 ]];then
-               echo "more than 1800 sec remove dn id still in cluster."
-               let fail_flag++
-               break
-            fi 
+           if [[ ${stable_done} -ge 3 ]];then
+              echo "${rm_dn_ip}," >> ${cur_dir}/ignore_dn_list.txt
+              break
+           fi
+           if [[ $((`date +%s`-start_time)) -gt 3600 ]];then
+              echo "Remove DataNode ${rm_dn_ip} did not settle within 3600 seconds."
+              let fail_flag++
+              return 1
+           fi
+           sleep 10
         done
 
 if [[ ${fail_flag} = 0 ]];then
-   check_data_consistent
+   if ! check_data_consistent;then
+      [[ ${fail_flag} = 0 ]] && let fail_flag++
+      return 1
+   fi
 fi
+return 0
 }
 
 
@@ -295,7 +368,9 @@ function exec_remove()
 
 last_dn_ip=`tail -1 ${nodeinfo_dir}/datanode.txt`
 last_dn_ip2=`tail -2 ${nodeinfo_dir}/datanode.txt|head -1`
-remove_datanode ${last_dn_ip} ${last_dn_ip2}
+if [[ ${fail_flag} = 0 ]];then
+   remove_datanode ${last_dn_ip} ${last_dn_ip2}
+fi
 test_end_sec=`date +%s`
 test_elp_sec=$((test_end_sec-test_begin_sec))
 tc_res=true
@@ -310,7 +385,12 @@ tc_res=true
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
 
 }
-clean_env
-start_db
+clean_env || let fail_flag++
+if [[ ${fail_flag} = 0 ]];then
+   start_db || let fail_flag++
+fi
+if [[ ${fail_flag} = 0 ]];then
+   prepare_fresh_data || let fail_flag++
+fi
 >${cur_dir}/ignore_dn_list.txt
 exec_remove

@@ -36,12 +36,24 @@ testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2
 test_begin_sec=`date +%s`
 loop_timeout_sec=300
 mig_submit_timeout_sec=180
+query_consistency_sql="select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.**,root.db.g_0.**,root.view.** align by device;"
+v_warnMessage=""
 
 function clean_env()
 {
    sh -x ${clean_env_dir}/stop_cluster.sh
    sh -x ${clean_env_dir}/clean_cluster.sh
    sh -x ${clean_env_dir}/reset_conf.sh
+}
+
+function append_warn()
+{
+  local msg=$1
+  if [[ -z "${v_warnMessage}" ]];then
+     v_warnMessage="${msg}"
+  else
+     v_warnMessage="${v_warnMessage}; ${msg}"
+  fi
 }
 
 function set_sys_conf()
@@ -158,6 +170,193 @@ function run_migrate_region_with_retry()
   done
 }
 
+function capture_migration_visible_state()
+{
+  local v_suffix=$1
+
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show migrations;" > ${cur_dir}/show_migrations_${v_suffix}.out 2>&1
+  v_migrations_empty=0
+  if grep -q "Empty set" ${cur_dir}/show_migrations_${v_suffix}.out;then
+     v_migrations_empty=1
+  fi
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions;" > ${cur_dir}/show_data_regions_${v_suffix}.out 2>&1
+  v_region_changing_count=`grep -E "Adding|Removing" ${cur_dir}/show_data_regions_${v_suffix}.out|wc -l`
+}
+
+function wait_migration_visible_state_stable()
+{
+  local v_suffix=$1
+
+  v_wait_migration_seen_in_progress=0
+  while true
+  do
+     capture_migration_visible_state ${v_suffix}
+     if [[ ${v_migrations_empty} = 1 && ${v_region_changing_count} = 0 ]];then
+        break
+     fi
+     v_wait_migration_seen_in_progress=1
+     sleep 5
+  done
+}
+
+function select_query_ip_excluding()
+{
+  local v_exclude_ip=$1
+  local v_candidate=""
+
+  while read v_candidate
+  do
+     if [[ -z "${v_candidate}" || "${v_candidate}" = "${v_exclude_ip}" ]];then
+        continue
+     fi
+     echo "${v_candidate}"
+     return 0
+  done < ${nodeinfo_dir}/datanode.txt
+  return 1
+}
+
+function wait_datanode_stopped()
+{
+  local v_stop_dn_ip=$1
+  local v_start_time=`date +%s`
+  local v_end_time=0
+  local v_elp=0
+  local v_pid=0
+
+  while true
+  do
+     v_pid=`ssh -n ${u_name}@${v_stop_dn_ip} "sudo jps|grep -i datanode|wc -l"`
+     if [[ ${v_pid} = 0 ]];then
+        return 0
+     fi
+     v_end_time=`date +%s`
+     v_elp=$((v_end_time-v_start_time))
+     if [[ ${v_elp} -gt 180 ]];then
+        return 1
+     fi
+     sleep 3
+  done
+}
+
+function wait_datanode_running()
+{
+  local v_check_dn_ip=$1
+  local v_check_query_ip=$2
+  local v_start_time=`date +%s`
+  local v_end_time=0
+  local v_elp=0
+  local v_check_status=0
+
+  while true
+  do
+     v_check_status=`${cli_dir}/sbin/start-cli.sh -h ${v_check_query_ip} -e "show datanodes"|grep ${v_check_dn_ip}|grep -i Running|wc -l`
+     if [[ ${v_check_status} -gt 0 ]];then
+        return 0
+     fi
+     v_end_time=`date +%s`
+     v_elp=$((v_end_time-v_start_time))
+     if [[ ${v_elp} -gt 180 ]];then
+        return 1
+     fi
+     sleep 2
+  done
+}
+
+function wait_all_datanodes_running()
+{
+  local v_check_query_ip=$1
+  local v_start_time=`date +%s`
+  local v_end_time=0
+  local v_elp=0
+  local v_running_count=0
+
+  while true
+  do
+     v_running_count=`${cli_dir}/sbin/start-cli.sh -h ${v_check_query_ip} -e "show datanodes"|grep -i Running|wc -l`
+     if [[ ${v_running_count} -ge ${dn_num} ]];then
+        return 0
+     fi
+     v_end_time=`date +%s`
+     v_elp=$((v_end_time-v_start_time))
+     if [[ ${v_elp} -gt 180 ]];then
+        return 1
+     fi
+     sleep 2
+  done
+}
+
+function run_replica_consistency_check()
+{
+  local v_base_file="${cur_dir}/q_replica_base.out"
+  local v_stop_dn_ip=""
+  local v_check_query_ip=""
+  local v_act_file=""
+  local v_diff_file=""
+  local v_heapdump_ip=""
+
+  if ! wait_all_datanodes_running ${query_ip};then
+     append_warn "replica consistency check skipped: not all DataNodes are Running before baseline query"
+     let fail_flag++
+     return 1
+  fi
+
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "${query_consistency_sql}" > ${v_base_file}
+  if grep -q "IoTDBSQLException" ${v_base_file};then
+     append_warn "replica consistency baseline query failed on ${query_ip}"
+     let fail_flag++
+     return 1
+  fi
+
+  while read v_stop_dn_ip <&9
+  do
+     if [[ -z "${v_stop_dn_ip}" ]];then
+        continue
+     fi
+
+     v_check_query_ip=`select_query_ip_excluding ${v_stop_dn_ip}`
+     if [[ -z "${v_check_query_ip}" ]];then
+        append_warn "replica consistency check failed: cannot find query_ip excluding stopped DataNode ${v_stop_dn_ip}"
+        let fail_flag++
+        return 1
+     fi
+
+     if [[ "${query_ip}" = "${v_stop_dn_ip}" ]];then
+        query_ip=${v_check_query_ip}
+     fi
+
+     ssh -n ${u_name}@${v_stop_dn_ip} "sudo ${db_dir}/sbin/stop-datanode.sh"
+     if ! wait_datanode_stopped ${v_stop_dn_ip};then
+        append_warn "replica consistency check failed: DataNode ${v_stop_dn_ip} stop timeout"
+        let fail_flag++
+        return 1
+     fi
+
+     v_act_file="${cur_dir}/q_replica_stop_${v_stop_dn_ip}.out"
+     v_diff_file="${cur_dir}/q_replica_stop_${v_stop_dn_ip}.diff"
+     ${cli_dir}/sbin/start-cli.sh -h ${v_check_query_ip} -timeout 36000 -e "${query_consistency_sql}" > ${v_act_file}
+     if grep -q "IoTDBSQLException" ${v_act_file};then
+        append_warn "replica consistency check failed: query error after stopping DataNode ${v_stop_dn_ip}, query_ip=${v_check_query_ip}, out_file=${v_act_file}"
+        let fail_flag++
+     else
+        diff ${v_base_file} ${v_act_file} > ${v_diff_file} || true
+        if grep -q "root" ${v_diff_file};then
+           append_warn "replica consistency check failed after stopping DataNode ${v_stop_dn_ip}, query_ip=${v_check_query_ip}, diff_file=${v_diff_file}"
+           let fail_flag++
+        fi
+     fi
+
+     v_heapdump_ip=${v_stop_dn_ip//./_}
+     ssh -n ${u_name}@${v_stop_dn_ip} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_consistency_${v_heapdump_ip}.hprof > /dev/null 2>&1 &"
+     if ! wait_datanode_running ${v_stop_dn_ip} ${v_check_query_ip};then
+        append_warn "replica consistency check failed: DataNode ${v_stop_dn_ip} restart timeout"
+        let fail_flag++
+        return 1
+     fi
+  done 9< ${nodeinfo_dir}/datanode.txt
+
+  return 0
+}
+
 function write_test_result()
 {
   test_end_sec=`date +%s`
@@ -169,6 +368,7 @@ function write_test_result()
      echo "${SCRIPT_NAME} : pass" >>"${res_file}"
   else
      tc_res=false
+     echo "warn_message=${v_warnMessage}"
      echo "${SCRIPT_NAME} : fail" >>"${res_file}"
   fi
 
@@ -220,7 +420,11 @@ function start_db()
 
 function pre_and_exec_mig_region()
 {
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_exp.out
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "${query_consistency_sql}">${cur_dir}/q_exp.out
+  if grep -q "IoTDBSQLException" ${cur_dir}/q_exp.out;then
+     append_warn "initial baseline query (q_exp.out) failed on ${query_ip}"
+     let fail_flag++
+  fi
 
   v_mig_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep root.test|head -1|awk -F '|' '{gsub(" ","");print $2}'`
   refresh_region_runtime_info
@@ -285,24 +489,29 @@ function pre_and_exec_mig_region()
   while true
   do
      ssh ${u_name}@${v_add_coord_ip} "sudo gunzip -f ${db_dir}/logs/log-datanode-all*gz >/dev/null 2>&1 || true"
-     v_AddRegion=`ssh ${u_name}@${v_add_coord_ip} "grep \"SNAPSHOT TRANSMISSION] The overall progress\" ${db_dir}/logs/*datanode*all*|wc -l"`
-     if [[ ${v_AddRegion} -gt 1 ]];then
+     v_snapshot_progress_count=`ssh ${u_name}@${v_add_coord_ip} "grep \"SNAPSHOT TRANSMISSION] The overall progress\" ${db_dir}/logs/*datanode*all*|wc -l"`
+     v_end_time=`date +%s`
+     v_elp=$((v_end_time-v_start_time))
+     v_ready_to_inject=0
+     if [[ ${v_snapshot_progress_count} -gt 1 ]];then
+        v_ready_to_inject=1
+     fi
+     if [[ ${v_ready_to_inject} = 0 && ${v_elp} -gt ${loop_timeout_sec} ]];then
+        capture_migration_visible_state "before_first_fault_injection"
+        if [[ ${v_migrations_empty} = 0 && ${v_region_changing_count} -gt 0 ]];then
+           echo "snapshot progress is slow, but migration is still visible and regions are changing, continue first fault injection."
+           v_ready_to_inject=1
+        fi
+     fi
+     if [[ ${v_ready_to_inject} = 1 ]];then
         ssh ${u_name}@${v_remove_coord_ip} "sudo ${db_dir}/sbin/stop-datanode.sh" &
         ssh ${u_name}@${v_cn_leader_ip} "sudo ${db_dir}/sbin/stop-confignode.sh" &
         if [[ ${query_ip} = ${v_remove_coord_ip} ]];then
            query_ip=${v_add_coord_ip}
         fi
         break
-     else
-        v_end_time=`date +%s`
-        v_elp=$((v_end_time-v_start_time))
-        if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
-           let fail_flag++
-           write_test_result
-           return 1
-        fi
-        sleep 1
      fi
+     sleep 5
   done
 
   v_start_time=`date +%s`
@@ -344,27 +553,7 @@ function pre_and_exec_mig_region()
      fi
   done
 
-  v_beg_sec=`date +%s`
-  while true
-  do
-     v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|wc -l`
-     if [[ ${v_check_mig_regionid} != ${dr_rep_num} ]];then
-        v_end_sec=`date +%s`
-        v_elp=$((v_end_sec-v_beg_sec))
-        if [[ ${v_elp} -gt 180 ]];then
-           let fail_flag++
-           break
-        fi
-        sleep 3
-     else
-        break
-     fi
-  done
-
-  v_adding_check=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions"|grep Adding|wc -l`
-  if [[ ${v_adding_check} -gt 0 ]];then
-     let fail_flag++
-  fi
+  capture_migration_visible_state "after_fault_injection_before_recovery"
 
   v_start_time=`date +%s`
   ssh ${u_name}@${v_remove_coord_ip} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_restart_heapdump.hprof > /dev/null 2>&1 &"
@@ -402,6 +591,8 @@ function pre_and_exec_mig_region()
      fi
   done
 
+  wait_migration_visible_state_stable "after_recovery_before_second_mig"
+
   refresh_region_runtime_info
   v_mig_to_dn_id=-1
   line=`tail -1 ${cur_dir}/mig_id_info.txt`
@@ -424,44 +615,49 @@ function pre_and_exec_mig_region()
   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
   v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
   v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
+  capture_migration_visible_state "before_second_mig"
+  v_semantic_migrations_empty=${v_migrations_empty}
+  v_semantic_region_changing_count=${v_region_changing_count}
   if ! run_migrate_region_with_retry ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_to_dn_id} ${cur_dir}/mig.out;then
+     if [[ ${v_semantic_migrations_empty} = 1 && ${v_semantic_region_changing_count} = 0 ]] && grep -q "has some other region operation procedures in progress" ${cur_dir}/mig.out;then
+        append_warn "migration semantic inconsistent: before retry show migrations is Empty set and show data regions has no Adding/Removing, but retry MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id} failed with region operation procedure in progress"
+     else
+        append_warn "second MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id} failed"
+     fi
      let fail_flag++
      write_test_result
      return 1
   fi
 
-  v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-  v_mig_to_dn_ip=`grep "${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
-  v_mig_from_dn_ip=`grep "${v_mig_from_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
-  v_start_time=`date +%s`
-  while true
-  do
-     ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip -f ${db_dir}/logs/log-confignode-all*gz >/dev/null 2>&1 || true"
-     v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|grep \" has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}\"|wc -l"`
-     if [[ ${v_mig_suc_log} = 1 ]];then
-        break
-     else
-        v_end_time=`date +%s`
-        v_elp=$((v_end_time-v_start_time))
-        if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
-           let fail_flag++
-           write_test_result
-           return 1
-        fi
-        sleep 2
-     fi
-  done
-
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
-  v_check_res=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out |grep root|wc -l`
-  if [[ ${v_check_res} != 0 ]];then
+  sleep 2
+  wait_migration_visible_state_stable "after_second_mig"
+  refresh_region_runtime_info
+  v_check_to_dn=`grep -w "${v_mig_to_dn_id}" ${cur_dir}/mig_region_dn_id.txt|wc -l`
+  v_check_from_dn=`grep -w "${v_mig_from_dn_id}" ${cur_dir}/mig_region_dn_id.txt|wc -l`
+  if [[ ${v_check_to_dn} = 0 || ${v_check_from_dn} != 0 ]];then
+     append_warn "second migration result unexpected: region ${v_mig_id} should be migrated from DataNode ${v_mig_from_dn_id} to ${v_mig_to_dn_id}, current replica DataNodes: `tr '\n' ',' < ${cur_dir}/mig_region_dn_id.txt`"
      let fail_flag++
+  fi
+
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "${query_consistency_sql}">${cur_dir}/q_act.out
+  if grep -q "IoTDBSQLException" ${cur_dir}/q_act.out;then
+     append_warn "final query (q_act.out) failed on ${query_ip}"
+     let fail_flag++
+  else
+     v_check_res=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out |grep root|wc -l`
+     if [[ ${v_check_res} != 0 ]];then
+        append_warn "final query result differs from initial baseline"
+        let fail_flag++
+     fi
   fi
 
   v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|wc -l`
   if [[ ${v_check_mig_regionid} != ${dr_rep_num} ]];then
+     append_warn "region ${v_mig_id} replica count is ${v_check_mig_regionid}, expected ${dr_rep_num}"
      let fail_flag++
   fi
+
+  run_replica_consistency_check
 
   write_test_result
 }

@@ -163,19 +163,19 @@ if [[ ${v_err_res} != *"get region group id fail"* ]];then
 fi
 # Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: Submit RegionMigrateProcedure failed, because no target DataNode 1000
 v_err_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "migrate region 1 from 3 to 1000;"`
-if [[ ${v_err_res} != *"IoTDBSQLException: 900: Cannot find Destination DataNode"* ]];then
+if [[ ${v_err_res} != *"Cannot find Destination DataNode"* ]];then
    let fail_flag++
 fi
 
 #Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: Submit RegionMigrateProcedure failed, because no original DataNode 3000
 v_err_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "migrate region 1 from 3000 to 1;"`
-if [[ ${v_err_res} != *"IoTDBSQLException: 900: Cannot find Original DataNode"* ]];then
+if [[ ${v_err_res} != *"Cannot find Original DataNode"* ]];then
    let fail_flag++
 fi
 
 #Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: Submit RegionMigrateProcedure failed, because no target DataNode 1
 v_err_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "migrate region 9 from 7 to 1;"`
-if [[ ${v_err_res} != *"IoTDBSQLException: 900: Cannot find Destination DataNode"* ]];then
+if [[ ${v_err_res} != *"Cannot find Destination DataNode"* ]];then
    let fail_flag++
 fi
 #Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 700: Error occurred while parsing SQL to physical plan: line 1:26 missing INTEGER_LITERAL at '<EOF>'

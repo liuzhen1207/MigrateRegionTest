@@ -157,6 +157,11 @@ done
 function mig_and_kill()
 {
    local v_mig_to_dn_id=-1
+   local v_mig_flag=""
+   local v_submit_mig_log=""
+   local v_add_coord_ip=""
+   local v_remove_coord_ip=""
+   local next_query_ip=""
    line=$1
    if [[ ${line} = "" ]];then
       return 1
@@ -179,27 +184,38 @@ function mig_and_kill()
    v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
    v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
-   v_submit_fail1=`grep failed ${cur_dir}/mig.out|wc -l`
-   v_submit_fail2=`grep "IoTDBSQLException: 900" failed ${cur_dir}/mig.out|wc -l`
+   v_submit_fail1=`grep -ci failed ${cur_dir}/mig.out`
+   v_submit_fail2=`grep -c "IoTDBSQLException: 900" ${cur_dir}/mig.out`
    v_submit_fail=$((v_submit_fail1+v_submit_fail2))
-   v_submit_suc=`grep success ${cur_dir}/mig.out|wc -l`
-   if [[ ${v_submit_fail} = 0 ]] && [[ ${v_submit_suc} = 1 ]];then
+   v_submit_suc=`grep -ci "statement is executed successfully" ${cur_dir}/mig.out`
+   if [[ ${v_submit_fail} = 0 ]] && [[ ${v_submit_suc} -eq 1 ]];then
       v_mig_flag=success
-   fi
-   if [[ ${v_submit_fail} -gt 0 ]] && [[ ${v_submit_suc} = 0 ]];then
+   else
       v_mig_flag=fail
-   fi
-   if [[ ${v_submit_fail} = 0 ]] && [[ ${v_submit_suc} = 0 ]];then
       let fail_flag++
       return 1
    fi
 if [[ "${v_mig_flag}" = "success" ]];then
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
+   if [[ -z "${v_cn_leader_ip}" ]];then
+      let fail_flag++
+      return 1
+   fi
 # get Add Coord ip
-   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure successfully, Region: TConsensusGroupId(type:DataRegion, id:${v_mig_id}), Origin DataNode: TDataNodeLocation(dataNodeId:${v_mig_from_dn_id},\" ${db_dir}/logs/*confignode*all*"|tail -1`
+   for i in {1..30}
+   do
+      v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure successfully, Region: TConsensusGroupId(type:DataRegion, id:${v_mig_id}), Origin DataNode: TDataNodeLocation(dataNodeId:${v_mig_from_dn_id},\" ${db_dir}/logs/*confignode*all*"|tail -1`
+      [[ -n "${v_submit_mig_log}" ]] && break
+      sleep 1
+   done
    v_add_coord_ip=`echo ${v_submit_mig_log} |awk -F "Add Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
 # get Remove Coord IP
    v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
+
+   if [[ -z "${v_submit_mig_log}" || -z "${v_add_coord_ip}" || -z "${v_remove_coord_ip}" ]];then
+      let fail_flag++
+      return 1
+   fi
 
 v_pid_from_dn_str=`ssh ${u_name}@${v_mig_from_dn_ip} "sudo jps|grep -i datanode"`
 v_pid_from_dn=`echo ${v_pid_from_dn_str}|awk '{print $1}'`
@@ -209,6 +225,11 @@ v_pid_remove_dn_str=`ssh ${u_name}@${v_remove_coord_ip} "sudo jps|grep -i datano
 v_pid_remove_dn=`echo ${v_pid_remove_dn_str}|awk '{print $1}'`
 v_pid_cn_leader_str=`ssh ${u_name}@${v_cn_leader_ip} "sudo jps|grep -i confignode"`
 v_pid_cn_leader=`echo ${v_pid_cn_leader_str}|awk '{print $1}'`
+
+if [[ -z "${v_pid_from_dn}" || -z "${v_pid_sec_dn}" || -z "${v_pid_remove_dn}" || -z "${v_pid_cn_leader}" ]];then
+   let fail_flag++
+   return 1
+fi
 
 # check Removing
            t1=`date +%s`
@@ -223,17 +244,23 @@ v_pid_cn_leader=`echo ${v_pid_cn_leader_str}|awk '{print $1}'`
                  t2=`date +%s`
                  t=$((t2-t1))
                  if [[ ${t} -gt 600 ]];then
-                    break
+                    let fail_flag++
+                    return 1
                  fi
            done
 #  if kill
 if [[ ${kill_flag} = 1 ]];then
-         ssh ${u_name}@${v_mig_from_dn_ip} "sudo kill -9 ${v_pid_from_dn}" &
-         ssh ${u_name}@${v_mig_sec_dn_ip} "sudo kill -9 ${v_pid_sec_dn}" &
-         ssh ${u_name}@${v_remove_coord_ip} "sudo kill -9 ${v_pid_remove_dn}" &
-         ssh ${u_name}@${v_cn_leader_ip} "sudo kill -9 ${v_pid_cn_leader}" &
+         next_query_ip=`awk -F ',' -v remove_ip="${v_remove_coord_ip}" -v from_ip="${v_mig_from_dn_ip}" -v sec_ip="${v_mig_sec_dn_ip}" '$2 != remove_ip && $2 != from_ip && $2 != sec_ip {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
+         if [[ -z "${next_query_ip}" ]];then
+            let fail_flag++
+            return 1
+         fi
+         query_ip=${next_query_ip}
+         ssh -n ${u_name}@${v_mig_from_dn_ip} "sudo kill -9 ${v_pid_from_dn}" &
+         ssh -n ${u_name}@${v_mig_sec_dn_ip} "sudo kill -9 ${v_pid_sec_dn}" &
+         ssh -n ${u_name}@${v_remove_coord_ip} "sudo kill -9 ${v_pid_remove_dn}" &
+         ssh -n ${u_name}@${v_cn_leader_ip} "sudo kill -9 ${v_pid_cn_leader}" &
          let kill_flag++
-         query_ip=`grep -v ${v_remove_coord_ip} ${cur_dir}/all_dn_id_ip.txt|grep -v ${v_mig_from_dn_ip}|grep -v ${v_mig_sec_dn_ip}|head -1|awk -F ',' '{print $2}'`
 # check stop dn pid
 
 while true
@@ -328,6 +355,7 @@ do
       fi
 done
 
+v_start_time=`date +%s`
 ssh ${u_name}@${v_remove_coord_ip} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_restart_heapdump.hprof > /dev/null 2>&1 &"
 while true
 do
@@ -378,9 +406,9 @@ function pre_and_exec_mig_region()
 
 local v_mig_to_dn_id=-1
   line=`head -1 ${cur_dir}/mig_id_info.txt`
-  mig_and_kill "${line}"
+  mig_and_kill "${line}" || return 1
   line=`tail -1 ${cur_dir}/mig_id_info.txt`
-  mig_and_kill "${line}"
+  mig_and_kill "${line}" || return 1
 
  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
  v_check_res=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out |grep root|wc -l`

@@ -391,13 +391,10 @@ remove_datanode_under_load() {
     return 1
   fi
 
-  # tc111 changes the live target to ReadOnly while benchmark writes continue,
-  # then removes that ReadOnly DataNode.
-  run_cli_sql "${rm_target_ip}" tree "set system to readonly on local;" "${cur_dir}/set_readonly.out" 300
-  if ! wait_datanode_status "${query_ip}" "${rm_target_ip}" "ReadOnly" 300; then
-    log "datanode ${rm_target_ip} did not become ReadOnly before remove"
+  ssh "${u_name}@${rm_target_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh"
+  if ! wait_datanode_status "${query_ip}" "${rm_target_ip}" "Unknown" 300; then
+    log "datanode ${rm_target_ip} did not become Unknown before remove"
     let fail_flag++
-    return 1
   fi
 
   run_cli_sql "${query_ip}" tree "remove datanode ${rm_dn_id};" "${cur_dir}/remove_datanode.out" 3600
@@ -416,6 +413,127 @@ remove_datanode_under_load() {
   fi
 
   log "remove datanode finished with status=${rm_result_state}"
+  return 0
+}
+
+remove_datanode_and_make_adding_peer_readonly() {
+  local target_ip=$1
+  local rm_dn_id
+  local adding_region_id=""
+  local adding_ip=""
+  local start_time
+  local stable_zero=0
+  local active_num
+  local target_num
+  local target_status
+  local outcome=""
+  local jps_num
+  local tsfile_num
+
+  run_cli_sql "${query_ip}" tree "show datanodes;" "${cur_dir}/show_datanodes.out" 3600
+  rm_dn_id=$(grep "${target_ip}|" "${cur_dir}/show_datanodes.out" | awk -F '|' '{gsub(" ","",$2);print $2}' | tail -1)
+  if [[ -z "${rm_dn_id}" ]]; then
+    log "failed to locate remove target id for ${target_ip}"
+    let fail_flag++
+    return 1
+  fi
+  if ! wait_datanode_status "${query_ip}" "${target_ip}" "Running" 300; then
+    log "remove target ${target_ip} is not Running"
+    let fail_flag++
+    return 1
+  fi
+
+  run_cli_sql "${target_ip}" tree "remove datanode ${rm_dn_id};" "${cur_dir}/remove_datanode.out" 3600
+  if ! grep -qi 'successfully' "${cur_dir}/remove_datanode.out"; then
+    log "remove datanode submit output is not success"
+    cat "${cur_dir}/remove_datanode.out"
+    let fail_flag++
+    return 1
+  fi
+
+  # Catch the first migration destination in Adding state. Use a bounded wait
+  # so a fast migration or an abnormal procedure cannot hang the testcase.
+  start_time=$(date +%s)
+  while (( $(date +%s) - start_time <= 120 ))
+  do
+    run_cli_sql "${query_ip}" table "show data regions;" "${cur_dir}/show_data_regions_table.out" 3600
+    adding_region_id=$(grep 'Adding' "${cur_dir}/show_data_regions_table.out" | head -1 | awk -F '|' '{gsub(" ","",$2);print $2}')
+    adding_ip=$(grep 'Adding' "${cur_dir}/show_data_regions_table.out" | head -1 | awk -F '|' '{gsub(" ","",$9);print $9}')
+    if [[ -z "${adding_region_id}" || -z "${adding_ip}" ]]; then
+      run_cli_sql "${query_ip}" tree "show data regions;" "${cur_dir}/show_data_regions_tree.out" 3600
+      adding_region_id=$(grep 'Adding' "${cur_dir}/show_data_regions_tree.out" | head -1 | awk -F '|' '{gsub(" ","",$2);print $2}')
+      adding_ip=$(grep 'Adding' "${cur_dir}/show_data_regions_tree.out" | head -1 | awk -F '|' '{gsub(" ","",$9);print $9}')
+    fi
+    [[ -n "${adding_region_id}" && -n "${adding_ip}" ]] && break
+    sleep 1
+  done
+  if [[ -z "${adding_region_id}" || -z "${adding_ip}" ]]; then
+    log "no Adding DataRegion was observed within 120 seconds"
+    let fail_flag++
+    return 1
+  fi
+  if [[ "${adding_ip}" = "${target_ip}" ]]; then
+    log "Adding replica unexpectedly points to remove target ${target_ip}"
+    let fail_flag++
+    return 1
+  fi
+
+  log "set Adding replica ${adding_region_id} on ${adding_ip} to ReadOnly"
+  run_cli_sql "${adding_ip}" tree "set system to readonly on local;" "${cur_dir}/set_adding_readonly.out" 300
+  if ! wait_datanode_status "${query_ip}" "${adding_ip}" "ReadOnly" 300; then
+    log "Adding replica DataNode ${adding_ip} did not become ReadOnly"
+    let fail_flag++
+    return 1
+  fi
+
+  # The procedure may finish by removing the target or roll back and keep it
+  # Running. Both are valid here; a lasting Adding/Removing state is not.
+  start_time=$(date +%s)
+  while (( $(date +%s) - start_time <= 3600 ))
+  do
+    run_cli_sql "${query_ip}" table "show regions;" "${cur_dir}/show_regions_table.out" 3600
+    run_cli_sql "${query_ip}" tree "show regions;" "${cur_dir}/show_regions_tree.out" 3600
+    run_cli_sql "${query_ip}" tree "show datanodes;" "${cur_dir}/show_datanodes.out" 3600
+    active_num=$(grep -Ec 'Adding|Removing' "${cur_dir}/show_regions_table.out")
+    active_num=$((active_num + $(grep -Ec 'Adding|Removing' "${cur_dir}/show_regions_tree.out")))
+    target_num=$(grep "${target_ip}|" "${cur_dir}/show_datanodes.out" | wc -l)
+    target_status=$(grep "${target_ip}|" "${cur_dir}/show_datanodes.out" | awk -F '|' '{gsub(" ","",$3);print $3}' | tail -1)
+
+    if [[ ${active_num} -eq 0 ]]; then
+      stable_zero=$((stable_zero + 1))
+    else
+      stable_zero=0
+    fi
+    if [[ ${stable_zero} -ge 3 ]]; then
+      if [[ ${target_num} -eq 0 ]]; then
+        outcome=removed
+      elif [[ "${target_status}" = "Running" ]]; then
+        outcome=rolled_back
+      else
+        log "remove settled with unexpected target status=${target_status}"
+        let fail_flag++
+        return 1
+      fi
+      break
+    fi
+    sleep 10
+  done
+  if [[ -z "${outcome}" ]]; then
+    log "remove stayed in Adding/Removing state for more than 3600 seconds"
+    let fail_flag++
+    return 1
+  fi
+
+  if [[ "${outcome}" = "removed" ]]; then
+    jps_num=$(ssh "${u_name}@${target_ip}" "source /etc/profile; sudo jps -l | grep -c 'DataNode' || true")
+    tsfile_num=$(ssh "${u_name}@${target_ip}" "sudo find '${db_dir}/data' -name '*.tsfile' -type f | wc -l")
+    if [[ ${jps_num} -ne 0 || ${tsfile_num} -ne 0 ]]; then
+      log "removed target ${target_ip} still has process=${jps_num}, tsfiles=${tsfile_num}"
+      let fail_flag++
+      return 1
+    fi
+  fi
+  log "Adding-ReadOnly remove settled: target=${target_ip}, adding_ip=${adding_ip}, outcome=${outcome}"
   return 0
 }
 
@@ -767,6 +885,7 @@ write_test_result() {
 
 testcase() {
   local benchmark_start_sec
+  local target_ip
 
   start_db
   create_benchmark_users
@@ -776,7 +895,8 @@ testcase() {
   start_benchmarks
   create_tree_view_data
   wait_until_remove_time "${benchmark_start_sec}"
-  remove_datanode_under_load
+  target_ip=$(tail -2 "${nodeinfo_dir}/datanode.txt" | head -1)
+  remove_datanode_and_make_adding_peer_readonly "${target_ip}"
   wait_benchmarks_finish 43200
   check_data_consistent
   check_npe "${SCRIPT_NAME}"

@@ -18,7 +18,7 @@ seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
 query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
 query_ip2=`tail -1 ${nodeinfo_dir}/datanode.txt`
-bm_dir=`cat ${conf_file}|grep bm_ssl_dir|awk -F '=' '{print $2}'`
+bm_dir="${cur_dir}/../benchmark/bm_20251017_b6be9bd"
 bm_conf_name=tree_table
 bm_conf="${cur_dir}/../bm_conf_backup/v20/${bm_conf_name}"
 bm_conn_pw=TimechoDB@2021
@@ -33,6 +33,7 @@ testcase_ip=`cat ${conf_file}|grep test_ip|awk -F '.' '{print $4}'`
 tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
+res_root_pw=TimechoDB@2021
 test_begin_sec=`date +%s`
 function clean_env()
 {

@@ -5,7 +5,7 @@ nodeinfo_dir="${cur_dir}/../conf"
 u_name=`cat ${conf_file}|grep u_name|awk -F '=' '{print $2}'`
 db_sys_admin=root
 db_sec_admin=root
-cli_default_pw=root
+cli_default_pw=TimechoDB@2021
 res_root_pw=TimechoDB@2021
 db_dir=`cat ${conf_file}|grep ^db_dir|awk -F '=' '{print $2}'`
 iotdb_host=`cat ${conf_file}|grep test_ip|awk -F '=' '{print $2}'`
@@ -19,7 +19,7 @@ SCRIPT_NAME=$(basename "$0")
 seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
 query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
-bm_dir=`cat ${conf_file}|grep bm_v13_dir|awk -F '=' '{print $2}'`
+bm_dir="${cur_dir}/../benchmark/bm_20251017_b6be9bd"
 cn_num=3
 dn_num=5
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode.txt > ${nodeinfo_dir}/datanode.txt

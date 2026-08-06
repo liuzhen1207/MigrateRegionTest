@@ -264,11 +264,9 @@ nohup "$benchmark_script" -cf "$bm_conf_dir2" >"${bm_dir}/${time_stamp}_tc${tc_n
     sleep 10
 #    return 0  # 全部执行完成返回成功
 }
-function wait_sync_done()
+function wait_compaction_done()
 {
 local max_wait_time=$1
-   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;">${cur_dir}/tmp.out
-check_res "success" 1 "${SCRIPT_NAME}"
    ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
    cat ${cur_dir}/tmp.out |grep Running|awk -F "|" '{gsub(" ","");print $4}'>${cur_dir}/tmp1.out
    mv ${cur_dir}/tmp1.out ${cur_dir}/tmp.out
@@ -305,6 +303,85 @@ fi
    done
 
 }
+function prepare_iot_consensus_sync_checker()
+{
+   local checker_java="${cur_dir}/IoTConsensusSyncChecker.java"
+   local checker_class="${cur_dir}/IoTConsensusSyncChecker.class"
+   if [[ ! -f "${checker_java}" ]];then
+      echo "ERROR: IoTConsensus sync checker source not found: ${checker_java}"
+      let fail_flag++
+      return 1
+   fi
+   if [[ ! -f "${checker_class}" || "${checker_java}" -nt "${checker_class}" ]];then
+      javac -cp "${cli_dir}/lib/*" -d "${cur_dir}" "${checker_java}"
+      if [[ $? -ne 0 ]];then
+         echo "ERROR: Failed to compile IoTConsensusSyncChecker.java"
+         let fail_flag++
+         return 1
+      fi
+   fi
+}
+function wait_iot_consensus_sync_done()
+{
+   local max_wait_time=$1
+   local check_interval=5
+   local required_stable_rounds=2
+   local stable_rounds=0
+   local start_time=`date +%s`
+   local current_time
+   local peer_ip
+   local peer_port
+   local peer_num
+   local all_complete
+   local checker_output
+
+   prepare_iot_consensus_sync_checker || return 1
+   while true
+   do
+      ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show data regions;" \
+         | grep " ${v_mig_id}|[[:space:]]*DataRegion" \
+         | grep Running \
+         | awk -F '|' '{gsub(" ","");print $9}' \
+         | sort -u > "${cur_dir}/iot_consensus_region_peers.out"
+      peer_num=`grep -c . "${cur_dir}/iot_consensus_region_peers.out"`
+      all_complete=1
+      if [[ ${peer_num} -ne ${dr_rep_num} ]];then
+         echo "IoTConsensus sync check: region=${v_mig_id}, runningPeers=${peer_num}, expectedPeers=${dr_rep_num}"
+         all_complete=0
+      fi
+
+      while read peer_ip
+      do
+         [[ -z "${peer_ip}" ]] && continue
+         peer_port=`ssh ${u_name}@${peer_ip} "grep '^dn_data_region_consensus_port=' ${db_dir}/conf/iotdb-system.properties | tail -1 | awk -F '=' '{print \$2}'"`
+         [[ -z "${peer_port}" ]] && peer_port=10760
+         checker_output=`java -cp "${cur_dir}:${cli_dir}/lib/*" IoTConsensusSyncChecker "${peer_ip}" "${peer_port}" "${v_mig_id}" 2>&1`
+         checker_rc=$?
+         echo "IoTConsensus sync check: ${checker_output}"
+         if [[ ${checker_rc} -ne 0 ]];then
+            all_complete=0
+         fi
+      done < "${cur_dir}/iot_consensus_region_peers.out"
+
+      if [[ ${all_complete} -eq 1 ]];then
+         let stable_rounds++
+         if [[ ${stable_rounds} -ge ${required_stable_rounds} ]];then
+            echo "IoTConsensus sync completed for region ${v_mig_id} on all peers for ${stable_rounds} consecutive rounds."
+            return 0
+         fi
+      else
+         stable_rounds=0
+      fi
+
+      current_time=`date +%s`
+      if [[ $((current_time-start_time)) -gt ${max_wait_time} ]];then
+         echo "ERROR: Timed out waiting ${max_wait_time}s for IoTConsensus region ${v_mig_id} to synchronize."
+         let fail_flag++
+         return 1
+      fi
+      sleep ${check_interval}
+   done
+}
 function check_dn_jps()
 {
    local v_dn_ip=$1
@@ -334,7 +411,16 @@ done
 
 function check_data_consistent()
 {
-wait_sync_done 180
+   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;">${cur_dir}/tmp.out
+   v_flush_suc=`grep -ci "statement is executed successfully" ${cur_dir}/tmp.out`
+   if [[ ${v_flush_suc} -ne 1 ]];then
+      echo "ERROR: Flush failed before consistency check."
+      cat ${cur_dir}/tmp.out
+      let fail_flag++
+      return 1
+   fi
+wait_compaction_done 180
+wait_iot_consensus_sync_done 900 || return 1
    ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
    cat ${cur_dir}/tmp.out |grep Running|awk -F "|" '{gsub(" ","");print $4}'>${cur_dir}/tmp1.out
    mv ${cur_dir}/tmp1.out ${cur_dir}/tmp.out

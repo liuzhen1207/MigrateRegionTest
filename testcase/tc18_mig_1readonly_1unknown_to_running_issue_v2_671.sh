@@ -21,8 +21,6 @@ query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
 fail_file="fail.log"
 cn_num=3
 dn_num=5
-dr_rep_num=2
-sr_rep_num=3
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode.txt > ${nodeinfo_dir}/datanode.txt
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode_port.txt > ${nodeinfo_dir}/datanode_port.txt
 total_node_num=$((cn_num+dn_num))
@@ -85,7 +83,7 @@ set_sys_conf ${line} ${db_dir} ".*schema_region_group_extension_policy=.*" "sche
 set_sys_conf ${line} ${db_dir} ".*data_region_group_extension_policy=.*" "data_region_group_extension_policy=CUSTOM"
 set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=1"
 set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=5"
-    set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728" 
+     
   done
 
   exec 3<${nodeinfo_dir}/datanode.txt
@@ -105,7 +103,6 @@ set_sys_conf ${line} ${db_dir} ".*data_region_group_extension_policy=.*" "data_r
 set_sys_conf ${line} ${db_dir} ".*default_schema_region_group_num_per_database=.*" "default_schema_region_group_num_per_database=1"
 set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*" "default_data_region_group_num_per_database=5"
    set_sys_conf ${line} ${db_dir} ".*datanode_memory_proportion=.*"  "datanode_memory_proportion=1:5:1:1:1:1"
-set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=134217728"
   done
  
 }
@@ -152,133 +149,134 @@ done
    sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"
 
 }
-
-function pre_and_exec_mig_region()
+function mig_region()
 {
+   local v_mig_id=$1
+   local v_mig_from_dn_id=$2
+   local v_mig_dest_dn_id=$3
+   local v_mig_submit_file="${cur_dir}/mig_submit_${v_mig_id}_${v_mig_from_dn_id}_${v_mig_dest_dn_id}.out"
+   local v_region_file="${cur_dir}/mig_region_${v_mig_id}_${v_mig_from_dn_id}_${v_mig_dest_dn_id}.out"
+   local v_mig_start_sec=`date +%s`
+   local v_stable_rounds=0
 
-  v_mig_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep root.test|head -1|awk -F '|' '{gsub(" ","");print $2}'`
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8","$9}'>${cur_dir}/mig_id_info.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8}'>${cur_dir}/mig_region_dn_id.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/all_dn_id.txt
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
-
-local v_mig_to_dn_id=-1
-v_del_flag=0
-
-function wait_region_migration_done()
-{
-   local region_id=$1
-   local from_node_id=$2
-   local to_node_id=$3
-   local max_wait_time=$4
-   local start_time=`date +%s`
-   local current_time
-   local region_output
-   local from_count
-   local to_running_count
-   local replica_count
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_dest_dn_id};" > "${v_mig_submit_file}" 2>&1
+   cat "${v_mig_submit_file}" >> "${cur_dir}/mig.out"
+   if grep -Eqi "failed to submit|Exception|ERROR" "${v_mig_submit_file}" || ! grep -q "The statement is executed successfully" "${v_mig_submit_file}";then
+      let fail_flag++
+      return 1
+   fi
 
    while true
    do
-      region_output=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;" | grep " ${region_id}|[[:space:]]*DataRegion"`
-      from_count=`echo "${region_output}" | awk -F '|' -v node_id="${from_node_id}" '{gsub(" ","",$8); if ($8 == node_id) count++} END {print count+0}'`
-      to_running_count=`echo "${region_output}" | awk -F '|' -v node_id="${to_node_id}" '{gsub(" ","",$4); gsub(" ","",$8); if ($4 == "Running" && $8 == node_id) count++} END {print count+0}'`
-      replica_count=`echo "${region_output}" | grep -c .`
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;" > "${v_region_file}" 2>&1
+      local v_region_has_error=`grep -Eci "Exception|ERROR" "${v_region_file}"`
+      local v_region_count=`grep " ${v_mig_id}|[[:space:]]*DataRegion" "${v_region_file}" | wc -l`
+      local v_source_count=`grep " ${v_mig_id}|[[:space:]]*DataRegion" "${v_region_file}" | awk -F '|' -v id="${v_mig_from_dn_id}" '{gsub(" ","",$8); if ($8 == id) print}' | wc -l`
+      local v_dest_running_count=`grep " ${v_mig_id}|[[:space:]]*DataRegion" "${v_region_file}" | awk -F '|' -v id="${v_mig_dest_dn_id}" '{gsub(" ","",$4); gsub(" ","",$8); if ($8 == id && $4 == "Running") print}' | wc -l`
+      local v_transition_count=`grep " ${v_mig_id}|[[:space:]]*DataRegion" "${v_region_file}" | grep -Eci "Adding|Removing"`
 
-      echo "Migration progress: region=${region_id}, fromNode=${from_node_id}, toNode=${to_node_id}, fromCount=${from_count}, toRunningCount=${to_running_count}, replicaCount=${replica_count}"
-      if [[ ${from_count} -eq 0 && ${to_running_count} -eq 1 && ${replica_count} -eq ${dr_rep_num} ]];then
-         echo "Migration completed: region ${region_id} from DataNode ${from_node_id} to DataNode ${to_node_id}."
-         return 0
+      if [[ ${v_region_has_error} = 0 && ${v_region_count} = ${v_expected_rep_num} && ${v_source_count} = 0 && ${v_dest_running_count} = 1 && ${v_transition_count} = 0 ]];then
+         v_stable_rounds=$((v_stable_rounds+1))
+         if [[ ${v_stable_rounds} -ge 3 ]];then
+            return 0
+         fi
+      else
+         v_stable_rounds=0
       fi
 
-      current_time=`date +%s`
-      if [[ $((current_time-start_time)) -gt ${max_wait_time} ]];then
-         echo "ERROR: Timed out waiting ${max_wait_time}s for region ${region_id} migration from DataNode ${from_node_id} to DataNode ${to_node_id}."
-         ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show migrations; show data regions;"
+      local v_mig_cur_sec=`date +%s`
+      local v_mig_elp=$((v_mig_cur_sec-v_mig_start_sec))
+      if [[ ${v_mig_elp} -gt 1800 ]];then
          let fail_flag++
          return 1
       fi
       sleep 5
    done
 }
+function query_and_check_v2_671()
+{
+   local v_query_out=$1
+   local v_query_sql="select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;"
 
-exec 3<${cur_dir}/mig_id_info.txt
-while read line<&3
-do
-   v_mig_from_dn_id=`echo ${line}|awk -F ',' '{print $1}'`
-   if [[ ${v_mig_to_dn_id} -lt 0 ]];then
-         for i in {1..4}
-         do
-             v_mig_to_dn_id=`awk "NR==${i}" ${cur_dir}/all_dn_id.txt`
-             v_check=`grep ${v_mig_to_dn_id} ${cur_dir}/mig_region_dn_id.txt|wc -l`
-             if [[ ${v_check} = 0 ]];then
-                break
-             fi
-         done
-   fi
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
-   v_submit_suc=`grep -ci "statement is executed successfully" ${cur_dir}/mig.out`
-   if [[ ${v_submit_suc} -ne 1 ]];then
-      echo "ERROR: Failed to submit migration of region ${v_mig_id} from DataNode ${v_mig_from_dn_id} to DataNode ${v_mig_to_dn_id}."
-      cat ${cur_dir}/mig.out
+   timeout 120 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 120 -e "${v_query_sql}" > "${v_query_out}" 2>&1
+   local v_query_rc=$?
+   if [[ ${v_query_rc} = 124 ]];then
       let fail_flag++
-      break
+      return 1
    fi
-   sleep 2
-   if [[ ${v_del_flag} -gt 0 ]];then
-      echo "have been executed delete timeseries;"
-   else 
-      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "delete from root.test.g_0.*.s_40;">${cur_dir}/del_s_40.out &
-      let v_del_flag++
+   if ! grep -q "IoTDBSQLException: 308" "${v_query_out}" || \
+      ! grep -q "dispatchFragmentInstance failed" "${v_query_out}" || \
+      ! grep -Eq "Frame size \([0-9]+\) larger than protect max size \([0-9]+\)" "${v_query_out}";then
+      let fail_flag++
+      return 1
    fi
-   wait_region_migration_done "${v_mig_id}" "${v_mig_from_dn_id}" "${v_mig_to_dn_id}" 1200 || break
-   v_mig_to_dn_id=${v_mig_from_dn_id}
-
-done
-if [[ ${v_del_flag} -gt 0 ]];then
-   v_del_wait_start=`date +%s`
+   return 0
+}
+function pre_and_exec_mig_region()
+{
+  query_and_check_v2_671 "${cur_dir}/q_exp.out"
+  v_mig_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep root.test|head -1|awk -F '|' '{gsub(" ","");print $2}'`
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8","$9}'>${cur_dir}/mig_id_info.txt
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|awk -F '|' '{gsub(" ","");print $8}'>${cur_dir}/mig_region_dn_id.txt
+  v_expected_rep_num=`wc -l < ${cur_dir}/mig_region_dn_id.txt`
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/all_dn_id.txt
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
+  # set readonly ,stop dn
+  v_mig_from_dn_ip1=`awk "NR==1" ${cur_dir}/mig_id_info.txt|awk -F ',' '{print $2}'`
+  v_mig_from_dn_id1=`awk "NR==1" ${cur_dir}/mig_id_info.txt|awk -F ',' '{print $1}'`
+  v_mig_from_dn_ip2=`awk "NR==2" ${cur_dir}/mig_id_info.txt|awk -F ',' '{print $2}'`
+  v_mig_from_dn_id2=`awk "NR==2" ${cur_dir}/mig_id_info.txt|awk -F ',' '{print $1}'`
+  ${cli_dir}/sbin/start-cli.sh -h ${v_mig_from_dn_ip1} -e "set system to readonly on local"
+  ssh ${u_name}@${v_mig_from_dn_ip2} "source /etc/profile;sudo ${db_dir}/sbin/stop-datanode.sh"
+  query_ip=`grep -v ${v_mig_from_dn_ip1} ${cur_dir}/all_dn_id_ip.txt|grep -v ${v_mig_from_dn_ip2}|head -1 |awk -F ',' '{print $2}'`
+  v_mig_dest_dn_id1=`grep -v ${v_mig_from_dn_ip1} ${cur_dir}/all_dn_id_ip.txt|grep -v ${v_mig_from_dn_ip2}|head -1 |awk -F ',' '{print $1}'`
+  v_mig_dest_dn_id2=`grep -v ${v_mig_from_dn_ip1} ${cur_dir}/all_dn_id_ip.txt|grep -v ${v_mig_from_dn_ip2}|tail -1 |awk -F ',' '{print $1}'`
+   
+  while true
+  do
+      v_check_status=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep -i readonly|wc -l`
+      if [[ ${v_check_status} -gt 0 ]];then
+         break
+      else
+         sleep 2
+      fi 
+  done
+  while true
+  do
+      v_check_status=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep -i unknown|wc -l`
+      if [[ ${v_check_status} -gt 0 ]];then
+         break
+      else
+         sleep 2
+      fi
+  done
+  if mig_region "${v_mig_id}" "${v_mig_from_dn_id1}" "${v_mig_dest_dn_id1}";then
+     mig_region "${v_mig_id}" "${v_mig_from_dn_id2}" "${v_mig_dest_dn_id2}"
+  fi
+  # restart unknown
+ v_start_time=`date +%s`
+  ssh ${u_name}@${v_mig_from_dn_ip2} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_${v_start_time}_heapdump.hprof > /dev/null 2>&1 &"
    while true
    do
-      v_del_finish=`cat ${cur_dir}/del_s_40.out|wc -l`
-      if [[ ${v_del_finish} -gt 0 ]];then
+      v_check_status=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes"|grep ${v_mig_from_dn_ip2}|grep -i Running|wc -l`
+      if [[ ${v_check_status} -gt 0 ]];then
          break
+      else
+         v_end_time=`date +%s`
+         v_elp=$((v_end_time-v_start_time))
+         if [[ ${v_elp} -gt 120 ]];then
+            let fail_flag++
+            break
+         fi
+         sleep 2
       fi
-      if [[ $((`date +%s`-v_del_wait_start)) -gt 1200 ]];then
-         echo "ERROR: Timed out waiting for delete timeseries to finish."
-         let fail_flag++
-         break
-      fi
-      sleep 5
    done
-fi
- ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
- v_check_res=`cat ${cur_dir}/q_act.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,0,100000" |wc -l`
- if [[ ${v_check_res} != 40000 ]];then
-    let fail_flag++
- fi
- v_check_res=`cat ${cur_dir}/q_act.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,100000,100000" |wc -l`
- if [[ ${v_check_res} != 40000 ]];then
-    let fail_flag++
- fi
-
-
+ 
+  query_and_check_v2_671 "${cur_dir}/q_act.out"
 v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|wc -l`
-if [[ ${v_check_mig_regionid} != ${dr_rep_num} ]];then
+if [[ ${v_expected_rep_num} -eq 0 || ${v_check_mig_regionid} != ${v_expected_rep_num} ]];then
    let fail_flag++
 fi
-
-# check error log
-exec 3<${nodeinfo_dir}/datanode.txt
-while read line<&3
-do
-ssh cluster@${line} "sudo gunzip ${db_dir}/logs/log-datanode*"
- v_npe=`ssh cluster@${line} "grep NullPointerException ${db_dir}/logs/*datanode*all*|wc -l"`
- v_ill=`ssh cluster@${line} "grep IllegalArgumentException ${db_dir}/logs/*datanode*error*|wc -l"`
-  if [[ ${v_npe} -gt 0 ]] || [[ ${v_ill} -gt 0 ]];then
-     let fail_flag++
-     echo "${line},NPE : ${v_npe} , IllegalArgumentException : ${v_ill}"
-  fi
-done
 
 test_end_sec=`date +%s`
 test_elp_sec=$((test_end_sec-test_begin_sec))

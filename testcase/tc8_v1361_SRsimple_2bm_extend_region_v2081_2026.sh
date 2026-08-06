@@ -18,7 +18,7 @@ seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
 query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
 query_ip2=`tail -1 ${nodeinfo_dir}/datanode.txt`
-bm_dir=`cat ${conf_file}|grep bm_v13_dir|awk -F '=' '{print $2}'`
+bm_dir="${cur_dir}/../benchmark/bm_20251017_b6be9bd"
 cn_num=3
 dn_num=5
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode.txt > ${nodeinfo_dir}/datanode.txt
@@ -185,16 +185,22 @@ local t1=`date +%s`
    while true
    do
       v_bm=`jps|grep App|wc -l`
-      v_bm1_finish=`cat ${bm_res1}|grep throughput|wc -l`
-      v_bm2_finish=`cat ${bm_res2}|grep throughput|wc -l`
-      if [[ ${v_bm} -gt 0 ]];then
-         sleep 60
-      else
+      v_bm1_finish=`grep -c throughput "${bm_res1}" 2>/dev/null`
+      v_bm2_finish=`grep -c throughput "${bm_res2}" 2>/dev/null`
+      if grep -Eq "does not exist|Registering schema failed|BrokenBarrierException|NullPointerException" "${bm_res1}" "${bm_res2}" 2>/dev/null;then
+         let fail_flag++
+         echo "Benchmark result contains unexpected errors."
+         jps|grep App|awk '{print "kill -9 "$1}'|sh
          break
       fi
-      if [[ ${v_bm1_finish} = 1 ]] && [[ ${v_bm2_finish} = 1 ]];then
+      if [[ ${v_bm1_finish} -gt 0 ]] && [[ ${v_bm2_finish} -gt 0 ]];then
          echo "benchmark finish."
-         jps|grep App|awk '{print "kill -9 "$1}'|sh 
+         break
+      fi
+      if [[ ${v_bm} = 0 ]];then
+         let fail_flag++
+         echo "Benchmark exited before both result files were complete."
+         break
       fi
       t2=`date +%s`
       t_elp=$((t2-t1))
@@ -203,7 +209,7 @@ local t1=`date +%s`
          echo "Benchmark running too long."
          break
       fi
-      
+      sleep 10
    done
        ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;">${cur_dir}/tmp.out
 #       check_res "success" 1 "${SCRIPT_NAME}"
@@ -386,6 +392,8 @@ function remove_dn()
    v_host=`awk '{printf "%s%s", (NR==1?"":","), $0}' ${nodeinfo_dir}/datanode.txt`
    sed -i "s/^HOST=.*/HOST=${v_host}/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
    sed -i "s/LOOP=.*/LOOP=2000/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
+   sed -i "s/^USERNAME=.*/USERNAME=${db_sys_admin}/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
+   sed -i "s/^PASSWORD=.*/PASSWORD=TimechoDB@2021/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
    nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf1 >${bm_dir}/${v_t}_tc8_bm1.out &
    nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf2 >${bm_dir}/${v_t}_tc8_bm2.out &
    sleep 30

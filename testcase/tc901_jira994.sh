@@ -195,8 +195,11 @@ v_stop_t1=`date +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show regions" >> ${cur_dir}/${tmp_out_file}
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes" >> ${cur_dir}/${tmp_out_file}
 #   v_mig_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};"|grep "There are no other DataNodes could be selected to perform the add peer process"|wc -l`
-   v_mig_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};"|grep "IoTDBSQLException: 900: Cannot find Coordinator for add peer"|wc -l`
-   if [[ ${v_mig_res} = 0 ]];then
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > "${cur_dir}/mig.out" 2>&1
+   # New CLI versions print the exception prefix and the failure reason on
+   # different lines. Validate stable semantic fields independently.
+   if ! grep -q "failed to submit: 1" "${cur_dir}/mig.out" || \
+      ! grep -q "Cannot find Coordinator for add peer" "${cur_dir}/mig.out";then
       let fail_flag++
    fi
     

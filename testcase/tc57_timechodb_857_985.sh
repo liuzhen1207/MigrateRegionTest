@@ -193,9 +193,6 @@ do
              fi
          done
    fi
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
-   v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
    sleep 2
    if [[ ${v_del_flag} -gt 0 ]];then
@@ -204,20 +201,28 @@ do
       ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "delete from root.test.g_0.*.s_40;">${cur_dir}/del_s_40.out &
       let v_del_flag++
    fi
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
+   # Do not wait for a success message in one ConfigNode's log. The leader may
+   # change during migration and rotated logs may already be compressed. Use
+   # the cluster metadata as the source of truth instead.
+   v_mig_wait_begin_sec=`date +%s`
+   v_mig_wait_timeout_sec=1800
    while true
    do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all.log|tail -1"`
-              v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-              v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
+      v_mig_region_nodes=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;" 2>/dev/null | awk -F '|' -v region_id="${v_mig_id}" '$2 ~ /^[[:space:]]*[0-9]+[[:space:]]*$/ {gsub(" ", "", $2); gsub(" ", "", $8); if ($2 == region_id) print $8}'`
+      v_from_exist=`echo "${v_mig_region_nodes}" | grep -x "${v_mig_from_dn_id}" | wc -l`
+      v_to_exist=`echo "${v_mig_region_nodes}" | grep -x "${v_mig_to_dn_id}" | wc -l`
+      if [[ ${v_from_exist} = 0 && ${v_to_exist} -gt 0 ]];then
+         echo "Migrate region ${v_mig_id} from DataNode ${v_mig_from_dn_id} to ${v_mig_to_dn_id} completed."
+         break
+      fi
 
-              if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-                 break
-              else
-                 sleep 2 
-              fi
-
+      v_mig_wait_now_sec=`date +%s`
+      if [[ $((v_mig_wait_now_sec-v_mig_wait_begin_sec)) -ge ${v_mig_wait_timeout_sec} ]];then
+         echo "ERROR: migrate region ${v_mig_id} from DataNode ${v_mig_from_dn_id} to ${v_mig_to_dn_id} timed out after ${v_mig_wait_timeout_sec}s; current nodes: ${v_mig_region_nodes}"
+         let fail_flag++
+         return 1
+      fi
+      sleep 5
    done
    v_mig_to_dn_id=${v_mig_from_dn_id}
 

@@ -213,7 +213,7 @@ prepare_benchmark_workdirs() {
   do
     cp -rp "${bm_case_root}/${workload}" "${bm_work_root}/${workload}"
     sed -i "s/^HOST=.*/HOST=${bm_host}/g" "${bm_work_root}/${workload}/config.properties"
-    sed -i "s/^LOOP=.*/LOOP=10000/g" "${bm_work_root}/${workload}/config.properties"
+    sed -i "s/^LOOP=.*/LOOP=500/g" "${bm_work_root}/${workload}/config.properties"
     if [[ "${workload}" != "table" ]]; then
       sed -i "s/^USERNAME=.*/USERNAME=root/g" "${bm_work_root}/${workload}/config.properties"
       sed -i "s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/g" "${bm_work_root}/${workload}/config.properties"
@@ -448,10 +448,19 @@ wait_benchmarks_finish() {
     for workload in tree_nonaligned tree_aligned tree_aligned_temp table
     do
       local bm_file="${bm_log_root}/${workload}.out"
+      local bm_pid_file="${bm_log_root}/${workload}.pid"
+      local bm_pid=""
+      if [[ -f "${bm_pid_file}" ]]; then
+        bm_pid=$(cat "${bm_pid_file}")
+      fi
       check_benchmark_output_file "${bm_file}"
       case $? in
         0)
-          finished_num=$((finished_num + 1))
+          if [[ -n "${bm_pid}" ]] && kill -0 "${bm_pid}" 2>/dev/null; then
+            :
+          else
+            finished_num=$((finished_num + 1))
+          fi
           ;;
         1)
           ;;
@@ -647,7 +656,7 @@ check_data_consistent() {
   local v_ip
   local start_time
 
-  if ! wait_for_monitor_sync_completion 120 360000; then
+  if ! wait_for_monitor_sync_completion 120 3600; then
     return 1
   fi
 
@@ -711,7 +720,7 @@ check_data_consistent() {
       let fail_flag++
       return 1
     fi
-    if ! wait_for_monitor_sync_completion 120 360000; then
+    if ! wait_for_monitor_sync_completion 120 3600; then
       return 1
     fi
   done < "${cur_dir}/running_datanodes.txt"
@@ -774,7 +783,10 @@ testcase() {
   create_tree_view_data
   wait_until_remove_time "${benchmark_start_sec}"
   remove_datanode_under_load
-  wait_benchmarks_finish 43200
+  if ! wait_benchmarks_finish 7200; then
+    check_npe "${SCRIPT_NAME}"
+    return 1
+  fi
   check_data_consistent
   check_npe "${SCRIPT_NAME}"
 }

@@ -422,7 +422,7 @@ function check_log()
     v_cn_err2=$(ssh ${u_name}@${line} "grep \"but return HAS_MORE_STATE\" ${db_dir}/logs/*confignode*all* | wc -l")
     if [[ ${v_npe} -gt 0 ]]; then
       let fail_flag++
-      append_warn "CN NPE"
+      append_warn "${line} CN NPE ${v_npe}."
     fi
     if [[ $((v_cn_err1 + v_cn_err2)) -gt 0 ]]; then
       let fail_flag++
@@ -453,7 +453,7 @@ function check_log()
     v_dn_total_err=$((v_err + v_err2 + v_err3 + v_err4 + v_err5 + v_err6 + v_err7 + v_err8 + v_err9 + v_err10 + v_err11 + v_err12 + v_err13 + v_err14))
     if [[ ${v_npe} -gt 0 ]]; then
       let fail_flag++
-      append_warn "DN NPE"
+      append_warn "${line} DN NPE ${v_npe}."
     fi
     if [[ ${v_dn_total_err} -gt 0 ]]; then
       let fail_flag++

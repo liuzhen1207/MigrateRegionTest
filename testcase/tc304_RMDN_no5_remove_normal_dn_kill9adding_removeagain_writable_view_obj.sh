@@ -988,7 +988,8 @@ remove_datanode_under_load() {
   fi
 
   if ! wait_datanode_running "${query_ip}" "${rm_adding_dn_ip}" 300; then
-    append_warn "failed to restart Adding dn ${rm_adding_dn_ip} after first remove failure"
+    rm_result_state="adding_dn_restart_not_stable"
+    append_warn "failed to stably restart Adding dn ${rm_adding_dn_ip} after first remove failure"
     let fail_flag++
     let rm_fail_flag++
     return 1
@@ -1009,6 +1010,11 @@ remove_datanode_under_load() {
   fi
 
   if ! submit_remove_datanode "${rm_dn_id}" "${cur_dir}/remove_datanode_second.out" "second"; then
+    rm_result_state="second_remove_submit_failed"
+    run_cli_sql "${query_ip}" tree "show datanodes;" "${cur_dir}/show_datanodes_second_remove_failed.out" 3600
+    run_cli_sql "${query_ip}" tree "show regions;" "${cur_dir}/show_regions_second_remove_failed.out" 3600
+    run_cli_sql "${query_ip}" tree "show migrations;" "${cur_dir}/show_migrations_second_remove_failed.out" 3600
+    log "second remove submit failed; captured cluster state and skip subsequent sync-lag wait"
     return 1
   fi
 
@@ -1258,19 +1264,35 @@ wait_datanode_running() {
   local timeout_seconds=${3:-300}
   local start_time
   local running_count
+  local process_count
+  local listen_count
+  local stable_count=0
+  local required_stable_count=3
 
   start_time=$(date +%s)
   while true
   do
     run_cli_sql "${query_host}" tree "show datanodes;" "${cur_dir}/show_datanodes.out" 3600
     running_count=$(grep "${dn_ip}|" "${cur_dir}/show_datanodes.out" | grep Running | wc -l)
-    if [[ ${running_count} -gt 0 ]]; then
-      return 0
+    process_count=$(ssh -n "${u_name}@${dn_ip}" "pgrep -f '[c]om.timecho.iotdb.DataNode' | wc -l" 2>/dev/null)
+    listen_count=$(ssh -n "${u_name}@${dn_ip}" "netstat -lnt 2>/dev/null | grep -c '${dn_ip}:10750[[:space:]]'" 2>/dev/null)
+    process_count=${process_count:-0}
+    listen_count=${listen_count:-0}
+
+    if [[ ${running_count} -gt 0 && ${process_count} -gt 0 && ${listen_count} -gt 0 ]]; then
+      stable_count=$((stable_count + 1))
+      log "datanode ${dn_ip} recovery check ${stable_count}/${required_stable_count}: cluster=Running process=${process_count} consensus_port=${listen_count}"
+      if [[ ${stable_count} -ge ${required_stable_count} ]]; then
+        return 0
+      fi
+    else
+      stable_count=0
+      log "datanode ${dn_ip} is not stably running: cluster_count=${running_count} process_count=${process_count} consensus_port_count=${listen_count}"
     fi
     if (( $(date +%s) - start_time > timeout_seconds )); then
       return 1
     fi
-    sleep 2
+    sleep 5
   done
 }
 
@@ -1596,6 +1618,7 @@ write_test_result() {
 testcase() {
   local benchmark_start_sec
   local metadata_ready=1
+  local remove_phase_succeeded=0
 
   start_db
   create_benchmark_users
@@ -1620,7 +1643,9 @@ testcase() {
 
   if [[ ${metadata_ready} -eq 1 ]]; then
     wait_until_remove_time "${benchmark_start_sec}"
-    if ! remove_datanode_under_load; then
+    if remove_datanode_under_load; then
+      remove_phase_succeeded=1
+    else
       if [[ "${rm_result_state}" == "first_remove_stuck_preserve_env" ]]; then
         log "preserve environment for analysis because first remove migrations did not settle"
         append_warn "preserve environment for first remove stuck migration analysis"
@@ -1630,7 +1655,12 @@ testcase() {
   fi
 
   wait_benchmarks_finish 43200
-  wait_for_monitor_sync_completion 120 360000
+  if [[ ${remove_phase_succeeded} -eq 1 ]]; then
+    wait_for_monitor_sync_completion 120 360000
+  else
+    log "skip sync-lag wait because remove phase did not complete successfully (state=${rm_result_state})"
+    append_warn "sync-lag wait skipped after remove failure state=${rm_result_state}"
+  fi
 
   if [[ ${metadata_ready} -eq 1 ]]; then
     check_data_consistent

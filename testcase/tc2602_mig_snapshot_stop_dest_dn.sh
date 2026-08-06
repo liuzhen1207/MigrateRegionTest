@@ -160,6 +160,46 @@ function mig_region()
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_dest_dn_id};" > ${cur_dir}/mig.out
    sleep 2
 }
+function wait_first_migration_finished()
+{
+   local empty_count=0
+   local wait_begin_time=`date +%s`
+   local wait_end_time
+   local wait_elapsed
+   local migration_empty
+   local dest_region_count
+
+   while true
+   do
+      migration_empty=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show migrations" 2>&1 | grep "Empty set" | wc -l`
+      if [[ ${migration_empty} -gt 0 ]];then
+         let empty_count++
+      else
+         empty_count=0
+      fi
+
+      dest_region_count=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions" 2>&1 | grep " ${v_mig_id}|[[:space:]]*DataRegion" | awk -F '|' '{gsub(" ",""); if ($8 == dest_dn_id) print $8}' dest_dn_id="${v_mig_dest_dn_id1}" | wc -l`
+
+      if [[ ${dest_region_count} = 0 ]];then
+         echo "region ${v_mig_id} no longer contains DataNode ${v_mig_dest_dn_id1}, first migration finished."
+         break
+      fi
+
+      if [[ ${empty_count} -ge 3 ]];then
+         echo "show migrations has been empty 3 consecutive times, first migration finished."
+         break
+      fi
+
+      wait_end_time=`date +%s`
+      wait_elapsed=$((wait_end_time-wait_begin_time))
+      if [[ ${wait_elapsed} -gt 600 ]];then
+         echo "wait first migration finished timeout after ${wait_elapsed}s."
+         let fail_flag++
+         return 1
+      fi
+      sleep 5
+   done
+}
 function stop_dest_dn1()
 {
    if ssh ${u_name}@${v_mig_from_dn_ip1} "[ -f ${db_dir}/logs/log-datanode-all*gz ]"; then
@@ -369,6 +409,7 @@ function pre_and_exec_mig_region()
   v_submit_fail1=`grep "success" ${cur_dir}/mig.out|wc -l`
   if [[ ${v_submit_fail1} = 1 ]];then 
      stop_dest_dn1 
+     wait_first_migration_finished || return 1
   fi
   mig_region "${v_mig_id}" "${v_mig_from_dn_id2}" "${v_mig_dest_dn_id2}"
   v_submit_fail2=`grep "success" ${cur_dir}/mig.out|wc -l`

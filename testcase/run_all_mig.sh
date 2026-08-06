@@ -16,8 +16,9 @@ res_file="test_mig_${v_cur_time}.out"
 exec 3<./migrate_testcase_list.txt
 while read line <&3
 do
-v_tc=`echo ${line}|awk -F '_' '{print $1}'`
-   sh -x ${line} > ./${desc}/${v_tc}_res.out 2>&1
+v_cur_time=`date +'%Y_%m_%d_%H_%M_%S'`
+v_tc=`echo ${line}|awk -F '.' '{print $1}'`
+   sh -x ${line} > ./${desc}/${v_tc}_${v_cur_time}_res.out 2>&1
 done
 
 v_cur_time=`date +'%Y_%m_%d_%H_%M_%S'`
@@ -25,6 +26,7 @@ res_file="test_mig_${v_cur_time}.out"
 exec 3<./remove_iotv1_testcase_list.txt
 while read line <&3
 do
-v_tc=`echo ${line}|awk -F '_' '{print $1}'`
-   sh -x ${line} > ./${desc}/${v_tc}_res.out 2>&1 
+v_cur_time=`date +'%Y_%m_%d_%H_%M_%S'`
+v_tc=`echo ${line}|awk -F '.' '{print $1}'`
+   sh -x ${line} > ./${desc}/${v_tc}_${v_cur_time}_res.out 2>&1 
 done

@@ -12,20 +12,13 @@ clean_env_dir="${cur_dir}/../clean_env"
 prepare_env_dir="${cur_dir}/../prepare_env"
 check_res_dir="${cur_dir}/../check_res"
 SCRIPT_NAME=$(basename "$0")
-seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
-query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
-bm_ip=`head -1 ${nodeinfo_dir}/bm_node.txt`
-query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
-query_ip2=`head -2 ${nodeinfo_dir}/datanode.txt|tail -1`
-# https://jira.infra.timecho.com:8443/browse/TIMECHODB-456 
-fail_file="fail.log"
 cn_num=3
 dn_num=5
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode.txt > ${nodeinfo_dir}/datanode.txt
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode_port.txt > ${nodeinfo_dir}/datanode_port.txt
 total_node_num=$((cn_num+dn_num))
-backup_dir_on_cn_dn_host=/data/iotdb/autotest_backup/tree_table_view_IoT_remove
-tmp_out_file="tc${tc_num}_tmp.out"
+seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
+query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
 fail_flag=0
 testcase_ip=`cat ${conf_file}|grep test_ip|awk -F '.' '{print $4}'`
 tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
@@ -179,46 +172,173 @@ done
 
 }
 
+function run_sql_expect_success()
+{
+   local sql=$1
+   local output_file=$2
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 3600 -e "${sql}" >"${output_file}" 2>&1
+   if ! grep -qi "executed successfully" "${output_file}";then
+      echo "SQL failed: ${sql}"
+      cat "${output_file}"
+      let fail_flag++
+      return 1
+   fi
+   return 0
+}
+
 function ins_data()
 {
+   local i
+   for i in {1..5}
+   do
+      run_sql_expect_success "create database root.db${i};" "${cur_dir}/tc108_create_db${i}.out" || return 1
+      run_sql_expect_success "create aligned timeseries root.db${i}.t1(text TEXT,grade int32,male boolean,likething string,money double,rate float,age int64,movie blob,birthday date,run timestamp);" "${cur_dir}/tc108_create_ts${i}.out" || return 1
+      run_sql_expect_success "insert into root.db${i}.t1(time,text,grade,male,likething,money,rate,age,movie,birthday,run) values(10000,'expensive',1,false,'calculate',1.23,2.1,21,X'1234','2024-12-01',2021-12-01 13:14:15);" "${cur_dir}/tc108_insert_db${i}.out" || return 1
+   done
 
-for i in {1..5}
-do
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip}  -e "create database root.db${i};create aligned timeseries root.db${i}.t1(text TEXT ,grade int32 ,male boolean ,likething string ,money double ,rate float ,age int64 ,movie blob ,birthday date ,run timestamp );insert into root.db${i}.t1(time,text,grade,male,likething,money,rate,age,movie,birthday,run) values(10000,'expensive',1,false,'calculate',1.23,2.1,21,X'1234','2024-12-01',2021-12-01 13:14:15);"
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip}  -e "delete from root.db${i}.t1.*;"
-done   
-${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "select text,grade,male,likething,money,rate,age,movie,birthday,run from root.**;" >${cur_dir}/q_act.out
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 3600 -e "select text,grade,male,likething,money,rate,age,movie,birthday,run from root.**;" >"${cur_dir}/q_before_delete.out" 2>&1
+   if [[ $(grep -c "expensive" "${cur_dir}/q_before_delete.out") -ne 5 ]];then
+      echo "Expected 5 unflushed rows before deleting data."
+      cat "${cur_dir}/q_before_delete.out"
+      let fail_flag++
+      return 1
+   fi
 
+   for i in {1..5}
+   do
+      run_sql_expect_success "delete from root.db${i}.t1.*;" "${cur_dir}/tc108_delete_db${i}.out" || return 1
+   done
+   query_expect_empty "${cur_dir}/q_act.out" || return 1
+   return 0
+}
+
+function query_expect_empty()
+{
+   local output_file=$1
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 3600 -e "select text,grade,male,likething,money,rate,age,movie,birthday,run from root.**;" >"${output_file}" 2>&1
+   if grep -qiE "(Exception|Error|failed)" "${output_file}";then
+      echo "Query failed while checking deleted data."
+      cat "${output_file}"
+      let fail_flag++
+      return 1
+   fi
+   if grep -q "expensive" "${output_file}";then
+      echo "Deleted row became queryable again."
+      cat "${output_file}"
+      let fail_flag++
+      return 1
+   fi
+   return 0
+}
+
+function restart_surviving_datanodes()
+{
+   local surviving_file=$1
+   local line
+   local start_time
+   local running_num
+
+   while read line
+   do
+      ssh ${u_name}@${line} "sudo ${db_dir}/sbin/stop-datanode.sh" || {
+         echo "Failed to stop surviving DataNode ${line}."
+         let fail_flag++
+         return 1
+      }
+   done <"${surviving_file}"
+
+   while read line
+   do
+      ssh ${u_name}@${line} "sudo ${db_dir}/sbin/start-datanode.sh" || {
+         echo "Failed to start surviving DataNode ${line}."
+         let fail_flag++
+         return 1
+      }
+   done <"${surviving_file}"
+
+   start_time=`date +%s`
+   while true
+   do
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;" >"${cur_dir}/tc108_show_dn_after_restart.out" 2>&1
+      running_num=0
+      while read line
+      do
+         if grep "${line}|" "${cur_dir}/tc108_show_dn_after_restart.out" | grep -qi "Running";then
+            let running_num++
+         fi
+      done <"${surviving_file}"
+      if [[ ${running_num} -eq 3 ]];then
+         return 0
+      fi
+      if [[ $((`date +%s`-start_time)) -gt 600 ]];then
+         echo "Surviving DataNodes did not become Running within 600 seconds."
+         cat "${cur_dir}/tc108_show_dn_after_restart.out"
+         let fail_flag++
+         return 1
+      fi
+      sleep 5
+   done
 }
 
 function remove_datanode()
 {
-	rm_dn_ip=$1
-	exec_rm_ip=$2
-        rm_flag="success"
-        v_rm_datanode_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;"|grep ${rm_dn_ip}|awk -F '|' '{gsub(" ","");print $2}'`
-        v_rm_res=`ssh ${u_name}@${exec_rm_ip} "sudo ${db_dir}/sbin/start-cli.sh -h ${query_ip} -e \"remove datanode ${v_rm_datanode_id}\""`
-        v_rm_succ=`echo "${v_rm_res}"|grep "successfully"|wc -l`
-        if [[ ${v_rm_succ} = 0 ]];then
+	local rm_dn_ip=$1
+	local exec_rm_ip=$2
+        local v_rm_datanode_id
+        local v_rm_res
+        local start_time
+        local v_jps
+        local v_dn_num
+        local active_num
+        local stable_done=0
+        local tsfile_num
+        local ip_suffix=${rm_dn_ip##*.}
+
+        v_rm_datanode_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;"|grep "${rm_dn_ip}|"|awk -F '|' '{gsub(" ","");print $2}'`
+        if [[ -z "${v_rm_datanode_id}" ]];then
+           echo "Cannot find DataNode id for ${rm_dn_ip}."
            let fail_flag++
+           return 1
         fi
-        sleep 10
-        # check remove result
+        v_rm_res=`ssh ${u_name}@${exec_rm_ip} "sudo ${db_dir}/sbin/start-cli.sh -h ${query_ip} -e \"remove datanode ${v_rm_datanode_id}\""`
+        if ! echo "${v_rm_res}"|grep -qi "successfully";then
+           echo "${v_rm_res}"
+           let fail_flag++
+           return 1
+        fi
+
+        start_time=`date +%s`
         while true
         do
-           v_jps=`ssh ${u_name}@${rm_dn_ip} "sudo jps|grep -i datanode|wc -l"`
-           v_removing_status=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;"|grep "${rm_dn_ip}|"|grep -i removing|wc -l`
-           if [[ ${v_jps} = 0 ]];then
+           v_jps=`ssh ${u_name}@${rm_dn_ip} "sudo jps -l|grep -c DataNode || true"`
+           ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;" >"${cur_dir}/tc108_show_dn_${ip_suffix}.out" 2>&1
+           v_dn_num=`grep "${rm_dn_ip}|" "${cur_dir}/tc108_show_dn_${ip_suffix}.out"|wc -l`
+           ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -sql_dialect tree -e "show regions;" >"${cur_dir}/tc108_regions_tree_${ip_suffix}.out" 2>&1
+           ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -sql_dialect table -e "show regions;" >"${cur_dir}/tc108_regions_table_${ip_suffix}.out" 2>&1
+           active_num=`grep -E "Adding|Removing" "${cur_dir}/tc108_regions_tree_${ip_suffix}.out" "${cur_dir}/tc108_regions_table_${ip_suffix}.out"|wc -l`
+           if [[ ${v_jps} = 0 && ${v_dn_num} = 0 && ${active_num} = 0 ]];then
+              let stable_done++
+           else
+              stable_done=0
+           fi
+           if [[ ${stable_done} -ge 3 ]];then
               echo "${rm_dn_ip}," >> ${cur_dir}/ignore_dn_list.txt
               break
-           elif [[ ${v_removing_status} = 1 ]];then
-              sleep 5
-           else
-#              let fail_flag++
-#              return 1
-               sleep 5
            fi
+           if [[ $((`date +%s`-start_time)) -gt 3600 ]];then
+              echo "Remove DataNode ${rm_dn_ip} did not settle within 3600 seconds."
+              let fail_flag++
+              return 1
+           fi
+           sleep 5
         done
+        tsfile_num=`ssh ${u_name}@${rm_dn_ip} "sudo find '${db_dir}/data' -name '*.tsfile' -type f|wc -l"`
+        if [[ ${tsfile_num} -ne 0 ]];then
+           echo "Removed DataNode ${rm_dn_ip} still has ${tsfile_num} tsfiles."
+           let fail_flag++
+           return 1
+        fi
+        return 0
 }
 
 
@@ -227,38 +347,28 @@ function exec_remove_on_cn()
 >${cur_dir}/ignore_dn_list.txt
 last_dn_ip=`tail -1 ${nodeinfo_dir}/datanode.txt`
 last_dn_ip2=`tail -2 ${nodeinfo_dir}/datanode.txt|head -1`
-remove_datanode ${last_dn_ip} ${last_dn_ip2}
-remove_datanode ${last_dn_ip2} ${last_dn_ip2}
-v_dn_num=`cat ${nodeinfo_dir}/datanode.txt|wc -l`
-v_head_dn_num=$((v_dn_num-2))
-head -n ${v_head_dn_num} ${nodeinfo_dir}/datanode.txt >${cur_dir}/datanode.txt
-#check data
-${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "select text,grade,male,likething,money,rate,age,movie,birthday,run from root.**;" >${cur_dir}/q_exp.out
-v_diff=`diff ${cur_dir}/q_exp.out ${cur_dir}/q_act.out|grep root|wc -l`
-if [[ ${v_diff} -gt 0 ]];then
-let fail_flag++
-fi
-# restart iotdb check data
-python3.6 restart_iotdb.py ${cur_dir}/datanode.txt
-
-#check data
-${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "select text,grade,male,likething,money,rate,age,movie,birthday,run from root.**;" >${cur_dir}/q_exp.out
-v_diff=`diff ${cur_dir}/q_exp.out ${cur_dir}/q_act.out|grep root|wc -l`
-if [[ ${v_diff} -gt 0 ]];then
-let fail_flag++
-fi
-#check data
-${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "select text,grade,male,likething,money,rate,age,movie,birthday,run from root.**;" >${cur_dir}/q_exp.out
-v_diff=`diff ${cur_dir}/q_exp.out ${cur_dir}/q_act.out|grep root|wc -l`
-if [[ ${v_diff} -gt 0 ]];then
-let fail_flag++
+if [[ ${fail_flag} = 0 ]];then
+   remove_datanode ${last_dn_ip} ${last_dn_ip2}
+   if [[ ${fail_flag} = 0 ]];then
+      remove_datanode ${last_dn_ip2} ${last_dn_ip2}
+   fi
+   if [[ ${fail_flag} = 0 ]];then
+      query_expect_empty "${cur_dir}/q_after_remove.out"
+   fi
+   if [[ ${fail_flag} = 0 ]];then
+      head -n 3 ${nodeinfo_dir}/datanode.txt >"${cur_dir}/datanode.txt"
+      restart_surviving_datanodes "${cur_dir}/datanode.txt"
+   fi
+   if [[ ${fail_flag} = 0 ]];then
+      query_expect_empty "${cur_dir}/q_after_restart.out"
+   fi
 fi
 
 check_npe ${SCRIPT_NAME}
-
 test_end_sec=`date +%s`
 test_elp_sec=$((test_end_sec-test_begin_sec))
 tc_res=true
+
   if [[ ${fail_flag} = 0 ]];then
      tc_res=true
      echo "${SCRIPT_NAME} : pass" >>"${res_file}"

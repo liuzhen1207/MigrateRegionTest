@@ -153,33 +153,63 @@ done
 
 }
 
+function find_migrate_region_success_since()
+{
+   local v_bef_mig_sec=$1
+   local v_mig_id=$2
+   local v_mig_from_dn_id=$3
+   local v_mig_from_dn_ip=$4
+   local v_mig_to_dn_id=$5
+   local v_mig_to_dn_ip=$6
+
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep -i Running|awk -F '|' '{gsub(" ","");print $4}'>${cur_dir}/running_cn_ip.txt
+   exec 4<${cur_dir}/running_cn_ip.txt
+   while read v_cn_ip <&4
+   do
+      ssh ${u_name}@${v_cn_ip} "sudo gunzip -f ${db_dir}/logs/log-confignode-all*gz >/dev/null 2>&1 || true"
+      v_mig_suc_log=`ssh ${u_name}@${v_cn_ip} "grep -h \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all* 2>/dev/null|grep \"TConsensusGroupId(type:DataRegion, id:${v_mig_id})\"|grep \" has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}\"|tail -1"`
+      if [[ -z ${v_mig_suc_log} ]];then
+         continue
+      fi
+      v_mig_suc_time=`echo ${v_mig_suc_log}|sed -n 's/^\([0-9-]\+ [0-9:]\+\),.*/\1/p'`
+      if [[ -z ${v_mig_suc_time} ]];then
+         continue
+      fi
+      v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s 2>/dev/null`
+      if [[ -n ${v_mig_suc_sec} ]] && [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
+         exec 4<&-
+         return 0
+      fi
+   done
+   exec 4<&-
+   return 1
+}
+
 function wait_migrate_region_success_since()
 {
    local v_bef_mig_sec=$1
+   local v_mig_id=$2
+   local v_mig_from_dn_id=$3
+   local v_mig_from_dn_ip=$4
+   local v_mig_to_dn_id=$5
+   local v_mig_to_dn_ip=$6
+
    while true
    do
-      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep -i Running|awk -F '|' '{gsub(" ","");print $4}'>${cur_dir}/running_cn_ip.txt
-      exec 4<${cur_dir}/running_cn_ip.txt
-      while read v_cn_ip <&4
-      do
-         ssh ${u_name}@${v_cn_ip} "sudo gunzip -f ${db_dir}/logs/log-confignode-all*gz >/dev/null 2>&1 || true"
-         v_mig_suc_log=`ssh ${u_name}@${v_cn_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all* 2>/dev/null|tail -1"`
-         if [[ -z ${v_mig_suc_log} ]];then
-            continue
-         fi
-         v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-         if [[ -z ${v_mig_suc_time} ]];then
-            continue
-         fi
-         v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
-         if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-            exec 4<&-
-            return 0
-         fi
-      done
-      exec 4<&-
+      if find_migrate_region_success_since ${v_bef_mig_sec} ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_from_dn_ip} ${v_mig_to_dn_id} ${v_mig_to_dn_ip};then
+         return 0
+      fi
       sleep 2
    done
+}
+
+function is_expected_migrate_region_submit_failure()
+{
+   local v_out_file=$1
+   local v_region_id=$2
+   local v_to_dn_id=$3
+
+   grep -Eq "Submit RegionMigrateProcedure failed, because the target DataNode ${v_to_dn_id} already contains Region ${v_region_id}" ${v_out_file}
 }
 
 function pre_and_exec_mig_region()
@@ -192,11 +222,15 @@ function pre_and_exec_mig_region()
   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
 
 local v_mig_to_dn_id=-1
+local v_mig_from_dn_ip=""
+local v_mig_to_dn_ip=""
+local v_abort_after_mig_failure=0
 v_del_flag=0
 exec 3<${cur_dir}/mig_id_info.txt
 while read line<&3
 do
    v_mig_from_dn_id=`echo ${line}|awk -F ',' '{print $1}'`
+   v_mig_from_dn_ip=`echo ${line}|awk -F ',' '{print $2}'`
    if [[ ${v_mig_to_dn_id} -lt 0 ]];then
          for i in {1..4}
          do
@@ -207,10 +241,21 @@ do
              fi
          done
    fi
+   v_mig_to_dn_ip=`grep "^${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|head -1|awk -F ',' '{print $2}'`
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
    v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
+   if grep -Eiq 'Error|Exception|StatementExecutionException|java\.lang\.' ${cur_dir}/mig.out && ! grep -q "The statement is executed successfully." ${cur_dir}/mig.out;then
+      if is_expected_migrate_region_submit_failure ${cur_dir}/mig.out ${v_mig_id} ${v_mig_to_dn_id};then
+         echo "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id} hit expected duplicate-target failure, skip waiting for success log."
+      else
+         echo "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id} failed, mark testcase failed and skip waiting for success log."
+         let fail_flag++
+      fi
+      v_abort_after_mig_failure=1
+      break
+   fi
    sleep 2
    if [[ ${v_del_flag} -gt 0 ]];then
       echo "have been executed delete timeseries;"
@@ -218,28 +263,30 @@ do
       ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "delete from root.test.g_0.*.s_40;">${cur_dir}/del_s_40.out &
       let v_del_flag++
    fi
-   wait_migrate_region_success_since ${v_bef_mig_sec}
+   wait_migrate_region_success_since ${v_bef_mig_sec} ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_from_dn_ip} ${v_mig_to_dn_id} ${v_mig_to_dn_ip}
    v_mig_to_dn_id=${v_mig_from_dn_id}
 
 done
-while true
-do
-   v_del_finish=`cat ${cur_dir}/del_s_40.out|wc -l`
-   if [[ ${v_del_finish} -gt 0 ]];then
-      break
-   else
-      sleep 5
+if [[ ${v_abort_after_mig_failure} = 0 ]] && [[ ${v_del_flag} -gt 0 ]];then
+   while true
+   do
+      v_del_finish=`cat ${cur_dir}/del_s_40.out|wc -l`
+      if [[ ${v_del_finish} -gt 0 ]];then
+         break
+      else
+         sleep 5
+      fi
+   done
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
+   v_check_res=`cat ${cur_dir}/q_act.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,0,100000" |wc -l`
+   if [[ ${v_check_res} != 40000 ]];then
+      let fail_flag++
    fi
-done
- ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
- v_check_res=`cat ${cur_dir}/q_act.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,0,100000" |wc -l`
- if [[ ${v_check_res} != 40000 ]];then
-    let fail_flag++
- fi
- v_check_res=`cat ${cur_dir}/q_act.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,100000,100000" |wc -l`
- if [[ ${v_check_res} != 40000 ]];then
-    let fail_flag++
- fi
+   v_check_res=`cat ${cur_dir}/q_act.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,100000,100000" |wc -l`
+   if [[ ${v_check_res} != 40000 ]];then
+      let fail_flag++
+   fi
+fi
 
 
 v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|wc -l`

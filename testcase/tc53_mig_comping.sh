@@ -353,7 +353,10 @@ function wait_iot_consensus_sync_done()
       while read peer_ip
       do
          [[ -z "${peer_ip}" ]] && continue
-         peer_port=`ssh ${u_name}@${peer_ip} "grep '^dn_data_region_consensus_port=' ${db_dir}/conf/iotdb-system.properties | tail -1 | awk -F '=' '{print \$2}'"`
+         # Keep the port extraction on the remote side.  Using awk '$2' inside
+         # an outer double-quoted ssh command lets the local shell expand $2,
+         # returning the whole key=value line instead of just the port.
+         peer_port=`ssh ${u_name}@${peer_ip} "grep '^dn_data_region_consensus_port=' ${db_dir}/conf/iotdb-system.properties | tail -1 | cut -d= -f2"`
          [[ -z "${peer_port}" ]] && peer_port=10760
          checker_output=`java -cp "${cur_dir}:${cli_dir}/lib/*" IoTConsensusSyncChecker "${peer_ip}" "${peer_port}" "${v_mig_id}" 2>&1`
          checker_rc=$?

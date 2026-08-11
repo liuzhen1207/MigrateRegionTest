@@ -224,9 +224,14 @@ function mig_region()
 
 function pre_and_exec_mig_region()
 {
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_exp.out
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.g_0.d1_* align by device;">${cur_dir}/q_exp.out
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.g_0.d2_* align by device;">${cur_dir}/q_exp_d2.out
   v_check_data=`grep root.test.g_0 ${cur_dir}/q_exp.out|wc -l`
   if [[ ${v_check_data} = 0 ]];then
+     let fail_flag++
+  fi
+  v_check_d2_data=`grep root.test.g_0.d2_ ${cur_dir}/q_exp_d2.out|wc -l`
+  if [[ ${v_check_d2_data} = 0 ]];then
      let fail_flag++
   fi
 
@@ -285,9 +290,14 @@ function pre_and_exec_mig_region()
       fi
    done
  
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.g_0.d1_* align by device;">${cur_dir}/q_act.out
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.g_0.d2_* align by device;">${cur_dir}/q_act_d2.out
    v_query_is_same=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out|grep root|wc -l`
    if [[ ${v_query_is_same} -gt 0 ]];then
+      let fail_flag++
+   fi
+   v_d2_query_is_same=`diff ${cur_dir}/q_act_d2.out ${cur_dir}/q_exp_d2.out|grep root|wc -l`
+   if [[ ${v_d2_query_is_same} -gt 0 ]];then
       let fail_flag++
    fi
 v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|wc -l`

@@ -412,6 +412,7 @@ function remove_dn()
    v_t=`date "+%Y_%m_%d_%H_%M_%S"`
    v_host=`awk '{printf "%s%s", (NR==1?"":","), $0}' ${nodeinfo_dir}/datanode.txt`
    sed -i "s/^HOST=.*/HOST=${v_host}/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
+   sed -i "s/^USERNAME=.*/USERNAME=root/; s/^PASSWORD=.*/PASSWORD=root/" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
    sed -i "s/LOOP=.*/LOOP=100000/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
    nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf1 >${bm_dir}/${v_t}_bm1.out &
    nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf2 >${bm_dir}/${v_t}_bm2.out &

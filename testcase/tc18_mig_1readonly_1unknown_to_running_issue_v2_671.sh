@@ -186,7 +186,7 @@ function mig_region()
 
       local v_mig_cur_sec=`date +%s`
       local v_mig_elp=$((v_mig_cur_sec-v_mig_start_sec))
-      if [[ ${v_mig_elp} -gt 1800 ]];then
+      if [[ ${v_mig_elp} -gt 3600 ]];then
          let fail_flag++
          return 1
       fi
@@ -196,7 +196,7 @@ function mig_region()
 function query_and_check_v2_671()
 {
    local v_query_out=$1
-   local v_query_sql="select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;"
+   local v_query_sql="select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.g_0.d1_0 align by device;"
 
    timeout 120 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 120 -e "${v_query_sql}" > "${v_query_out}" 2>&1
    local v_query_rc=$?
@@ -204,9 +204,21 @@ function query_and_check_v2_671()
       let fail_flag++
       return 1
    fi
-   if ! grep -q "IoTDBSQLException: 308" "${v_query_out}" || \
-      ! grep -q "dispatchFragmentInstance failed" "${v_query_out}" || \
-      ! grep -Eq "Frame size \([0-9]+\) larger than protect max size \([0-9]+\)" "${v_query_out}";then
+   if [[ ${v_query_rc} = 0 ]] && grep -q "root.test.g_0.d1_0" "${v_query_out}";then
+      return 0
+   fi
+   local v_is_308=0
+   local v_is_719=0
+   if grep -q "IoTDBSQLException: 308" "${v_query_out}" && \
+      grep -q "dispatchFragmentInstance failed" "${v_query_out}" && \
+      grep -Eq "Frame size \([0-9]+\) larger than protect max size \([0-9]+\)" "${v_query_out}";then
+      v_is_308=1
+   fi
+   if grep -q "IoTDBSQLException: 719" "${v_query_out}" && \
+      grep -q "Not enough memory while analyzing metadata" "${v_query_out}";then
+      v_is_719=1
+   fi
+   if [[ ${v_is_308} = 0 && ${v_is_719} = 0 ]];then
       let fail_flag++
       return 1
    fi

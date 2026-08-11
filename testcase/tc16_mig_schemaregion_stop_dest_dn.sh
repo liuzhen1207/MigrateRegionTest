@@ -328,7 +328,7 @@ function mig_region()
   local line=""
   local mig_member_snapshot="${cur_dir}/mig_id_info.snapshot"
 
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_exp.out
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.g_0.** align by device;">${cur_dir}/q_exp.out
   v_check_data=`grep root.test.g_0 ${cur_dir}/q_exp.out |wc -l`
   if [[ ${v_check_data} = 0 ]];then
      let fail_flag++
@@ -375,7 +375,7 @@ do
    v_mig_to_dn_id=${v_mig_from_dn_id} 
    
 done < ${mig_member_snapshot}
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.g_0.** align by device;">${cur_dir}/q_act.out
 
    if ! compare_query_result ${cur_dir}/q_exp.out ${cur_dir}/q_act.out;then
       let fail_flag++
@@ -455,7 +455,7 @@ if [[ ${v_check_mig_regionid} != 3 ]];then
    let fail_flag++
 fi
 
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.g_0.** align by device;">${cur_dir}/q_act.out
    if ! compare_query_result ${cur_dir}/q_exp.out ${cur_dir}/q_act.out;then
       let fail_flag++
    fi

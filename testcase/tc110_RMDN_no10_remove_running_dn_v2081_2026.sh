@@ -26,6 +26,7 @@ head -n ${dn_num} ${nodeinfo_dir}/total_datanode_port.txt > ${nodeinfo_dir}/data
 total_node_num=$((cn_num+dn_num))
 fail_flag=0
 rm_fail_flag=0
+v_warnMessage=""
 testcase_ip=`cat ${conf_file}|grep test_ip|awk -F '.' '{print $4}'`
 tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
@@ -206,32 +207,77 @@ local t1=`date +%s`
        ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;">${cur_dir}/tmp.out
 #       check_res "success" 1 "${SCRIPT_NAME}"
 }
+function detect_v2561_issue2()
+{
+local v_rm_ip=$1
+local v_cn_ip
+local v_hit
+exec 8<${nodeinfo_dir}/confignode.txt
+while read v_cn_ip<&8
+do
+   v_hit=`ssh ${u_name}@${v_cn_ip} "grep -hE 'coordinatorForAddPeer=.*${v_rm_ip}|ADD_REGION_PEER failed.*${v_rm_ip}|submit DO_ADD_REGION_PEER task fail.*${v_rm_ip}' ${db_dir}/logs/*confignode* 2>/dev/null | tail -1"`
+   if [[ -n "${v_hit}" ]];then
+      echo "${v_hit}" > ${cur_dir}/v2_561_issue2_evidence.out
+      exec 8<&-
+      return 0
+   fi
+done
+exec 8<&-
+return 1
+}
+
 function wait_rm_finish()
 {
 local v_rm_ip=$1
 local max_wait_time=$2
 local t1=`date +%s`
+local v_issue_reason=""
   while true
    do
        ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
        v_rm_succ=`cat ${cur_dir}/tmp.out |grep "${v_rm_ip}|"|wc -l`
        v_rm_status=`cat ${cur_dir}/tmp.out |grep "${v_rm_ip}|"|awk -F "|" '{gsub(" ","");print $3}'`
-       if [[ ${v_rm_succ} -gt 0 ]] && [[ ${v_rm_status} != Running ]];then
-          sleep 1
-       else
-          break
+
+       # 缩容成功的唯一判据：目标 DataNode 已从 show datanodes 消失。
+       if [[ ${v_rm_succ} -eq 0 ]];then
+          echo "REMOVE DATANODE finished: ${v_rm_ip} is absent from show datanodes."
+          return 0
        fi
+
+       # 日志已明确命中已停止/待移除节点被用作 AddRegionPeer 协调节点时，
+       # 可直接认定捕获 V2-561 问题二，无需继续盲等。
+       if detect_v2561_issue2 "${v_rm_ip}";then
+          v_issue_reason="V2-561 issue-2 captured: SchemaRegion AddRegionPeer selected target ${v_rm_ip} as coordinator and failed; stop waiting for REMOVE DATANODE completion. Evidence: ${cur_dir}/v2_561_issue2_evidence.out"
+          let fail_flag++
+          let rm_fail_flag++
+          v_warnMessage="${v_issue_reason}"
+          echo "${v_issue_reason}"
+          return 1
+       fi
+
+       # V2-561 问题二：迁移失败后 Procedure 回滚，目标节点恢复为 Running。
+       # 若日志特征未保留，则记录为缩容回滚失败，不强行归因到具体 issue。
+       if [[ ${v_rm_status} = Running ]];then
+          v_issue_reason="REMOVE DATANODE failed and rolled back: target ${v_rm_ip} returned to Running; check whether it is V2-561 issue-2."
+          let fail_flag++
+          let rm_fail_flag++
+          v_warnMessage="${v_issue_reason}"
+          echo "${v_issue_reason}"
+          return 1
+       fi
+
+       sleep 1
       t2=`date +%s`
       t_elp=$((t2-t1))
       if [[ ${t_elp} -gt ${max_wait_time} ]];then
          let fail_flag++
          let rm_fail_flag++
-         echo "Removing takes too long."
-         break
+         v_warnMessage="REMOVE DATANODE ${v_rm_ip} did not finish within ${max_wait_time}s; current status=${v_rm_status}."
+         echo "${v_warnMessage}"
+         return 1
       fi
 
    done
-
 }
 function check_dn_jps()
 {
@@ -428,6 +474,7 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    check_res "success" 1 "${SCRIPT_NAME}"
   check_stop ${v_rm_ip} ${query_ip}
    wait_rm_finish "${v_rm_ip}" 3600
+   # wait_rm_finish 已检查目标节点确实从 show datanodes 消失；失败时不再盲等缩容完成。
    wait_bm_finish 36000 "${bm_dir}/${v_t}_bm1.out" "${bm_dir}/${v_t}_bm2.out"
 if [[ ${rm_fail_flag} = 0 ]];then 
    check_data_consistent

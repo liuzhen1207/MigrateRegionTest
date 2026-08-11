@@ -513,6 +513,20 @@ remove_running_with_replica_unknown_expect_fail() {
     fi
   done
   log "remove was rejected; ${target_ip} remained Running and replica peer ${peer_ip} remained Unknown"
+
+  # Restore the deliberately stopped replica before proceeding to the
+  # consistency check.  Leaving it Unknown keeps the consensus syncLag of
+  # other peers non-zero indefinitely and makes the testcase appear hung.
+  local restart_time
+  restart_time=$(date +%s)
+  log "restart replica peer ${peer_ip} after expected remove failure"
+  ssh "${u_name}@${peer_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/start-datanode.sh -H ${db_dir}/dn_${restart_time}_heapdump.hprof > /dev/null 2>&1 &"
+  if ! wait_datanode_running "${target_ip}" "${peer_ip}" 300; then
+    log "replica peer ${peer_ip} failed to return to Running after expected remove failure"
+    let fail_flag++
+    return 1
+  fi
+  log "replica peer ${peer_ip} restored to Running"
   return 0
 }
 

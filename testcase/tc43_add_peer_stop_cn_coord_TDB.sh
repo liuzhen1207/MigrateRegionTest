@@ -1,8 +1,4 @@
 #!/bin/bash
-# Known issue: data subscription is enabled by default and consumes 20% of the
-# query memory. This may cause the replica-consistency query to report an OOM.
-# The issue has been verified and requires no testcase workaround; it will
-# recover naturally after the corresponding product bug is fixed.
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"

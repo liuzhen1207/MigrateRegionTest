@@ -277,7 +277,21 @@ if [[ ${v_abort_after_mig_failure} = 0 ]] && [[ ${v_del_flag} -gt 0 ]];then
          sleep 5
       fi
    done
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
+   v_query_sql="select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9)"
+   : >${cur_dir}/q_act.out
+   for v_query_path in \
+      root.test.g_0.d1_* root.test.g_0.d2_* \
+      root.test.g_0.view_from_d1_* root.test.g_0.view_from_d2_* \
+      root.db.g_0.d1_* root.db.g_0.d2_* \
+      root.view.g_0.view_from_d1_* root.view.g_0.view_from_d2_*
+   do
+      if ! ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "${v_query_sql} from ${v_query_path} align by device;" >>${cur_dir}/q_act.out;then
+         let fail_flag++
+      fi
+   done
+   if grep -Eiq 'Error|Exception|StatementExecutionException|java\.lang\.' ${cur_dir}/q_act.out;then
+      let fail_flag++
+   fi
    v_check_res=`cat ${cur_dir}/q_act.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,0,100000" |wc -l`
    if [[ ${v_check_res} != 40000 ]];then
       let fail_flag++

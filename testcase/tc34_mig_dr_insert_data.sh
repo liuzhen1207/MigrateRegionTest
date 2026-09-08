@@ -351,25 +351,29 @@ do
    fi
 done
 
- ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** where time>=1990-1-1T08:00:00+08:00 align by device;">${cur_dir}/q_act.out
-  v_check_res=`cat ${cur_dir}/q_act.out|grep "There is not enough memory to execute current fragment instance"|wc -l`
-
- if [[ ${v_check_res} = 0 ]];then
-    v_exp_num=`grep root.test ${cur_dir}/q_act.out|awk -F '|' '{gsub(" ","");print $3","$4","$5","$6","$7}'|grep "100000,100000,100000,100000,100000"|wc -l`
-    if [[ ${v_exp_num} != 20000 ]];then
-       let fail_flag++
-    fi
- fi
-
-${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8) from root.** where time>=1990-1-1T08:00:00+08:00 align by device;">${cur_dir}/q_act2.out
-v_check_res=`cat ${cur_dir}/q_act2.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,100000,100000" |wc -l`
-if [[ ${v_check_res} != 20000 ]];then
-let fail_flag++
-fi
- v_check_res=`cat ${cur_dir}/q_act2.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "0,0,0" |wc -l`
- if [[ ${v_check_res} != 60000 ]];then
+for query_group in d1 d2; do
+  if [[ ${query_group} = d1 ]]; then
+    expected_full=10000
+    expected_zero=0
+  else
+    expected_full=0
+    expected_zero=10000
+  fi
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.g_0.${query_group}_* where time>=1990-1-1T08:00:00+08:00 align by device;" >${cur_dir}/q_act_${query_group}.out
+  v_check_res=`grep -E "not enough memory|Not enough memory" ${cur_dir}/q_act_${query_group}.out|wc -l`
+  if [[ ${v_check_res} = 0 ]]; then
+    v_exp_num=`grep root.test ${cur_dir}/q_act_${query_group}.out|awk -F '|' '{gsub(" ","");print $3","$4","$5","$6","$7}'|grep "100000,100000,100000,100000,100000"|wc -l`
+    if [[ ${v_exp_num} != ${expected_full} ]]; then let fail_flag++; fi
+  else
     let fail_flag++
- fi
+  fi
+
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8) from root.test.g_0.${query_group}_* where time>=1990-1-1T08:00:00+08:00 align by device;" >${cur_dir}/q_act2_${query_group}.out
+  v_check_res=`grep root ${cur_dir}/q_act2_${query_group}.out|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,100000,100000"|wc -l`
+  if [[ ${v_check_res} != ${expected_full} ]]; then let fail_flag++; fi
+  v_check_res=`grep root ${cur_dir}/q_act2_${query_group}.out|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "0,0,0"|wc -l`
+  if [[ ${v_check_res} != ${expected_zero} ]]; then let fail_flag++; fi
+done
 
 
 v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|wc -l`

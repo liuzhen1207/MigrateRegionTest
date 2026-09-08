@@ -153,6 +153,46 @@ done
 
 }
 
+function run_check_query()
+{
+   local path_pattern=$1
+   local output_file=$2
+   local expired_values=$3
+   local expected_expired_rows=$4
+   local live_values=$5
+   local expected_live_rows=$6
+   local query_sql="select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from ${path_pattern} align by device;"
+
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "${query_sql}" > "${output_file}" 2>&1
+   local cli_status=$?
+   if [[ ${cli_status} -ne 0 ]] || grep -Eqi '^Msg:.*(exception|error|failed|not enough memory)' "${output_file}";then
+      echo "query failed for ${path_pattern}, cli_status=${cli_status}:" >&2
+      cat "${output_file}" >&2
+      let fail_flag++
+      return 1
+   fi
+
+   local result_values
+   result_values=`grep root "${output_file}"|awk -F "|" '{gsub(" ","");print $5","$6","$7}'`
+
+   local actual_expired_rows
+   actual_expired_rows=`echo "${result_values}"|grep -c "^${expired_values}$"`
+   if [[ ${actual_expired_rows} != ${expected_expired_rows} ]];then
+      echo "unexpected expired result for ${path_pattern}: expected ${expected_expired_rows} rows of ${expired_values}, actual ${actual_expired_rows}" >&2
+      let fail_flag++
+      return 1
+   fi
+
+   local actual_live_rows
+   actual_live_rows=`echo "${result_values}"|grep -c "^${live_values}$"`
+   if [[ ${actual_live_rows} != ${expected_live_rows} ]];then
+      echo "unexpected live result for ${path_pattern}: expected ${expected_live_rows} rows of ${live_values}, actual ${actual_live_rows}" >&2
+      let fail_flag++
+      return 1
+   fi
+   return 0
+}
+
 function pre_and_exec_mig_region()
 {
 
@@ -169,14 +209,19 @@ while read line<&3
 do
    v_mig_from_dn_id=`echo ${line}|awk -F ',' '{print $1}'`
    if [[ ${v_mig_to_dn_id} -lt 0 ]];then
-         for i in {1..4}
+         while read v_candidate_dn_id
          do
-             v_mig_to_dn_id=`awk "NR==${i}" ${cur_dir}/all_dn_id.txt`
-             v_check=`grep ${v_mig_to_dn_id} ${cur_dir}/mig_region_dn_id.txt|wc -l`
+             v_check=`grep -x ${v_candidate_dn_id} ${cur_dir}/mig_region_dn_id.txt|wc -l`
              if [[ ${v_check} = 0 ]];then
+                v_mig_to_dn_id=${v_candidate_dn_id}
                 break
              fi
-         done
+         done < ${cur_dir}/all_dn_id.txt
+         if [[ ${v_mig_to_dn_id} -lt 0 ]];then
+            echo "no available target DataNode for region ${v_mig_id}" >&2
+            let fail_flag++
+            return 1
+         fi
    fi
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
@@ -192,10 +237,14 @@ do
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    while true
    do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
+      ssh ${u_name}@${v_cn_leader_ip} "if compgen -G '${db_dir}/logs/log-confignode-all*.gz' >/dev/null;then sudo gunzip ${db_dir}/logs/log-confignode-all*.gz;fi"
               v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all.log|tail -1"`
               v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-              v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
+              if [[ -n "${v_mig_suc_time}" ]];then
+                 v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s 2>/dev/null`
+              else
+                 v_mig_suc_sec=0
+              fi
  
               if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
                  break
@@ -216,16 +265,8 @@ do
       sleep 5
    fi
 done
- ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
- v_check_res=`cat ${cur_dir}/q_act.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "100000,100000,100000" |wc -l`
- if [[ ${v_check_res} != 0 ]];then
-    let fail_flag++
- fi
- ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
- v_check_res=`cat ${cur_dir}/q_act.out|grep root|awk -F "|" '{gsub(" ","");print $5","$6","$7}'|grep "0,0,0" |wc -l`
- if [[ ${v_check_res} != 80000 ]];then
-    let fail_flag++
- fi
+ run_check_query "root.test.g_0.d1_*" "${cur_dir}/q_act_d1.out" "100000,100000,100000" 0 "0,0,0" 10000
+ run_check_query "root.test.g_0.d2_*" "${cur_dir}/q_act_d2.out" "100000,100000,100000" 0 "0,0,0" 10000
 
 v_check_mig_regionid=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|wc -l`
 if [[ ${v_check_mig_regionid} != ${dr_rep_num} ]];then

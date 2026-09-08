@@ -34,6 +34,7 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+mig_wait_timeout_sec=7200
 function clean_env()
 {
    #clean env
@@ -377,25 +378,48 @@ v_mig_to_dn_id=-1
              fi
          done
    fi
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
-   v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-# check Removing success
  v_mig_to_dn_ip=`grep "${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
  v_mig_from_dn_ip=`grep "${v_mig_from_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out 2>&1
+# Check the metadata topology instead of one ConfigNode's log. The ConfigNode
+# leader may change during a long migration, and the success log may be rotated.
+if ! grep -q "The statement is executed successfully" ${cur_dir}/mig.out;then
+   echo "ERROR: failed to submit MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id}."
+   cat ${cur_dir}/mig.out
+   let fail_flag++
+else
+ v_mig_wait_begin_sec=`date +%s`
+ v_prev_region_state=""
    while true
    do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|grep \"has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}\"|wc -l"`
-              if [[ ${v_mig_suc_log} = 1 ]];then
-                 break
-              else
-                 sleep 2
-              fi
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;" > ${cur_dir}/show_data_regions_second_mig.out 2>&1
+      v_region_count=`awk -F '|' -v region_id="${v_mig_id}" '$2 ~ /^[[:space:]]*[0-9]+[[:space:]]*$/ {gsub(" ", "", $2); if ($2 == region_id) count++} END {print count+0}' ${cur_dir}/show_data_regions_second_mig.out`
+      v_from_exist=`awk -F '|' -v region_id="${v_mig_id}" -v dn_id="${v_mig_from_dn_id}" '$2 ~ /^[[:space:]]*[0-9]+[[:space:]]*$/ {gsub(" ", "", $2); gsub(" ", "", $8); if ($2 == region_id && $8 == dn_id) count++} END {print count+0}' ${cur_dir}/show_data_regions_second_mig.out`
+      v_to_exist=`awk -F '|' -v region_id="${v_mig_id}" -v dn_id="${v_mig_to_dn_id}" '$2 ~ /^[[:space:]]*[0-9]+[[:space:]]*$/ {gsub(" ", "", $2); gsub(" ", "", $8); if ($2 == region_id && $8 == dn_id) count++} END {print count+0}' ${cur_dir}/show_data_regions_second_mig.out`
+      v_running_count=`awk -F '|' -v region_id="${v_mig_id}" '$2 ~ /^[[:space:]]*[0-9]+[[:space:]]*$/ {gsub(" ", "", $2); gsub(" ", "", $4); if ($2 == region_id && $4 == "Running") count++} END {print count+0}' ${cur_dir}/show_data_regions_second_mig.out`
+      v_region_state=`awk -F '|' -v region_id="${v_mig_id}" '$2 ~ /^[[:space:]]*[0-9]+[[:space:]]*$/ {gsub(" ", "", $2); gsub(" ", "", $4); gsub(" ", "", $8); if ($2 == region_id) print $8":"$4}' ${cur_dir}/show_data_regions_second_mig.out | paste -sd, -`
 
+      if [[ "${v_region_state}" != "${v_prev_region_state}" ]];then
+         echo "Region ${v_mig_id} migration topology: ${v_region_state}"
+         v_prev_region_state="${v_region_state}"
+      fi
+
+      if [[ ${v_region_count} = ${dr_rep_num} ]] && [[ ${v_from_exist} = 0 ]] && [[ ${v_to_exist} = 1 ]] && [[ ${v_running_count} = ${dr_rep_num} ]];then
+         echo "Migrate region ${v_mig_id} from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip} completed."
+         break
+      fi
+
+      v_mig_wait_now_sec=`date +%s`
+      v_mig_wait_elp_sec=$((v_mig_wait_now_sec-v_mig_wait_begin_sec))
+      if [[ ${v_mig_wait_elp_sec} -ge ${mig_wait_timeout_sec} ]];then
+         echo "ERROR: migrate region ${v_mig_id} from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip} timed out after ${mig_wait_timeout_sec}s; last topology: ${v_region_state}"
+         cat ${cur_dir}/show_data_regions_second_mig.out
+         let fail_flag++
+         break
+      fi
+      sleep 5
    done
+fi
 
  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_act.out
  v_check_res=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out |grep root|wc -l`

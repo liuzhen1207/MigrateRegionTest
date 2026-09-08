@@ -434,11 +434,9 @@ done
               fi
 
 done
-v_mig_fail=0
-
-v_mig_suc_tmp=`cat ${cur_dir}/mig.out| grep  "IoTDBSQLException: 900: TConsensusGroupId(type:DataRegion, id:${v_mig_id}) has some other region operation procedures in progress" |wc -l`
-v_mig_fail=$((v_mig_suc_tmp+v_mig_fail))
-if [[ ${v_mig_fail} = 0 ]];then
+if ! grep -q "IoTDBSQLException: 900" ${cur_dir}/mig.out || \
+   ! grep -q "TConsensusGroupId(type:DataRegion, id:${v_mig_id})" ${cur_dir}/mig.out || \
+   ! grep -q "has some other region operation procedures in progress" ${cur_dir}/mig.out;then
       let fail_flag++
 fi
 

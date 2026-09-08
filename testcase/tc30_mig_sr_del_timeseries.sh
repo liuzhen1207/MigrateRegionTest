@@ -34,6 +34,41 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+migration_timeout_sec=1800
+delete_timeout_sec=1800
+poll_interval_sec=10
+
+function wait_migration_finished()
+{
+   local region_id=$1
+   local from_dn_id=$2
+   local to_dn_id=$3
+   local deadline=$(( $(date +%s) + migration_timeout_sec ))
+   local region_info
+   local from_count
+   local to_count
+
+   while [[ $(date +%s) -lt ${deadline} ]]
+   do
+      # Query cluster metadata instead of parsing ConfigNode logs. This also
+      # survives log rotation/compression and ConfigNode leader switches.
+      region_info=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show schema regions;" 2>&1`
+      from_count=`echo "${region_info}" | grep " ${region_id}|[[:space:]]*SchemaRegion" | awk -F '|' -v id="${from_dn_id}" '{gsub(" ","",$8); if ($8 == id) n++} END {print n+0}'`
+      to_count=`echo "${region_info}" | grep " ${region_id}|[[:space:]]*SchemaRegion" | awk -F '|' -v id="${to_dn_id}" '{gsub(" ","",$8); if ($8 == id) n++} END {print n+0}'`
+
+      if [[ ${from_count} -eq 0 && ${to_count} -gt 0 ]];then
+         echo "region ${region_id} migration ${from_dn_id} -> ${to_dn_id} finished"
+         return 0
+      fi
+
+      sleep ${poll_interval_sec}
+   done
+
+   echo "ERROR: region ${region_id} migration ${from_dn_id} -> ${to_dn_id} timed out after ${migration_timeout_sec}s" >&2
+   echo "${region_info}" >&2
+   return 1
+}
+
 function clean_env()
 {
    #clean env
@@ -187,10 +222,13 @@ do
              fi
          done
    fi
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
-   v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out 2>&1
+   if ! grep -q "executed successfully" ${cur_dir}/mig.out;then
+      echo "ERROR: failed to submit region migration ${v_mig_id} ${v_mig_from_dn_id} -> ${v_mig_to_dn_id}" >&2
+      cat ${cur_dir}/mig.out >&2
+      let fail_flag++
+      return 1
+   fi
    sleep 2
    if [[ ${v_del_flag} -gt 0 ]];then
       echo "have been executed delete timeseries;"
@@ -199,36 +237,31 @@ do
       ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "delete timeseries root.test.g_0.view_from_d*.*;">${cur_dir}/del_ts.out &
       let v_del_flag++
    fi
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   while true
-   do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all.log|tail -1"`
-              v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-              v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
-
-              if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-                 break
-              else
-                 sleep  10 
-              fi
-
-   done
+   if ! wait_migration_finished ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_to_dn_id};then
+      let fail_flag++
+      return 1
+   fi
    v_mig_to_dn_id=${v_mig_from_dn_id}
 
 done
 sleep 10
 #check delete result
-  while true
+  v_del_deadline=$(( $(date +%s) + delete_timeout_sec ))
+  while [[ $(date +%s) -lt ${v_del_deadline} ]]
   do
-      v_del_msg=`cat ${cur_dir}/del_ts.out|wc -l`
+      v_del_msg=`wc -l < ${cur_dir}/del_ts.out`
       if [[ ${v_del_msg} -gt 0 ]];then
          cat ${cur_dir}/del_ts.out
          break
       else
-         sleep 10
+         sleep ${poll_interval_sec}
       fi
   done
+  if [[ ${v_del_msg} -eq 0 ]];then
+     echo "ERROR: delete timeseries timed out after ${delete_timeout_sec}s" >&2
+     let fail_flag++
+     return 1
+  fi
 
   v_ts_act=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "count timeseries root.test.g_0.view_from_d*.*;"|grep "|  "|awk -F '|' '{gsub(" ","");print $2}'` 
    if [[ ${v_ts_act} != 0 ]];then
@@ -261,4 +294,10 @@ ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "i
 } 
 clean_env
 start_db
-pre_and_exec_mig_region
+if ! pre_and_exec_mig_region;then
+   test_end_sec=`date +%s`
+   test_elp_sec=$((test_end_sec-test_begin_sec))
+   echo "${SCRIPT_NAME} : fail" >>"${res_file}"
+   ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',false,${test_elp_sec});"
+   exit 1
+fi

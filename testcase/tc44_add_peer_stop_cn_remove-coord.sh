@@ -35,9 +35,12 @@ testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
 loop_timeout_sec=300
+migration_wait_timeout_sec=1200
 mig_submit_timeout_sec=180
 query_consistency_sql="select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.test.**,root.db.g_0.**,root.view.** align by device;"
 v_warnMessage=""
+rollback_stack_null_log="${cur_dir}/rollback_stack_null.log"
+rollback_stack_null_baseline_log="${cur_dir}/rollback_stack_null_baseline.log"
 
 function clean_env()
 {
@@ -54,6 +57,44 @@ function append_warn()
   else
      v_warnMessage="${v_warnMessage}; ${msg}"
   fi
+}
+
+function collect_rollback_stack_null_logs()
+{
+  local v_out_file=$1
+  local v_cn_ip=""
+
+  > ${v_out_file}
+  while read v_cn_ip
+  do
+     if [[ -z "${v_cn_ip}" ]];then
+        continue
+     fi
+     ssh -n -o ConnectTimeout=10 ${u_name}@${v_cn_ip} "grep -h \"Rollback stack is null for\" ${db_dir}/logs/log_confignode_all.log ${db_dir}/logs/log-confignode-all-*.log 2>/dev/null || true; zgrep -h \"Rollback stack is null for\" ${db_dir}/logs/log-confignode-all-*.log.gz 2>/dev/null || true" 2>/dev/null | sed "s/^/[${v_cn_ip}] /" >> ${v_out_file}
+  done < ${nodeinfo_dir}/confignode.txt
+}
+
+function init_rollback_stack_null_log_baseline()
+{
+  collect_rollback_stack_null_logs ${rollback_stack_null_log}
+  cp ${rollback_stack_null_log} ${rollback_stack_null_baseline_log}
+}
+
+function check_new_rollback_stack_null_log()
+{
+  local v_suffix=$1
+  local v_latest_log=""
+  local v_evidence_file="${cur_dir}/rollback_stack_null_${v_suffix}.log"
+
+  collect_rollback_stack_null_logs ${rollback_stack_null_log}
+  grep -Fvx -f ${rollback_stack_null_baseline_log} ${rollback_stack_null_log} > ${v_evidence_file} || true
+  if [[ -s ${v_evidence_file} ]];then
+     v_latest_log=`tail -1 ${v_evidence_file}`
+     append_warn "ConfigNode procedure recovery bug detected: new 'Rollback stack is null for' log found, latest=${v_latest_log}, evidence_file=${v_evidence_file}"
+     let fail_flag++
+     return 1
+  fi
+  return 0
 }
 
 function set_sys_conf()
@@ -173,11 +214,26 @@ function run_migrate_region_with_retry()
 function capture_migration_visible_state()
 {
   local v_suffix=$1
+  local v_tree_out_file="${cur_dir}/show_migrations_tree_${v_suffix}.out"
+  local v_table_out_file="${cur_dir}/show_migrations_table_${v_suffix}.out"
 
-  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show migrations;" > ${cur_dir}/show_migrations_${v_suffix}.out 2>&1
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -sql_dialect tree -timeout 36000 -e "show migrations;" > ${v_tree_out_file} 2>&1
+  ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -sql_dialect table -timeout 36000 -e "show migrations;" > ${v_table_out_file} 2>&1
+  v_tree_migrations_empty=0
+  v_table_migrations_empty=0
   v_migrations_empty=0
-  if grep -q "Empty set" ${cur_dir}/show_migrations_${v_suffix}.out;then
+  v_migrations_query_error=0
+  if grep -q "Empty set" ${v_tree_out_file};then
+     v_tree_migrations_empty=1
+  fi
+  if grep -q "Empty set" ${v_table_out_file};then
+     v_table_migrations_empty=1
+  fi
+  if [[ ${v_tree_migrations_empty} = 1 && ${v_table_migrations_empty} = 1 ]];then
      v_migrations_empty=1
+  fi
+  if grep -Eq "IoTDBSQLException|Cannot connect|Error:" ${v_tree_out_file} ${v_table_out_file};then
+     v_migrations_query_error=1
   fi
   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions;" > ${cur_dir}/show_data_regions_${v_suffix}.out 2>&1
   v_region_changing_count=`grep -E "Adding|Removing" ${cur_dir}/show_data_regions_${v_suffix}.out|wc -l`
@@ -186,15 +242,38 @@ function capture_migration_visible_state()
 function wait_migration_visible_state_stable()
 {
   local v_suffix=$1
+  local v_start_time=`date +%s`
+  local v_end_time=0
+  local v_elp=0
 
   v_wait_migration_seen_in_progress=0
   while true
   do
+     if ! check_new_rollback_stack_null_log ${v_suffix};then
+        return 1
+     fi
      capture_migration_visible_state ${v_suffix}
-     if [[ ${v_migrations_empty} = 1 && ${v_region_changing_count} = 0 ]];then
-        break
+     if [[ ${v_migrations_query_error} = 1 ]];then
+        append_warn "show migrations query failed at ${v_suffix}, tree_file=${cur_dir}/show_migrations_tree_${v_suffix}.out, table_file=${cur_dir}/show_migrations_table_${v_suffix}.out"
+        let fail_flag++
+        return 1
+     fi
+     if [[ ${v_migrations_empty} = 1 ]];then
+        if [[ ${v_region_changing_count} -gt 0 ]];then
+           append_warn "migration semantic inconsistent at ${v_suffix}: tree/table show migrations are both Empty set, but show data regions still contains ${v_region_changing_count} Adding/Removing replicas, region_file=${cur_dir}/show_data_regions_${v_suffix}.out"
+           let fail_flag++
+           return 1
+        fi
+        return 0
      fi
      v_wait_migration_seen_in_progress=1
+     v_end_time=`date +%s`
+     v_elp=$((v_end_time-v_start_time))
+     if [[ ${v_elp} -gt ${migration_wait_timeout_sec} ]];then
+        append_warn "migration did not finish within ${migration_wait_timeout_sec}s at ${v_suffix}: tree_migrations_empty=${v_tree_migrations_empty}, table_migrations_empty=${v_table_migrations_empty}, region_changing_count=${v_region_changing_count}, tree_file=${cur_dir}/show_migrations_tree_${v_suffix}.out, table_file=${cur_dir}/show_migrations_table_${v_suffix}.out, region_file=${cur_dir}/show_data_regions_${v_suffix}.out"
+        let fail_flag++
+        return 1
+     fi
      sleep 5
   done
 }
@@ -367,6 +446,9 @@ function write_test_result()
      tc_res=true
      echo "${SCRIPT_NAME} : pass" >>"${res_file}"
   else
+     if [[ -z "${v_warnMessage}" ]];then
+        append_warn "test failed but no detailed failure reason was recorded"
+     fi
      tc_res=false
      echo "warn_message=${v_warnMessage}"
      echo "${SCRIPT_NAME} : fail" >>"${res_file}"
@@ -432,6 +514,7 @@ function pre_and_exec_mig_region()
   v_mig_to_dn_id=-1
   line=`head -1 ${cur_dir}/mig_id_info.txt`
   if [[ ${line} = "" ]];then
+     append_warn "cannot find runtime replica information for DataRegion ${v_mig_id} before first migration, info_file=${cur_dir}/mig_id_info.txt"
      let fail_flag++
      write_test_result
      return 1
@@ -442,6 +525,7 @@ function pre_and_exec_mig_region()
      v_mig_to_dn_id=`select_target_dn`
   fi
   if [[ ${v_mig_to_dn_id} = "" ]];then
+     append_warn "cannot select target DataNode for first migration of DataRegion ${v_mig_id}"
      let fail_flag++
      write_test_result
      return 1
@@ -451,6 +535,7 @@ function pre_and_exec_mig_region()
   v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
   v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
   if ! run_migrate_region_with_retry ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_to_dn_id} ${cur_dir}/mig.out;then
+     append_warn "first MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id} failed, out_file=${cur_dir}/mig.out"
      let fail_flag++
      write_test_result
      return 1
@@ -466,6 +551,7 @@ function pre_and_exec_mig_region()
      if [[ ${v_AddRegion} -gt 0 ]];then
         v_adding_check=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions"|grep Adding|wc -l`
         if [[ ${v_adding_check} = 0 ]];then
+           append_warn "AddRegion started for DataRegion ${v_mig_id}, but show data regions contains no Adding state"
            let fail_flag++
         fi
         break
@@ -473,6 +559,7 @@ function pre_and_exec_mig_region()
         v_end_time=`date +%s`
         v_elp=$((v_end_time-v_start_time))
         if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+           append_warn "wait AddRegion start log timeout after ${loop_timeout_sec}s: region=${v_mig_id}, target_dn=${v_mig_to_dn_id}, cn_leader=${v_cn_leader_ip}"
            let fail_flag++
            write_test_result
            return 1
@@ -522,6 +609,7 @@ function pre_and_exec_mig_region()
         v_end_time=`date +%s`
         v_elp=$((v_end_time-v_start_time))
         if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+           append_warn "stop remove coordinator DataNode timeout after ${loop_timeout_sec}s: ip=${v_remove_coord_ip}"
            let fail_flag++
            write_test_result
            return 1
@@ -543,6 +631,7 @@ function pre_and_exec_mig_region()
         v_end_time=`date +%s`
         v_elp=$((v_end_time-v_start_time))
         if [[ ${v_elp} -gt ${loop_timeout_sec} ]];then
+           append_warn "stop ConfigNode leader timeout after ${loop_timeout_sec}s: ip=${v_cn_leader_ip}"
            let fail_flag++
            write_test_result
            return 1
@@ -566,6 +655,7 @@ function pre_and_exec_mig_region()
         v_end_time=`date +%s`
         v_elp=$((v_end_time-v_start_time))
         if [[ ${v_elp} -gt 180 ]];then
+           append_warn "restart remove coordinator DataNode timeout after 180s: ip=${v_remove_coord_ip}"
            let fail_flag++
            break
         fi
@@ -584,6 +674,7 @@ function pre_and_exec_mig_region()
         v_end_time=`date +%s`
         v_elp=$((v_end_time-v_start_time))
         if [[ ${v_elp} -gt 180 ]];then
+           append_warn "restart ConfigNode timeout after 180s: ip=${v_cn_leader_ip}"
            let fail_flag++
            break
         fi
@@ -591,12 +682,16 @@ function pre_and_exec_mig_region()
      fi
   done
 
-  wait_migration_visible_state_stable "after_recovery_before_second_mig"
+  if ! wait_migration_visible_state_stable "after_recovery_before_second_mig";then
+     write_test_result
+     return 1
+  fi
 
   refresh_region_runtime_info
   v_mig_to_dn_id=-1
   line=`tail -1 ${cur_dir}/mig_id_info.txt`
   if [[ ${line} = "" ]];then
+     append_warn "cannot find runtime replica information for DataRegion ${v_mig_id} before second migration, info_file=${cur_dir}/mig_id_info.txt"
      let fail_flag++
      write_test_result
      return 1
@@ -607,6 +702,7 @@ function pre_and_exec_mig_region()
      v_mig_to_dn_id=`select_target_dn`
   fi
   if [[ ${v_mig_to_dn_id} = "" ]];then
+     append_warn "cannot select target DataNode for second migration of DataRegion ${v_mig_id}"
      let fail_flag++
      write_test_result
      return 1
@@ -630,7 +726,10 @@ function pre_and_exec_mig_region()
   fi
 
   sleep 2
-  wait_migration_visible_state_stable "after_second_mig"
+  if ! wait_migration_visible_state_stable "after_second_mig";then
+     write_test_result
+     return 1
+  fi
   refresh_region_runtime_info
   v_check_to_dn=`grep -w "${v_mig_to_dn_id}" ${cur_dir}/mig_region_dn_id.txt|wc -l`
   v_check_from_dn=`grep -w "${v_mig_from_dn_id}" ${cur_dir}/mig_region_dn_id.txt|wc -l`
@@ -664,4 +763,5 @@ function pre_and_exec_mig_region()
 
 clean_env
 start_db
+init_rollback_stack_null_log_baseline
 pre_and_exec_mig_region

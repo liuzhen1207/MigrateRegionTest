@@ -34,6 +34,24 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+# Region procedures can be slow when a DataNode is copying a large region.
+# Keep polling bounded, and query every ConfigNode because leadership may change.
+migration_step_timeout=${MIGRATION_STEP_TIMEOUT:-3600}
+function count_cn_log()
+{
+   local log_pattern=$1
+   local match_pattern=$2
+   local total=0
+   local cn_ip
+   while read cn_ip
+   do
+      [[ -z ${cn_ip} ]] && continue
+      local count=`timeout 30 ssh -o ConnectTimeout=10 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 ${u_name}@${cn_ip} "grep -h -F \"${log_pattern}\" ${db_dir}/logs/*confignode*all* 2>/dev/null; zgrep -h -F \"${log_pattern}\" ${db_dir}/logs/*confignode*all*.gz 2>/dev/null" | grep -F "${match_pattern}" | wc -l`
+      total=$((total + count))
+   done < ${nodeinfo_dir}/confignode.txt
+   echo ${total}
+}
+
 function clean_env()
 {
    #clean env
@@ -186,12 +204,10 @@ do
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
 # check adding
+   poll_begin=`date +%s`
    while true
    do
-      if ssh ${u_name}@${v_cn_leader_ip} '[ -f "${db_dir}/logs/log-confignode-all*gz" ]'; then
-         ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-      fi
-      v_AddRegion=`ssh ${u_name}@${v_cn_leader_ip} "grep \"AddRegion\] started\" ${db_dir}/logs/*confignode*all*|grep \"added to DataNode ${v_mig_to_dn_id}\"|wc -l"`
+      v_AddRegion=`count_cn_log "AddRegion] started" "added to DataNode ${v_mig_to_dn_id}"`
       if [[ ${v_AddRegion} -gt 0 ]];then
          v_adding_check=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions"|grep Adding|wc -l`
          if [[ ${v_adding_check} = 0 ]];then
@@ -199,16 +215,19 @@ do
          fi
          break
       else
+         if [[ $((`date +%s`-poll_begin)) -ge ${migration_step_timeout} ]];then
+            echo "ERROR: timed out waiting for AddRegion on DataNode ${v_mig_to_dn_id}" >&2
+            let fail_flag++
+            break 2
+         fi
          sleep 1
       fi
    done
 # check Removing 
+   poll_begin=`date +%s`
    while true
    do
-      if ssh ${u_name}@${v_cn_leader_ip} '[ -f "${db_dir}/logs/log-confignode-all*gz" ]'; then
-         ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-      fi
-      v_AddRegion=`ssh ${u_name}@${v_cn_leader_ip} "grep \"RemoveRegion] started\" ${db_dir}/logs/*confignode*all*|grep \"removed from DataNode ${v_mig_from_dn_id}\"|wc -l"`
+      v_AddRegion=`count_cn_log "RemoveRegion] started" "removed from DataNode ${v_mig_from_dn_id}"`
       if [[ ${v_AddRegion} -gt 0 ]];then
          v_adding_check=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions"|grep Removing|wc -l`
          if [[ ${v_adding_check} = 0 ]];then
@@ -216,6 +235,11 @@ do
          fi
          break
       else
+         if [[ $((`date +%s`-poll_begin)) -ge ${migration_step_timeout} ]];then
+            echo "ERROR: timed out waiting for RemoveRegion from DataNode ${v_mig_from_dn_id}" >&2
+            let fail_flag++
+            break 2
+         fi
          sleep 1
       fi
    done
@@ -225,13 +249,18 @@ do
         let fail_flag++
    fi
 
+   poll_begin=`date +%s`
    while true
    do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|grep \" has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}\"|wc -l"`
-              if [[ ${v_mig_suc_log} = 1 ]];then
+              v_mig_suc_log=`count_cn_log "[MigrateRegion] success" "has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}"`
+              if [[ ${v_mig_suc_log} -gt 0 ]];then
                  break
               else
+                 if [[ $((`date +%s`-poll_begin)) -ge ${migration_step_timeout} ]];then
+                    echo "ERROR: timed out waiting for migration success ${v_mig_from_dn_id} -> ${v_mig_to_dn_id}" >&2
+                    let fail_flag++
+                    break 2
+                 fi
                  sleep 2 
               fi
 

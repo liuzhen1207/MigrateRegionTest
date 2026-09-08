@@ -159,10 +159,10 @@ function find_cn_log()
    local pattern1="$1"
    local pattern2="$2"
    local cn_ip
-   while read cn_ip
+   while read -r cn_ip
    do
-      ssh ${u_name}@${cn_ip} "zgrep -hF -- '${pattern1}' ${db_dir}/logs/*confignode*all* 2>/dev/null | grep -F -- '${pattern2}'"
-   done < ${nodeinfo_dir}/confignode.txt
+      ssh -n ${u_name}@${cn_ip} "zgrep -hF -- '${pattern1}' ${db_dir}/logs/*confignode*all* 2>/dev/null | grep -F -- '${pattern2}'"
+   done < "${nodeinfo_dir}/confignode.txt"
 }
 
 function pre_and_exec_mig_region()
@@ -262,14 +262,18 @@ v_mig_to_dn_ip=`grep "${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ','
 
    done
               v_mig_suc_log=`find_cn_log "[MigrateRegion] success" "has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}" | tail -1`
-              v_check_min=`echo ${v_mig_suc_log}|grep -i minute|wc -l`
-              if [[ ${v_check_min} -gt 0 ]];then
-                 v_mig_time_sec=`echo ${v_mig_suc_log} |awk -F "Procedure took " '{print $2}'|awk '{print $1*60+$3}'`
+              if [[ -n "${v_mig_suc_log}" ]];then
+                 v_check_min=`echo ${v_mig_suc_log}|grep -i minute|wc -l`
+                 if [[ ${v_check_min} -gt 0 ]];then
+                    v_mig_time_sec=`echo ${v_mig_suc_log} |awk -F "Procedure took " '{print $2}'|awk '{print $1*60+$3}'`
+                 else
+                    v_mig_time_sec=`echo ${v_mig_suc_log} |awk -F "Procedure took " '{print $2}'|awk '{print $1}'`
+                 fi
+                 if [[ ${v_mig_time_sec} =~ ^[0-9]+$ ]] && [[ ${v_mig_time_sec} -gt 240 ]];then
+                    let fail_flag++
+                 fi
               else
-                 v_mig_time_sec=`echo ${v_mig_suc_log} |awk -F "Procedure took " '{print $2}'|awk '{print $1}'`
-              fi
-              if [[ ${v_mig_time_sec} -gt 240 ]];then
-                 let fail_flag++
+                 echo "MigrateRegion success log not found for ${v_mig_from_dn_id}@${v_mig_from_dn_ip} -> ${v_mig_to_dn_id}@${v_mig_to_dn_ip}" >&2
               fi
 
    v_mig_to_dn_id=${v_mig_from_dn_id}

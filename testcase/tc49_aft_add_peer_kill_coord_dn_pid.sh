@@ -33,6 +33,97 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+migration_wait_timeout_sec=${MIGRATION_WAIT_TIMEOUT_SEC:-3600}
+
+# Search ConfigNode logs generated after the current migration started. Prefer the
+# current leader, but also check the other ConfigNodes so a leader switch cannot
+# make the test wait forever. Read compressed logs in place instead of gunzipping
+# files on the server.
+function find_cn_log_since()
+{
+   local first_pattern="$1"
+   local second_pattern="$2"
+   local since_sec="$3"
+   local preferred_cn_ip="$4"
+   local cn_ip
+   local log_line
+   local log_time
+   local log_sec
+
+   while read -r cn_ip
+   do
+      if [[ -z ${cn_ip} ]];then
+         continue
+      fi
+
+      while IFS= read -r log_line
+      do
+         if [[ ${log_line} != *"${second_pattern}"* ]];then
+            continue
+         fi
+
+         log_time=${log_line:0:19}
+         log_sec=`date -d "${log_time}" +%s 2>/dev/null` || continue
+         if [[ ${log_sec} -ge ${since_sec} ]];then
+            echo "${log_line}"
+            return 0
+         fi
+      done < <(ssh ${u_name}@${cn_ip} "grep -hF -- '${first_pattern}' ${db_dir}/logs/*confignode*all*.log 2>/dev/null; zgrep -hF -- '${first_pattern}' ${db_dir}/logs/*confignode*all*.gz 2>/dev/null" 2>/dev/null)
+   done < <(
+      {
+         if [[ -n ${preferred_cn_ip} ]];then
+            echo "${preferred_cn_ip}"
+         fi
+         cat ${nodeinfo_dir}/confignode.txt
+      } | awk 'NF && !seen[$0]++'
+   )
+
+   return 1
+}
+
+function wait_for_cn_log_since()
+{
+   local first_pattern="$1"
+   local second_pattern="$2"
+   local since_sec="$3"
+   local wait_desc="$4"
+   local wait_begin_sec=`date +%s`
+   local wait_cur_sec
+   local matched_log
+
+   while true
+   do
+      v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;" 2>/dev/null|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
+      matched_log=`find_cn_log_since "${first_pattern}" "${second_pattern}" "${since_sec}" "${v_cn_leader_ip}"`
+      if [[ -n ${matched_log} ]];then
+         echo "${matched_log}"
+         return 0
+      fi
+
+      wait_cur_sec=`date +%s`
+      if [[ $((wait_cur_sec-wait_begin_sec)) -ge ${migration_wait_timeout_sec} ]];then
+         echo "ERROR: timeout after ${migration_wait_timeout_sec}s waiting for ${wait_desc}" >&2
+         return 1
+      fi
+      sleep 1
+   done
+}
+
+function record_test_result()
+{
+   test_end_sec=`date +%s`
+   test_elp_sec=$((test_end_sec-test_begin_sec))
+
+   if [[ ${fail_flag} = 0 ]];then
+      tc_res=true
+      echo "${SCRIPT_NAME} : pass" >>"${res_file}"
+   else
+      tc_res=false
+      echo "${SCRIPT_NAME} : fail" >>"${res_file}"
+   fi
+   ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
+}
+
 function clean_env()
 {
    #clean env
@@ -196,20 +287,14 @@ local v_mig_to_dn_id=-1
 # get Remove Coord IP
    v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
 
-# check adding
-	   while true
-	   do
-	      if ssh ${u_name}@${v_cn_leader_ip} '[ -f "${db_dir}/logs/log-confignode-all*gz" ]'; then
-		 ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-	      fi
-	      v_AddRegion=`ssh ${u_name}@${v_cn_leader_ip} "grep \"RemoveRegion\] started\" ${db_dir}/logs/*confignode*all*|grep \"region ${v_mig_id} will be removed from DataNode ${v_mig_from_dn_id}\"|wc -l"`
-	      if [[ ${v_AddRegion} -gt 0 ]];then
-		 break
-	      else
-		 sleep 1
-	      fi
-	   done
-# kill -9 dest dn pid 
+# Wait until AddRegion is complete and RemoveRegion starts. The leader can change
+# while AddRegion is transferring data, so do not keep polling only the old leader.
+   if ! v_remove_region_log=`wait_for_cn_log_since "[RemoveRegion] started" "region ${v_mig_id} will be removed from DataNode ${v_mig_from_dn_id}" "${v_bef_mig_sec}" "RemoveRegion start for region ${v_mig_id} on DataNode ${v_mig_from_dn_id}"`;then
+      let fail_flag++
+      record_test_result
+      return 1
+   fi
+# kill -9 AddRegion coordinator DataNode PID
          ssh ${u_name}@${v_add_coord_ip} "sudo kill -9 ${v_remove_coord_ip_pid}"
 	 query_ip=${v_remove_coord_ip}
 # check stop dn pid
@@ -271,24 +356,29 @@ do
 done
  v_mig_to_dn_ip=`grep "${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
  v_mig_from_dn_ip=`grep "${v_mig_from_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
+   local v_mig_beg_sec=`date +%s`
    while true
    do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|grep \"has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}\"|wc -l"`
-              if [[ ${v_mig_suc_log} = 1 ]];then
-                 break
-              else
-                 v_mig_cur_sec=`date +%s`
-                 v_mig_elp_sec=$((v_mig_cur_sec-v_mig_beg_sec))
-                 if [[ ${v_mig_elp_sec} -gt 360 ]];then
-                    v_mig_submit_fail_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure failed\" ${db_dir}/logs/*confignode*all*|grep \"same consensus group ${v_mig_id} is already in processing\"|wc -l"`
-                    if [[ ${v_mig_submit_fail_log} = 1 ]];then
-                       break
-                    fi
+      v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;" 2>/dev/null|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
+      v_mig_suc_log=`find_cn_log_since "[MigrateRegion] success" "has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}" "${v_bef_mig_sec}" "${v_cn_leader_ip}"`
+      if [[ -n ${v_mig_suc_log} ]];then
+         break
+      fi
 
-                 fi
-                 sleep 5
-              fi
+      v_mig_submit_fail_log=`find_cn_log_since "Submit RegionMigrateProcedure failed" "same consensus group ${v_mig_id} is already in processing" "${v_bef_mig_sec}" "${v_cn_leader_ip}"`
+      if [[ -n ${v_mig_submit_fail_log} ]];then
+         break
+      fi
+
+      v_mig_cur_sec=`date +%s`
+      v_mig_elp_sec=$((v_mig_cur_sec-v_mig_beg_sec))
+      if [[ ${v_mig_elp_sec} -ge ${migration_wait_timeout_sec} ]];then
+         echo "ERROR: timeout after ${migration_wait_timeout_sec}s waiting for migration result of region ${v_mig_id}" >&2
+         let fail_flag++
+         record_test_result
+         return 1
+      fi
+      sleep 5
 
    done
 
@@ -331,22 +421,26 @@ v_mig_to_dn_id=-1
    local v_mig_beg_sec=`date +%s`
    while true
    do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|grep \"has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}\"|wc -l"`
-              if [[ ${v_mig_suc_log} = 1 ]];then
-                 break
-              else
-                 v_mig_cur_sec=`date +%s`
-                 v_mig_elp_sec=$((v_mig_cur_sec-v_mig_beg_sec))
-                 if [[ ${v_mig_elp_sec} -gt 360 ]];then
-                    v_mig_submit_fail_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure failed\" ${db_dir}/logs/*confignode*all*|grep \"same consensus group ${v_mig_id} is already in processing\"|wc -l"`
-                    if [[ ${v_mig_submit_fail_log} = 1 ]];then
-                       break
-                    fi
-                    
-                 fi
-                 sleep 5 
-              fi
+      v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;" 2>/dev/null|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
+      v_mig_suc_log=`find_cn_log_since "[MigrateRegion] success" "has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}" "${v_bef_mig_sec}" "${v_cn_leader_ip}"`
+      if [[ -n ${v_mig_suc_log} ]];then
+         break
+      fi
+
+      v_mig_submit_fail_log=`find_cn_log_since "Submit RegionMigrateProcedure failed" "same consensus group ${v_mig_id} is already in processing" "${v_bef_mig_sec}" "${v_cn_leader_ip}"`
+      if [[ -n ${v_mig_submit_fail_log} ]];then
+         break
+      fi
+
+      v_mig_cur_sec=`date +%s`
+      v_mig_elp_sec=$((v_mig_cur_sec-v_mig_beg_sec))
+      if [[ ${v_mig_elp_sec} -ge ${migration_wait_timeout_sec} ]];then
+         echo "ERROR: timeout after ${migration_wait_timeout_sec}s waiting for migration result of region ${v_mig_id}" >&2
+         let fail_flag++
+         record_test_result
+         return 1
+      fi
+      sleep 5
 
    done
 
@@ -361,18 +455,7 @@ if [[ ${v_check_mig_regionid} != ${dr_rep_num} ]];then
    let fail_flag++
 fi
 
-test_end_sec=`date +%s`
-test_elp_sec=$((test_end_sec-test_begin_sec))
-tc_res=true
-
-  if [[ ${fail_flag} = 0 ]];then
-     tc_res=true
-     echo "${SCRIPT_NAME} : pass" >>"${res_file}"
-  else
-     tc_res=false
-     echo "${SCRIPT_NAME} : fail" >>"${res_file}"
-  fi
-${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
+record_test_result
 
  
 } 

@@ -27,14 +27,17 @@ head -n ${dn_num} ${nodeinfo_dir}/total_datanode.txt > ${nodeinfo_dir}/datanode.
 head -n ${dn_num} ${nodeinfo_dir}/total_datanode_port.txt > ${nodeinfo_dir}/datanode_port.txt
 total_node_num=$((cn_num+dn_num))
 backup_dir_on_cn_dn_host=/data/iotdb/autotest_backup/3db_test_data
-tmp_out_file="tc${tc_num}_tmp.out"
 fail_flag=0
 kill_flag=0
 testcase_ip=`cat ${conf_file}|grep test_ip|awk -F '.' '{print $4}'`
 tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
+tmp_out_file="tc${tc_num}_tmp.out"
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+# The Removing phase may take longer than 600 seconds when the region contains
+# a large snapshot. Keep the timeout configurable for CI.
+remove_wait_timeout_sec=${MIGRATION_REMOVE_WAIT_TIMEOUT_SEC:-3600}
 function clean_env()
 {
    #clean env
@@ -110,6 +113,28 @@ set_sys_conf ${line} ${db_dir} ".*region_migration_speed_limit_bytes_per_second=
 set_sys_conf ${line} ${db_dir} ".*dn_thrift_max_frame_size=.*" "dn_thrift_max_frame_size=171966464"
   done
  
+}
+
+function remove_region_started_in_cn_log()
+{
+   local cn_ip
+   local log_line
+   local log_sec
+
+   while read -r cn_ip
+   do
+      [[ -z "${cn_ip}" ]] && continue
+      while IFS= read -r log_line
+      do
+         [[ -z "${log_line}" ]] && continue
+         log_sec=`date -d "${log_line:0:19}" +%s 2>/dev/null` || continue
+         if [[ ${log_sec} -ge ${v_bef_mig_sec} ]];then
+            echo "${log_line}"
+            return 0
+         fi
+      done < <(ssh ${u_name}@${cn_ip} "grep -hF -- 'started, region ${v_mig_id} will be removed from DataNode ${v_mig_from_dn_id}' ${db_dir}/logs/*confignode*all* 2>/dev/null" 2>/dev/null)
+   done < ${nodeinfo_dir}/confignode.txt
+   return 1
 }
 
 function start_db()
@@ -235,15 +260,22 @@ fi
            t1=`date +%s`
            while true
            do
-                 v_removing_check=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions"|grep Removing|wc -l`
-                 if [[ ${v_removing_check} -gt 0 ]];then
+                 v_region_status=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions" 2>&1`
+                 v_removing_check=`printf '%s\n' "${v_region_status}"|grep -c Removing || true`
+                 v_remove_started_log=`remove_region_started_in_cn_log || true`
+                 if [[ ${v_removing_check} -gt 0 || -n "${v_remove_started_log}" ]];then
                     let kill_flag=1
                     break
                  fi
                  sleep 1
                  t2=`date +%s`
                  t=$((t2-t1))
-                 if [[ ${t} -gt 600 ]];then
+                 if [[ ${t} -ge ${remove_wait_timeout_sec} ]];then
+                    # Keep the final topology in the testcase directory so a
+                    # timeout can be diagnosed together with the backed-up logs.
+                    printf '%s\n' "${v_region_status}" > "${cur_dir}/show_data_regions_remove_timeout.out"
+                    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show migrations" > "${cur_dir}/show_migrations_remove_timeout.out" 2>&1 || true
+                    echo "ERROR: timeout after ${remove_wait_timeout_sec}s waiting for Removing; see show_data_regions_remove_timeout.out" >&2
                     let fail_flag++
                     return 1
                  fi
@@ -423,6 +455,20 @@ fi
 
  
 } 
+function backup_logs()
+{
+   local case_name=${SCRIPT_NAME%.sh}
+   local backup_time
+
+   backup_time=`date +"%Y_%m_%d_%H_%M_%S"`
+   echo "Test completed; backing up cluster logs only (${case_name}_${backup_time})"
+   if ! sh -x "${clean_env_dir}/backup_cluster_logs.sh" "${case_name}" "${backup_time}"; then
+      echo "WARNING: backup cluster logs failed" >&2
+      return 1
+   fi
+   return 0
+}
+
 function rec_result()
 {
 test_end_sec=`date +%s`
@@ -434,6 +480,7 @@ tc_res=true
      echo "${SCRIPT_NAME} : pass" >>"${res_file}"
   else
      tc_res=false
+     backup_logs || true
      echo "${SCRIPT_NAME} : fail" >>"${res_file}"
   fi
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"

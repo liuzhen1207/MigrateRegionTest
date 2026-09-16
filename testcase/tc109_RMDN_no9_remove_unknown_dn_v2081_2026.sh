@@ -32,6 +32,21 @@ bm_dir="/data1/iotdb/testcase/MigrateRegionTest/benchmark/bm_20260508_interval_v
 bm_case_root="${bm_dir}/remove"
 bm_work_root="${cur_dir}/bm_work_${tc_num}_${test_begin_sec}"
 bm_log_root="${bm_work_root}/logs"
+
+function backup_failed_logs()
+{
+   local case_name=${SCRIPT_NAME%.sh}
+   local backup_time
+
+   backup_time=`date +%Y_%m_%d_%H_%M_%S`
+   echo "Test failed, backing up ConfigNode/DataNode logs to ${cur_dir}/logs_backup/${case_name}_${backup_time}."
+   if ! sh -x "${clean_env_dir}/backup_cluster_logs.sh" "${case_name}" "${backup_time}";then
+      echo "WARNING: failed to back up ConfigNode/DataNode logs." >&2
+      return 1
+   fi
+   return 0
+}
+
 function clean_env()
 {
    #clean env
@@ -270,7 +285,7 @@ function check_data_consistent()
          done
       fi
 
-      if ! ssh ${u_name}@${line} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh > /dev/null 2>&1";then
+      if ! timeout 90 ssh -o ConnectTimeout=15 ${u_name}@${line} "source /etc/profile;timeout 60 sudo ${db_dir}/sbin/start-datanode.sh -d > /dev/null 2>&1";then
          echo "Failed to restart DataNode ${line}."
          node_fail=1
       elif ! wait_dn_state ${q_node} ${line} "Running" 300;then
@@ -394,3 +409,6 @@ if [[ ${fail_flag} = 0 ]];then
 fi
 >${cur_dir}/ignore_dn_list.txt
 exec_remove
+if [[ ${fail_flag} -ne 0 ]];then
+   backup_failed_logs || true
+fi

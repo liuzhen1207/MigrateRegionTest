@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Known issue: V2-1215 - REMOVE DATANODE may hang when an Adding peer becomes ReadOnly.
+# https://pingcode.timecho.com/pjm/workitems/uJsEBtHy
+
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"

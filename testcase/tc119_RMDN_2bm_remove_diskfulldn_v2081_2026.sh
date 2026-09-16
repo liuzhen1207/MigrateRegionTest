@@ -10,6 +10,7 @@ db_dir=`cat ${conf_file}|grep ^db_dir|awk -F '=' '{print $2}'`
 iotdb_host=`cat ${conf_file}|grep test_ip|awk -F '=' '{print $2}'`
 v_cur_db=`cat ${conf_file}|grep v_cur_db|awk -F '=' '{print $2}'`
 cli_dir=`cat ${conf_file}|grep client_db_dir|awk -F '=' '{print $2}'`
+bm_conn_pw=`cat ${conf_file}|grep '^bm_conn_pw='|awk -F '=' '{print $2}'`
 ssl_str=""
 clean_env_dir="${cur_dir}/../clean_env"
 prepare_env_dir="${cur_dir}/../prepare_env"
@@ -32,8 +33,135 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+FILL_FILE="${db_dir}/fill_disk.tmp"
+FILL_PID_FILE="${db_dir}/fill_disk.pid"
+START_DB_TIMEOUT=${START_DB_TIMEOUT:-600}
+bm_pid1=""
+bm_pid2=""
+
+# Stop a disk filler before unlinking its output file.  Besides the pid file,
+# scan /proc so a writer to an already deleted fill_disk.tmp can still be found.
+function stop_disk_filler()
+{
+   local v_ip=${1:-${remove_dn_ip}}
+   if [[ -z ${v_ip} ]];then
+      echo "Cannot clean disk filler: DataNode IP is empty."
+      return 1
+   fi
+
+   ssh "${u_name}@${v_ip}" "sudo bash -s -- '${FILL_FILE}' '${FILL_PID_FILE}'" <<'REMOTE_CLEANUP'
+fill_file=$1
+pid_file=$2
+candidates=""
+
+add_candidate()
+{
+   case " ${candidates} " in
+      *" $1 "*) ;;
+      *) candidates="${candidates} $1" ;;
+   esac
+}
+
+owns_fill_file()
+{
+   pid=$1
+   [[ -d /proc/${pid} ]] || return 1
+
+   for fd in /proc/${pid}/fd/*;do
+      target=$(readlink "${fd}" 2>/dev/null || true)
+      if [[ ${target} = "${fill_file}" || ${target} = "${fill_file} (deleted)" ]];then
+         return 0
+      fi
+   done
+
+   cmdline=$(tr '\0' ' ' < "/proc/${pid}/cmdline" 2>/dev/null || true)
+   [[ ${cmdline} = *"of=${fill_file}"* ]]
+}
+
+if [[ -s ${pid_file} ]];then
+   pid=$(cat "${pid_file}" 2>/dev/null)
+   [[ ${pid} =~ ^[0-9]+$ ]] && add_candidate "${pid}"
+fi
+
+for proc_dir in /proc/[0-9]*;do
+   pid=${proc_dir#/proc/}
+   for fd in "${proc_dir}"/fd/*;do
+      target=$(readlink "${fd}" 2>/dev/null || true)
+      if [[ ${target} = "${fill_file}" || ${target} = "${fill_file} (deleted)" ]];then
+         add_candidate "${pid}"
+         break
+      fi
+   done
+done
+
+live_pids=""
+for pid in ${candidates};do
+   if owns_fill_file "${pid}";then
+      echo "Found stale disk filler pid=${pid}: $(tr '\0' ' ' < /proc/${pid}/cmdline 2>/dev/null)"
+      live_pids="${live_pids} ${pid}"
+   fi
+done
+
+if [[ -n ${live_pids} ]];then
+   kill -TERM ${live_pids} 2>/dev/null || true
+   for ((i=0; i<30; i++));do
+      still_running=""
+      for pid in ${live_pids};do
+         owns_fill_file "${pid}" && still_running="${still_running} ${pid}"
+      done
+      [[ -z ${still_running} ]] && break
+      sleep 1
+   done
+
+   if [[ -n ${still_running} ]];then
+      echo "Disk filler did not stop after SIGTERM; sending SIGKILL:${still_running}"
+      kill -KILL ${still_running} 2>/dev/null || true
+      for ((i=0; i<10; i++));do
+         remaining=""
+         for pid in ${still_running};do
+            owns_fill_file "${pid}" && remaining="${remaining} ${pid}"
+         done
+         [[ -z ${remaining} ]] && break
+         sleep 1
+      done
+      if [[ -n ${remaining} ]];then
+         echo "ERROR: disk filler is still holding ${fill_file}:${remaining}"
+         exit 1
+      fi
+   fi
+fi
+
+rm -f "${fill_file}" "${pid_file}"
+REMOTE_CLEANUP
+}
+
+function cleanup_on_exit()
+{
+   local exit_code=$?
+   trap - EXIT INT TERM
+
+   for pid in "${bm_pid1:-}" "${bm_pid2:-}";do
+      if [[ ${pid} =~ ^[0-9]+$ ]] && kill -0 "${pid}" 2>/dev/null;then
+         kill "${pid}" 2>/dev/null || true
+         wait "${pid}" 2>/dev/null || true
+      fi
+   done
+   stop_disk_filler "${remove_dn_ip}" || true
+   exit "${exit_code}"
+}
+
+trap cleanup_on_exit EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
 function clean_env()
 {
+   # A previous interrupted run may still be writing an unlinked fill file.
+   # Do this before clean_cluster removes any path under db_dir.
+   if ! stop_disk_filler "${remove_dn_ip}";then
+      echo "Failed to stop stale disk filler on ${remove_dn_ip}; abort cleanup."
+      return 1
+   fi
    #clean env
    sh -x ${clean_env_dir}/stop_cluster.sh
    sh -x ${clean_env_dir}/clean_cluster.sh
@@ -112,6 +240,11 @@ set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*"
 
 function start_db()
 {
+   if ! stop_disk_filler "${remove_dn_ip}";then
+      echo "Failed to stop stale disk filler on ${remove_dn_ip}; abort startup."
+      let fail_flag++
+      return 1
+   fi
    #clean env
    sh -x ${clean_env_dir}/stop_cluster.sh
    sh -x ${clean_env_dir}/clean_cluster.sh
@@ -128,7 +261,19 @@ ssh ${u_name}@${line} "sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"";
 fi
 done
 
-   sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"
+   timeout --signal=TERM --kill-after=30s "${START_DB_TIMEOUT}s" \
+      sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"
+   start_rc=$?
+   if [[ ${start_rc} -ne 0 ]];then
+      let fail_flag++
+      if [[ ${start_rc} -eq 124 || ${start_rc} -eq 137 ]];then
+         echo "Cluster startup timed out after ${START_DB_TIMEOUT}s."
+      else
+         echo "Cluster startup failed, exit code: ${start_rc}."
+      fi
+      ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show cluster;" || true
+      return 1
+   fi
 
 }
 function check_res()
@@ -411,39 +556,68 @@ function remove_dn()
 #start 2bm
    v_t=`date "+%Y_%m_%d_%H_%M_%S"`
    v_host=`awk '{printf "%s%s", (NR==1?"":","), $0}' ${nodeinfo_dir}/datanode.txt`
+   bm_res1="${bm_dir}/${v_t}_bm1.out"
+   bm_res2="${bm_dir}/${v_t}_bm2.out"
    sed -i "s/^HOST=.*/HOST=${v_host}/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
-   sed -i "s/^USERNAME=.*/USERNAME=root/; s/^PASSWORD=.*/PASSWORD=root/" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
+   sed -i "s/^USERNAME=.*/USERNAME=${db_sys_admin}/; s/^PASSWORD=.*/PASSWORD=${bm_conn_pw}/" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
    sed -i "s/LOOP=.*/LOOP=100000/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
-   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf1 >${bm_dir}/${v_t}_bm1.out &
-   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf2 >${bm_dir}/${v_t}_bm2.out &
+   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf1 >"${bm_res1}" 2>&1 &
+   bm_pid1=$!
+   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf2 >"${bm_res2}" 2>&1 &
+   bm_pid2=$!
    sleep 60
-RESERVE_SPACE=$((5000 * 1024 * 1024))  # 预留100MB空间（避免系统卡死）
-FILL_FILE="${db_dir}/fill_disk.tmp"  # 填充文件名称
+
+if ! kill -0 ${bm_pid1} 2>/dev/null || ! kill -0 ${bm_pid2} 2>/dev/null \
+   || grep -Eq "Authentication failed|Account is blocked|Failed to get database|IoTDBConnectionException" "${bm_res1}" "${bm_res2}";then
+   echo "Benchmark failed to start; skip disk filling and DataNode removal."
+   tail -n 50 "${bm_res1}" "${bm_res2}"
+   kill ${bm_pid1} ${bm_pid2} 2>/dev/null || true
+   let fail_flag++
+   let rm_fail_flag++
+else
+RESERVE_SPACE=$((5000 * 1024 * 1024))  # 预留5000MB空间（避免系统卡死）
 
 # 步骤1：远程获取/data的可用字节数
-echo "===== 1. 获取${REMOTE_HOST}:${TARGET_DIR}可用空间 ====="
+echo "===== 1. 获取${v_rm_ip}:${db_dir}可用空间 ====="
 AVAIL_BYTES=$(ssh ${u_name}@${v_rm_ip} "df -P ${db_dir} | awk 'NR==2{print \$4 * 1024}'")
 # df -P的$4是可用块数（默认块大小512/1024字节），*1024转为字节（POSIX标准块大小1024）
 
 if [[ -z ${AVAIL_BYTES} || ${AVAIL_BYTES} -lt ${RESERVE_SPACE} ]]; then
     echo "错误：可用空间不足（或获取失败），可用字节数：${AVAIL_BYTES}，预留空间：${RESERVE_SPACE}"
-#    exit 1
-fi
+    let fail_flag++
+    let rm_fail_flag++
+else
 
 # 步骤2：计算实际要填充的字节数（总可用 - 预留空间）
 FILL_BYTES=$((AVAIL_BYTES - RESERVE_SPACE))
+AVAIL_GB=$((AVAIL_BYTES / 1024 / 1024 / 1024))
+FILL_GB=$((FILL_BYTES / 1024 / 1024 / 1024))
 echo "===== 2. 计算填充大小 ====="
-echo "总可用字节：${AVAIL_BYTES} (≈$(echo "scale=2; ${AVAIL_BYTES}/1024/1024/1024" | bc) GB)"
+echo "总可用字节：${AVAIL_BYTES} (≈${AVAIL_GB} GB)"
 echo "预留空间：${RESERVE_SPACE} (≈5000 MB)"
-echo "实际填充字节：${FILL_BYTES} (≈$(echo "scale=2; ${FILL_BYTES}/1024/1024/1024" | bc) GB)"
+echo "实际填充字节：${FILL_BYTES} (≈${FILL_GB} GB)"
 
 # 步骤3：远程执行dd填满空间（用bs=1M提升写入速度）
-echo "===== 3. 开始填充${REMOTE_HOST}:${TARGET_DIR} ====="
-ssh ${u_name}@${v_rm_ip} "dd if=/dev/zero of=${FILL_FILE} bs=1M count=$((FILL_BYTES / 1024 / 1024)) conv=fsync"
+echo "===== 3. 开始填充${v_rm_ip}:${db_dir} ====="
+if ! stop_disk_filler "${v_rm_ip}";then
+   echo "清理遗留磁盘填充进程失败。"
+   let fail_flag++
+   let rm_fail_flag++
+else
+fill_count=$((FILL_BYTES / 1024 / 1024))
+ssh ${u_name}@${v_rm_ip} \
+   "echo \$\$ > '${FILL_PID_FILE}'; exec dd if=/dev/zero of='${FILL_FILE}' bs=1M count=${fill_count} conv=fsync"
+fill_rc=$?
+ssh ${u_name}@${v_rm_ip} "rm -f '${FILL_PID_FILE}'"
+if [[ ${fill_rc} -ne 0 ]];then
+   echo "填充磁盘失败。"
+   let fail_flag++
+   let rm_fail_flag++
+else
 
 # 步骤4：验证填充结果
 echo "===== 4. 验证填充结果 ====="
-ssh ${u_name}@${v_rm_ip} "df -h ${TARGET_DIR}; ls -lh ${FILL_FILE}"
+ssh ${u_name}@${v_rm_ip} "df -h ${db_dir}; ls -lh ${FILL_FILE}"
 
 echo "===== 操作完成 ====="
 echo "如需清理填充文件，执行：ssh ${u_name}@${v_rm_ip} 'rm -f ${FILL_FILE}'"
@@ -455,10 +629,14 @@ echo "如需清理填充文件，执行：ssh ${u_name}@${v_rm_ip} 'rm -f ${FILL
       else
           ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "remove datanode ${v_rm_id};">${cur_dir}/tmp.out
           check_res "success" 1 "${SCRIPT_NAME}"
-      fi
+fi
+fi
+fi
+fi
+fi
 
    wait_rm_finish "${v_rm_ip}" 3600
-   wait_bm_finish 36000 "${bm_dir}/${v_t}_bm1.out" "${bm_dir}/${v_t}_bm2.out"
+   wait_bm_finish 36000 "${bm_res1}" "${bm_res2}"
 if [[ ${rm_fail_flag} = 0 ]];then 
    check_data_consistent
 fi
@@ -466,6 +644,11 @@ fi
 test_end_sec=`date +%s`
 test_elp_sec=$((test_end_sec-test_begin_sec))
 tc_res=true
+
+# remove test data before calculating the final result so cleanup failures are
+# reflected in tc_res as well.
+ssh ${u_name}@${v_rm_ip} "rm -rf ${db_dir}/10gb_file_*"
+stop_disk_filler "${v_rm_ip}" || let fail_flag++
 
   if [[ ${fail_flag} = 0 ]];then
      tc_res=true
@@ -476,9 +659,6 @@ tc_res=true
      tc_res=false
      echo "${SCRIPT_NAME} : fail"
   fi
-# remove test data
-ssh ${u_name}@${v_rm_ip} "rm -rf ${db_dir}/10gb_file_*"
-ssh ${u_name}@${v_rm_ip} "rm -rf ${FILL_FILE}"
 echo "${tc_num}"
 echo "${SCRIPT_NAME}"
 echo "${tc_res}"
@@ -487,6 +667,10 @@ echo "${test_elp_sec}"
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -pw ${res_root_pw} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
 
 }
-clean_env
-start_db
+if ! clean_env;then
+   exit 1
+fi
+if ! start_db;then
+   exit 1
+fi
 remove_dn

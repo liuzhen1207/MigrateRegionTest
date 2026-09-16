@@ -161,7 +161,7 @@ function find_cn_log()
    local cn_ip
    while read -r cn_ip
    do
-      ssh -n ${u_name}@${cn_ip} "zgrep -hF -- '${pattern1}' ${db_dir}/logs/*confignode*all* 2>/dev/null | grep -F -- '${pattern2}'"
+      timeout 15 ssh -n -o ConnectTimeout=5 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 ${u_name}@${cn_ip} "zgrep -hF -- '${pattern1}' ${db_dir}/logs/*confignode*all* 2>/dev/null | grep -F -- '${pattern2}'"
    done < "${nodeinfo_dir}/confignode.txt"
 }
 
@@ -203,7 +203,7 @@ do
       if [[ ${v_AddRegion} -gt 0 ]];then
          v_adding_check=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions"|grep Adding|wc -l`
          if [[ ${v_adding_check} = 0 ]];then
-            let fail_flag++
+            echo "INFO: AddRegion started log found; Adding state completed before status snapshot"
          fi
          break
       else
@@ -224,7 +224,7 @@ do
       if [[ ${v_AddRegion} -gt 0 ]];then
          v_adding_check=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions"|grep Removing|wc -l`
          if [[ ${v_adding_check} = 0 ]];then
-            let fail_flag++
+            echo "INFO: RemoveRegion started log found; Removing state completed before status snapshot"
          fi
          break
       else

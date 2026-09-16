@@ -206,8 +206,8 @@ function ins_data()
    done
 
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 3600 -e "select text,grade,male,likething,money,rate,age,movie,birthday,run from root.**;" >"${cur_dir}/q_act.out" 2>&1
-   if [[ $(grep -c "expensive" "${cur_dir}/q_act.out") -ne 5 ]];then
-      echo "Expected 5 rows before removing DataNodes."
+   if [[ $(grep -o "expensive" "${cur_dir}/q_act.out" | wc -l) -ne 5 ]];then
+      echo "Expected 5 values before removing DataNodes."
       cat "${cur_dir}/q_act.out"
       let fail_flag++
       return 1

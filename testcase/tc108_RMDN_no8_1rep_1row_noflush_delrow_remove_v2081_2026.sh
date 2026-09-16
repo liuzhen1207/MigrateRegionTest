@@ -197,8 +197,8 @@ function ins_data()
    done
 
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 3600 -e "select text,grade,male,likething,money,rate,age,movie,birthday,run from root.**;" >"${cur_dir}/q_before_delete.out" 2>&1
-   if [[ $(grep -c "expensive" "${cur_dir}/q_before_delete.out") -ne 5 ]];then
-      echo "Expected 5 unflushed rows before deleting data."
+   if [[ $(grep -o "expensive" "${cur_dir}/q_before_delete.out" | wc -l) -ne 5 ]];then
+      echo "Expected 5 unflushed values before deleting data."
       cat "${cur_dir}/q_before_delete.out"
       let fail_flag++
       return 1

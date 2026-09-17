@@ -31,6 +31,9 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+BM_LOOP=${BM_LOOP:-10000}
+BM_WARMUP_SECONDS=${BM_WARMUP_SECONDS:-30}
+REGION_OP_TIMEOUT=${REGION_OP_TIMEOUT:-300}
 function clean_env()
 {
    #clean env
@@ -153,7 +156,7 @@ function check_res2()
    tc_desc=$4
    v_act_num1=`cat ${cur_dir}/tmp.out|grep "${exp_res1}"|wc -l`
    v_act_num2=`cat ${cur_dir}/tmp.out|grep "${exp_res2}"|wc -l`
-   if [[ ${v_act_num1} -ge ${exp_num} ]] || [[ ${v_act_num2} -ge ${exp_num} ]];then
+   if [[ ${v_act_num1} -ge ${exp_num} ]] && [[ ${v_act_num2} -ge ${exp_num} ]];then
       echo "${tc_desc} PASS."
       let succ_flag++
    else
@@ -161,6 +164,91 @@ function check_res2()
       let fail_flag++
       cat ${cur_dir}/tmp.out
    fi
+}
+
+function check_regions_on_dn()
+{
+   local region_list=$1
+   local target_dn_id=$2
+   local region_id
+   local missing_regions=""
+
+   if ! ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} \
+      -e 'show regions;' >${cur_dir}/tmp_region_state.out;then
+      echo "Failed to query region states while checking DataNode ${target_dn_id}."
+      return 1
+   fi
+
+   for region_id in ${region_list//,/ }
+   do
+      if ! awk -F '|' -v region_id="${region_id}" -v dn_id="${target_dn_id}" '
+         {
+            gsub(" ", "", $2)
+            gsub(" ", "", $8)
+            if ($2 == region_id && $8 == dn_id) found=1
+         }
+         END {exit(found ? 0 : 1)}' ${cur_dir}/tmp_region_state.out;then
+         missing_regions="${missing_regions} ${region_id}"
+      fi
+   done
+
+   if [[ -n ${missing_regions} ]];then
+      echo "Regions${missing_regions} are unexpectedly absent from DataNode ${target_dn_id}."
+      cat ${cur_dir}/tmp_region_state.out
+      return 1
+   fi
+
+   echo "Regions ${region_list} remain on DataNode ${target_dn_id}."
+   return 0
+}
+
+function wait_region_removed_from_dn()
+{
+   local region_list=$1
+   local target_dn_id=$2
+   local max_wait_time=$3
+   local start_time=`date +%s`
+   local current_time
+   local elapsed_time
+   local pending_regions
+   local region_id
+
+   while true
+   do
+      if ! ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} \
+         -e 'show regions;' >${cur_dir}/tmp_region_state.out;then
+         echo "Failed to query region states while waiting for remove completion."
+         return 1
+      fi
+
+      pending_regions=""
+      for region_id in ${region_list//,/ }
+      do
+         if awk -F '|' -v region_id="${region_id}" -v dn_id="${target_dn_id}" '
+            {
+               gsub(" ", "", $2)
+               gsub(" ", "", $8)
+               if ($2 == region_id && $8 == dn_id) found=1
+            }
+            END {exit(found ? 0 : 1)}' ${cur_dir}/tmp_region_state.out;then
+            pending_regions="${pending_regions} ${region_id}"
+         fi
+      done
+
+      if [[ -z ${pending_regions} ]];then
+         echo "Regions ${region_list} have been removed from DataNode ${target_dn_id}."
+         return 0
+      fi
+
+      current_time=`date +%s`
+      elapsed_time=$((current_time-start_time))
+      if [[ ${elapsed_time} -ge ${max_wait_time} ]];then
+         echo "Timed out after ${max_wait_time}s waiting for regions${pending_regions} to be removed from DataNode ${target_dn_id}."
+         cat ${cur_dir}/tmp_region_state.out
+         return 1
+      fi
+      sleep 1
+   done
 }
 
 function check_npe()
@@ -457,10 +545,25 @@ else
 fi
 sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
    sed -i "s/^HOST=.*/HOST=${v_host}/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
-   sed -i "s/LOOP=.*/LOOP=2000/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
-   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf1 >${bm_dir}/${v_t}_tc20_bm1.out &
-   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf2 >${bm_dir}/${v_t}_tc20_bm2.out &
-   sleep 60
+   sed -i "s/LOOP=.*/LOOP=${BM_LOOP}/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
+   bm_res1="${bm_dir}/${v_t}_tc20_bm1.out"
+   bm_res2="${bm_dir}/${v_t}_tc20_bm2.out"
+   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf1 >${bm_res1} 2>&1 &
+   bm_pid1=$!
+   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf2 >${bm_res2} 2>&1 &
+   bm_pid2=$!
+   sleep ${BM_WARMUP_SECONDS}
+   benchmark_ready=1
+   if ! kill -0 ${bm_pid1} 2>/dev/null || ! kill -0 ${bm_pid2} 2>/dev/null \
+      || grep -Eq "Authentication failed|Account is blocked|Failed to get database|IoTDBConnectionException" "${bm_res1}" "${bm_res2}";then
+      echo "Benchmark failed to start; skip region operations."
+      tail -n 50 "${bm_res1}" "${bm_res2}"
+      kill ${bm_pid1} ${bm_pid2} 2>/dev/null || true
+      let fail_flag++
+      let rm_fail_flag++
+      benchmark_ready=0
+   fi
+if [[ ${benchmark_ready} = 1 ]];then
 # extend region
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions'|grep "${query_ip}|"|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/mig_id.txt
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions'|grep "${query_ip2}|"|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/mig_id2.txt
@@ -472,18 +575,24 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    echo "${line}">>${cur_dir}/region.txt
    done
 exec 3<&-
-   v_remove_list=`paste -sd "," ${cur_dir}/region.txt`
+   target_region_list=`paste -sd "," ${cur_dir}/region.txt`
 # region exist ,dn id not exist
    echo "REMOVE REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
 exec 4<${cur_dir}/all_cn_id.txt
 while read cnid<&4
 do
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${v_remove_list}  from ${cnid};">${cur_dir}/tmp.out
-   check_res2 "successfully submitted: 0, failed to submit" "Target DataNode ${v_rm_id}" 1 "${SCRIPT_NAME}"
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${target_region_list}  from ${cnid};">${cur_dir}/tmp.out
+   # Since #15728, a missing DataNode is handled by cleaning possible stale
+   # partition metadata and returning SUCCESS_STATUS.
+   check_res "executed successfully" 1 "${SCRIPT_NAME}"
    cat ${cur_dir}/tmp.out
 
 done
 exec 4<&-
+
+if ! check_regions_on_dn "${target_region_list}" "${v_rm_id}";then
+   let fail_flag++
+fi
 
 # region id not exist , dn id not exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "REMOVE REGION 17700,9109  from 2222;">${cur_dir}/tmp.out
@@ -498,8 +607,15 @@ ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RE
 check_res2 "failed to submit: 2" "get region group id fail" 1 "${SCRIPT_NAME}"
 
 # some region id not exist , dn id exist
-${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "REMOVE REGION 17700,${v_remove_list}  from ${v_rm_id};">${cur_dir}/tmp.out
+${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "REMOVE REGION 17700,${target_region_list}  from ${v_rm_id};">${cur_dir}/tmp.out
 check_res2 "failed to submit: 1" "get region group id fail" 1 "${SCRIPT_NAME}"
+
+# Valid regions in the mixed request are removed asynchronously even though
+# the nonexistent region is reported as failed.
+if ! wait_region_removed_from_dn "${target_region_list}" "${v_rm_id}" "${REGION_OP_TIMEOUT}";then
+   let rm_fail_flag++
+   let fail_flag++
+fi
 # region id exist ,but this dn id hasn't
 >${cur_dir}/region.txt
    exec 3<${cur_dir}/mig_id.txt
@@ -515,7 +631,7 @@ exec 3<&-
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "REMOVE REGION ${v_remove_list}  from ${v_rm_id};">${cur_dir}/tmp.out
 check_res2 "successfully submitted: 0, failed to submit:" "Target DataNode ${v_rm_id} doesn't contain Region" 1 "${SCRIPT_NAME}"
 
-   wait_bm_finish 36000 "${bm_dir}/${v_t}_tc20_bm1.out" "${bm_dir}/${v_t}_tc20_bm2.out"
+   wait_bm_finish 36000 "${bm_res1}" "${bm_res2}"
    v_add_num1=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Adding|wc -l`
    v_add_num2=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Removing|wc -l`
    v_add_num=$((v_add_num1+v_add_num2))
@@ -523,7 +639,8 @@ check_res2 "successfully submitted: 0, failed to submit:" "Target DataNode ${v_r
    if [[ ${v_add_num} -gt 0 ]];then
       let rm_fail_flag++
       let fail_flag++
-   fi 
+   fi
+fi
 if [[ ${rm_fail_flag} = 0 ]];then
 #   check_data_consistent
 echo "no check" 

@@ -532,7 +532,7 @@ exec 4<${cur_dir}/all_cn_id.txt
 while read cnid<&4
 do
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "RECONSTRUCT REGION ${v_remove_list}  ON ${cnid};">${cur_dir}/tmp.out
-   check_res "Submit ReconstructRegionProcedure failed, because the target DataNode ${cnid} doesn't contain Region" "Target DataNode ${v_rm_id}" 1 "${SCRIPT_NAME}"
+   check_res "Target DataNode ${cnid} does not exist in the cluster" 1 "${SCRIPT_NAME}"
    cat ${cur_dir}/tmp.out
 
 done
@@ -540,19 +540,19 @@ exec 4<&-
 
 # region id not exist , dn id not exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RECONSTRUCT REGION 17700,9109  ON 2222;">${cur_dir}/tmp.out
-check_res2 "successfully submitted: 0, failed to submit: 2" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res "Target DataNode 2222 does not exist in the cluster" 1 "${SCRIPT_NAME}"
 
 # some region id not exist , dn id not exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RECONSTRUCT REGION 17700,${v_rm_id}  ON 2222;">${cur_dir}/tmp.out
-check_res2 "failed to submit: 2" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res "Target DataNode 2222 does not exist in the cluster" 1 "${SCRIPT_NAME}"
 
 # region id not exist , dn id exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RECONSTRUCT REGION 17700,9999  ON ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "failed to submit: 2" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res "Region id 17700 is invalid" 1 "${SCRIPT_NAME}"
 
 # some region id not exist , dn id exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RECONSTRUCT REGION 17700,${v_remove_list}  ON ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "failed to submit: 1" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res "Region id 17700 is invalid" 1 "${SCRIPT_NAME}"
 # region id exist ,but this dn id hasn't
 >${cur_dir}/region.txt
    exec 3<${cur_dir}/mig_id.txt
@@ -568,11 +568,11 @@ exec 3<&-
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RECONSTRUCT REGION ${v_remove_list}  ON ${v_rm_id};">${cur_dir}/tmp.out
 check_res "Submit ReconstructRegionProcedure failed, because the target DataNode ${v_rm_id} doesn't contain Region" 1 "${SCRIPT_NAME}"
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RECONSTRUCT all regions ON ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "successfully submitted: 0, failed to submit:" "Target DataNode ${v_rm_id} doesn't contain Region" 1 "${SCRIPT_NAME}"
+check_res "mismatched input 'all' expecting REGION" 1 "${SCRIPT_NAME}"
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RECONSTRUCT ALL REGIONS ON ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "successfully submitted: 0, failed to submit:" "Target DataNode ${v_rm_id} doesn't contain Region" 1 "${SCRIPT_NAME}"
+check_res "mismatched input 'ALL' expecting REGION" 1 "${SCRIPT_NAME}"
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RECONSTRUCT NULL REGIONS ON ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "successfully submitted: 0, failed to submit:" "Target DataNode ${v_rm_id} doesn't contain Region" 1 "${SCRIPT_NAME}"
+check_res "mismatched input 'NULL' expecting REGION" 1 "${SCRIPT_NAME}"
 
 wait_Adding_finish ${query_ip} 3600
 wait_Removing_finish ${query_ip} 3600

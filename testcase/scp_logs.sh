@@ -1,8 +1,8 @@
 #!/bin/bash
 from_cluster_dir="/data1/iotdb"
 cluster_dir="/data/iotdb"
-from_cur_cluster="tablev2_rc1_1021_c2d28a2mig"
-to_cur_cluster="tablev2_rc1_1021_c2d28a2mig"
+from_cur_cluster="v20121rc3_0921_130557c"
+to_cur_cluster="v20121rc3_0921_130557c"
 desc=$1
 u_name="cluster"
 exec 3<./datanode.txt

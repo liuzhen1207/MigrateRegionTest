@@ -1,0 +1,11 @@
+拿到根目录的文件列表
+curl http://172.20.31.2:8080/api/getfilelist
+
+
+curl http://172.20.31.2:8080/api/getfilelist?file_path=TimechoDB-RC/
+curl http://172.20.31.2:8080/api/getfilelist?file_path=TimechoDB-Release/iotdb-enterprise-1.3.7.1-bin_202602111632
+
+
+
+拿到 master 分支的的文件列表
+curl http://172.20.31.2:8080/api/getfilelist?file_path=TimechoDB-master-mr

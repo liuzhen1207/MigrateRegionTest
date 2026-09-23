@@ -277,6 +277,92 @@ local t1=`date +%s`
 
 }
 
+function wait_region_removed()
+{
+local v_query_ip=$1
+local v_target_dn_id=$2
+local v_region_list=$3
+local max_wait_time=$4
+local t1=`date +%s`
+
+if [[ -z "${v_target_dn_id}" ]];then
+   echo "Target DataNode ID is required while waiting for removal."
+   return 1
+fi
+if [[ -z "${v_region_list}" ]];then
+   echo "No Region was submitted for removal."
+   return 1
+fi
+
+while true
+do
+   if ! ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${v_query_ip} -e "show regions;" >${cur_dir}/tmp.out;then
+      echo "Failed to query regions while waiting for removal."
+      return 1
+   fi
+   if ! awk -F '|' '
+      {for (i=1; i<=NF; i++) {
+         value=$i; gsub(/[[:space:]]/, "", value)
+         if (value == "RegionId") has_region_id=1
+         if (value == "DataNodeId") has_data_node_id=1
+      }}
+      END {exit !(has_region_id && has_data_node_id)}' ${cur_dir}/tmp.out;then
+      echo "SHOW REGIONS returned no RegionId/DataNodeId table while waiting for removal."
+      cat ${cur_dir}/tmp.out
+      return 1
+   fi
+
+   v_remaining=0
+   while IFS= read -r v_region_id
+   do
+      [[ -z "${v_region_id}" ]] && continue
+      # A Region must remain on its healthy replicas after REMOVE REGION. Match
+      # RegionId and DataNodeId together. Checking RegionId globally would
+      # mistake healthy remaining replicas for a failed removal. Locate columns
+      # by header name so a SHOW REGIONS column-order change cannot cause a false pass.
+      if awk -F '|' -v target_region="${v_region_id}" -v target_dn="${v_target_dn_id}" \
+         '{for (i=1; i<=NF; i++) {
+            value=$i; gsub(/[[:space:]]/, "", value)
+            if (value == "RegionId") region_col=i
+            if (value == "DataNodeId") data_node_col=i
+          }
+          if (region_col && data_node_col) {
+            region=$region_col; data_node=$data_node_col
+            gsub(/[[:space:]]/, "", region); gsub(/[[:space:]]/, "", data_node)
+            if (region == target_region && data_node == target_dn) found=1
+          }}
+          END {exit !found}' \
+         ${cur_dir}/tmp.out;then
+         echo "Region ${v_region_id} is still present on DataNode ${v_target_dn_id}."
+         v_remaining=1
+      fi
+   done < <(printf '%s\n' "${v_region_list}" | tr ',' '\n')
+
+   if [[ ${v_remaining} = 0 ]];then
+      echo "All requested Regions have been removed from DataNode ${v_target_dn_id}."
+      return 0
+   fi
+
+   t2=`date +%s`
+   t_elp=$((t2-t1))
+   if [[ ${t_elp} -gt ${max_wait_time} ]];then
+      echo "Removing Regions from DataNode ${v_target_dn_id} takes too long."
+      awk -F '|' -v target_dn="${v_target_dn_id}" \
+         '{for (i=1; i<=NF; i++) {
+            value=$i; gsub(/[[:space:]]/, "", value)
+            if (value == "DataNodeId") data_node_col=i
+          }
+          if (data_node_col) {
+            data_node=$data_node_col; gsub(/[[:space:]]/, "", data_node)
+            if (data_node == target_dn) print
+          }}' \
+         ${cur_dir}/tmp.out
+      return 1
+   fi
+   sleep 10
+done
+}
+
 function check_dn_jps()
 {
    local v_dn_ip=$1
@@ -556,17 +642,45 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    fi
    done
    v_remove_list=`paste -sd "," ${cur_dir}/mig_id2.txt`
+   v_remove_output="${cur_dir}/tc30_remove_region_from_readonly.out"
    echo "REMOVE REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
    ${cli_dir}/sbin/start-cli.sh -h ${v_rm_ip} -e "set system to readonly on local;">${cur_dir}/tmp.out 
    check_res "successfully" 1 "${SCRIPT_NAME}"
    sleep 1
    ${cli_dir}/sbin/start-cli.sh -h ${v_rm_ip} -e "show cluster;" 
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${v_remove_list}  FROM ${v_rm_id};">${cur_dir}/tmp.out 
-   check_res "Target DataNode ${v_rm_id} is not in Running status" 0 "${SCRIPT_NAME}" 
-   cat ${cur_dir}/tmp.out
-#   wait_Removing_finish ${query_ip} 3600 ${v_rm_ip}
-   sleep 2
-   wait_Removing_finish ${query_ip} 3600
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${v_remove_list}  FROM ${v_rm_id};">${v_remove_output} 2>&1
+   v_remove_cli_rc=$?
+   echo "REMOVE REGION output saved to ${v_remove_output} (rc=${v_remove_cli_rc})"
+   cat ${v_remove_output}
+   if [[ ${v_remove_cli_rc} -ne 0 ]];then
+      echo "REMOVE REGION CLI failed with exit code ${v_remove_cli_rc}."
+      let fail_flag++
+      let rm_fail_flag++
+      remove_completed=false
+   elif grep -q "Target DataNode ${v_rm_id} is not in Running status" ${v_remove_output};then
+      echo "REMOVE REGION incorrectly rejected ReadOnly DataNode ${v_rm_id}."
+      let fail_flag++
+      let rm_fail_flag++
+      remove_completed=false
+   elif ! grep -q "Msg: The statement is executed successfully" ${v_remove_output};then
+      echo "REMOVE REGION did not report success."
+      let fail_flag++
+      let rm_fail_flag++
+      remove_completed=false
+   else
+      echo "${SCRIPT_NAME} REMOVE REGION on ReadOnly DataNode PASS."
+      let succ_flag++
+      remove_completed=false
+      if wait_region_removed ${query_ip} "${v_rm_id}" "${v_remove_list}" 3600;then
+         remove_completed=true
+      else
+         let rm_fail_flag++
+         let fail_flag++
+         echo "Skip EXTEND REGION because REMOVE REGION did not complete."
+      fi
+   fi
+
+if [[ "${remove_completed}" = true ]];then
 # extend region to readonly
    ${cli_dir}/sbin/start-cli.sh -h ${v_rm_ip} -e "show cluster;" 
    echo "EXTEND REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
@@ -591,6 +705,7 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
       let rm_fail_flag++
       let fail_flag++
    fi 
+fi
 if [[ ${rm_fail_flag} = 0 ]];then
    check_data_consistent 
 fi

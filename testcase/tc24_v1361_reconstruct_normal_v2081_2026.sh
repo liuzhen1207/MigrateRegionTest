@@ -1,4 +1,6 @@
 #!/bin/bash
+# Known issue TDB-406: IoTConsensus migration snapshots can skip TsFiles in closing while async close is pending, causing data loss even when the snapshot succeeds and syncLag=0.
+# Reproduced 2026-09-23. Details: https://plm.infra.timecho.com/iterations?itemId=919&productId=1
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"

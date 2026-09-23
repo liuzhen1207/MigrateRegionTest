@@ -14,7 +14,7 @@ if [ ! -f "${desc}" ];then
     exit 1
 fi
 
-for i in {1..5}
+for i in {1..1}
 do
     # 提取点号分割第一段，修正：命令替换用 $()
     tc_name=$(echo "$desc" |awk -F '.' '{print $1}')

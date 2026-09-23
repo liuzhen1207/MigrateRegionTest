@@ -1,4 +1,9 @@
 #!/bin/bash
+# 2026-09-23: Regression for REMOVE/EXTEND/RECONSTRUCT REGION with unknown IDs.
+# Each operation must return a SQL error for both all-invalid and mixed
+# valid/invalid Region lists in tree and table dialects. A mixed request must
+# not submit its valid Region entry. Verify both models' data after syncLag is
+# continuously zero, and scan CN/DN logs for NPE, 305, and array-bound errors.
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
@@ -164,79 +169,258 @@ function check_res2()
    fi
 }
 
-# Keep the two invalid-region requests as separate artifacts.  A successful CLI
-# response is expected here: the ConfigNode silently skips the unknown Region ID
-# instead of returning the parser error that older versions exposed.
-function check_reconstruct_success()
+function run_cli_model_sql()
 {
-   local case_name=$1
-   local region_ids=$2
-   local target_dn=$3
-   local output_file="${cur_dir}/tc27_reconstruct_${case_name}.out"
+   local model=$1
+   local sql=$2
+   local output_file=$3
+   if [[ "${model}" == "table" ]]; then
+      "${cli_dir}/sbin/start-cli.sh" -h "${query_ip}" -u "${db_sys_admin}" ${ssl_str} -sql_dialect table -timeout 3600 -e "${sql}" >"${output_file}" 2>&1
+   else
+      "${cli_dir}/sbin/start-cli.sh" -h "${query_ip}" -u "${db_sys_admin}" ${ssl_str} -timeout 3600 -e "${sql}" >"${output_file}" 2>&1
+   fi
+}
+
+function wait_region_procedures_finish()
+{
+   local model=$1
+   local max_wait_seconds=${2:-3600}
+   local started_at
+   local now
+   local output_file="${cur_dir}/tc2026_${model}_show_migrations.out"
+   local active_operations
+
+   started_at=$(date +%s)
+   while true
+   do
+      run_cli_model_sql "${model}" "show migrations;" "${output_file}"
+      if grep -Eiq '^Msg:' "${output_file}"; then
+         echo "${SCRIPT_NAME}: SHOW MIGRATIONS failed while waiting for ${model}-model region operations."
+         cat "${output_file}"
+         return 1
+      fi
+      active_operations=$(grep -E '[|][[:space:]]*(MIGRATE|EXTEND|REMOVE|RECONSTRUCT)[[:space:]]*[|]' "${output_file}" || true)
+      if [[ -z "${active_operations}" ]]; then
+         echo "${SCRIPT_NAME}: no active region procedures remain for ${model} model."
+         return 0
+      fi
+      now=$(date +%s)
+      if (( now - started_at >= max_wait_seconds )); then
+         echo "${SCRIPT_NAME}: timed out waiting for ${model}-model region procedures."
+         cat "${output_file}"
+         return 1
+      fi
+      sleep 5
+   done
+}
+
+function check_region_sql_rejected()
+{
+   local model=$1
+   local operation=$2
+   local scenario=$3
+   local sql=$4
+   local invalid_ids=$5
+   local output_file="${cur_dir}/tc2026_${model}_${operation}_${scenario}.out"
    local cli_rc
-   local check_failed=0
+   local failed=0
 
-   ${cli_dir}/sbin/start-cli.sh -h "${query_ip}" -u "${db_sys_admin}" ${ssl_str} \
-      -e "RECONSTRUCT REGION ${region_ids} ON ${target_dn};" >"${output_file}" 2>&1
+   if ! wait_region_procedures_finish "${model}" 3600; then
+      echo "${model} ${operation} ${scenario}: region procedures were still running before the SQL request."
+      let fail_flag++
+      return 1
+   fi
+   echo "${model} ${operation} ${scenario}: ${sql}"
+   run_cli_model_sql "${model}" "${sql}" "${output_file}"
    cli_rc=$?
-
-   echo "RECONSTRUCT ${case_name} output saved to ${output_file} (rc=${cli_rc})"
+   echo "${model} ${operation} ${scenario} output saved to ${output_file} (rc=${cli_rc})"
    cat "${output_file}"
-   if [[ ${cli_rc} -ne 0 ]] || ! grep -Eiq "The statement is executed successfully\\.?" "${output_file}"; then
-      echo "${SCRIPT_NAME}: ${case_name} did not complete successfully."
-      check_failed=1
+
+   if grep -Eiq 'The statement is executed successfully' "${output_file}"; then
+      echo "${model} ${operation} ${scenario}: invalid Region list was accepted."
+      failed=1
    fi
-   if grep -Eiq "IllegalArgumentException|(^|[^[:digit:]])305([^[:digit:]]|$)|Fail to connect to any config node" "${output_file}"; then
-      echo "${SCRIPT_NAME}: forbidden error found in ${output_file}."
-      check_failed=1
+   if ! grep -Eiq '(^|[[:space:]])Msg:' "${output_file}"; then
+      echo "${model} ${operation} ${scenario}: CLI output did not contain a server SQL error."
+      failed=1
+   fi
+   if ! grep -Eiq "${invalid_ids}|get region group id fail|region[^[:cntrl:]]*(not exist|not found|invalid)" "${output_file}"; then
+      echo "${model} ${operation} ${scenario}: error output did not identify the invalid Region ID."
+      failed=1
+   fi
+   if grep -Eiq 'Fail to connect|Connection refused|Authentication failed|No available config node' "${output_file}"; then
+      echo "${model} ${operation} ${scenario}: request failed because of a connection or authentication problem."
+      failed=1
+   fi
+   if [[ "${scenario}" == "mixed_valid_invalid" ]] && grep -Eiq 'successfully submitted:[[:space:]]*[1-9][0-9]*|Successfully submitted' "${output_file}"; then
+      echo "${model} ${operation} ${scenario}: valid Region work was submitted despite the invalid ID."
+      failed=1
    fi
 
-   if [[ ${check_failed} -eq 0 ]]; then
-      echo "${SCRIPT_NAME} ${case_name} PASS."
+   if ! wait_region_procedures_finish "${model}" 3600; then
+      echo "${model} ${operation} ${scenario}: region procedure did not finish within 3600 seconds."
+      failed=1
+   fi
+
+   if [[ ${failed} -eq 0 ]]; then
+      echo "${model} ${operation} ${scenario}: rejected as expected."
       let succ_flag++
    else
-      echo "${SCRIPT_NAME} ${case_name} FAIL."
       let fail_flag++
    fi
 }
 
-# Inspect every ConfigNode's logs after the requests.  Keep the matching lines
-# in one local file so the result can be reviewed together with the CLI output.
-function check_reconstruct_confignode_logs()
+function seed_and_verify_region_ops_data()
 {
-   local evidence_file="${cur_dir}/tc27_reconstruct_confignode_logs.out"
-   local cn
-   local skip_count
-   local submitted_count
+   local seed_time=$(date +%s%3N)
+   local tree_insert="insert into root.test.g_0(time,s_0) values(${seed_time},true);"
+   local table_database="region_ops_invalid_20260923"
+   local table_name="region_invalid_seed"
+   local table_create="CREATE TABLE ${table_database}.${table_name} (device_id STRING TAG, s_0 BOOLEAN FIELD);"
+   local table_insert="insert into ${table_database}.${table_name}(time,device_id,s_0) values(${seed_time},'region_invalid_seed',true);"
+   local output_file
 
-   : >"${evidence_file}"
-   exec 3<"${nodeinfo_dir}/confignode.txt"
-   while read -r cn <&3
+   run_cli_model_sql tree "${tree_insert}" "${cur_dir}/tc2026_seed_tree_insert.out"
+   if ! grep -Eiq 'The statement is executed successfully' "${cur_dir}/tc2026_seed_tree_insert.out"; then
+      echo "Tree-model seed insert failed:"
+      cat "${cur_dir}/tc2026_seed_tree_insert.out"
+      let fail_flag++
+   else
+      let succ_flag++
+   fi
+   output_file="${cur_dir}/tc2026_create_table_database.out"
+   run_cli_model_sql table "CREATE DATABASE ${table_database};" "${output_file}"
+   if ! grep -Eiq 'The statement is executed successfully' "${output_file}"; then
+      echo "Table-model database creation failed:"
+      cat "${output_file}"
+      let fail_flag++
+   else
+      let succ_flag++
+   fi
+   output_file="${cur_dir}/tc2026_create_table.out"
+   run_cli_model_sql table "${table_create}" "${output_file}"
+   if ! grep -Eiq 'The statement is executed successfully' "${output_file}"; then
+      echo "Table-model table creation failed:"
+      cat "${output_file}"
+      let fail_flag++
+   else
+      let succ_flag++
+   fi
+   run_cli_model_sql table "${table_insert}" "${cur_dir}/tc2026_seed_table_insert.out"
+   if ! grep -Eiq 'The statement is executed successfully' "${cur_dir}/tc2026_seed_table_insert.out"; then
+      echo "Table-model seed insert failed:"
+      cat "${cur_dir}/tc2026_seed_table_insert.out"
+      let fail_flag++
+   else
+      let succ_flag++
+   fi
+
+   run_cli_model_sql tree "select s_0 from root.test.g_0 where time = ${seed_time} align by device;" "${cur_dir}/tc2026_verify_tree_seed.out"
+   if grep -Eiq '^Msg:' "${cur_dir}/tc2026_verify_tree_seed.out" || ! grep -Eiq '[|][[:space:]]*true[[:space:]]*[|]' "${cur_dir}/tc2026_verify_tree_seed.out"; then
+      echo "Tree-model seed data query failed or returned no points:"
+      cat "${cur_dir}/tc2026_verify_tree_seed.out"
+      let fail_flag++
+   else
+      let succ_flag++
+   fi
+   run_cli_model_sql table "select count(s_0) from ${table_database}.${table_name} where device_id = 'region_invalid_seed';" "${cur_dir}/tc2026_verify_table_seed.out"
+   if grep -Eiq '^Msg:' "${cur_dir}/tc2026_verify_table_seed.out" || ! grep -Eq '[|][[:space:]]*[1-9][0-9]*[[:space:]]*[|]' "${cur_dir}/tc2026_verify_table_seed.out"; then
+      echo "Table-model seed data query failed or returned no points:"
+      cat "${cur_dir}/tc2026_verify_table_seed.out"
+      let fail_flag++
+   else
+      let succ_flag++
+   fi
+}
+
+function test_invalid_region_operation_lists()
+{
+   local region_file="${cur_dir}/tc2026_regions_before_invalid_ops.out"
+   local datanode_file="${cur_dir}/tc2026_datanodes_before_invalid_ops.out"
+   local invalid_ids="199991,199992"
+   local ip
+   local dn_id
+   local model database valid_region_id region_owner_dn extend_target_dn mixed_ids
+   local operation all_sql mixed_sql target
+
+   run_cli_model_sql tree "show datanodes;" "${datanode_file}"
+   if ! grep -Eiq 'Total line number|DataNodeId' "${datanode_file}"; then
+      echo "Could not read DataNode metadata for invalid-operation tests."
+      cat "${datanode_file}"
+      let fail_flag++
+      return 1
+   fi
+
+   for model in tree table
    do
-      echo "### ConfigNode ${cn}: skip matches" >>"${evidence_file}"
-      ssh "${u_name}@${cn}" "(find '${db_dir}/logs' -maxdepth 1 -type f -name '*confignode*all*' ! -name '*.gz' -exec grep -H 'Skip non-existent Region ID' {} +; find '${db_dir}/logs' -maxdepth 1 -type f -name '*confignode*all*.gz' -exec zgrep -H 'Skip non-existent Region ID' {} +) 2>/dev/null || true" >>"${evidence_file}"
-      echo "### ConfigNode ${cn}: reconstruct matches" >>"${evidence_file}"
-      ssh "${u_name}@${cn}" "(find '${db_dir}/logs' -maxdepth 1 -type f -name '*confignode*all*' ! -name '*.gz' -exec grep -H 'ReconstructRegionProcedure' {} +; find '${db_dir}/logs' -maxdepth 1 -type f -name '*confignode*all*.gz' -exec zgrep -H 'ReconstructRegionProcedure' {} +) 2>/dev/null | grep '17700' || true" >>"${evidence_file}"
+      if [[ "${model}" == "tree" ]]; then
+         database="root.test.g_0"
+      else
+         database="region_ops_invalid_20260923"
+      fi
+      for operation in REMOVE EXTEND RECONSTRUCT
+      do
+         if ! wait_region_procedures_finish "${model}" 3600; then
+            echo "${model} ${operation}: preceding region procedures did not finish."
+            let fail_flag++
+            continue
+         fi
+         run_cli_model_sql "${model}" "show regions;" "${region_file}"
+         if ! grep -Eiq 'Total line number|RegionId' "${region_file}"; then
+            echo "Could not read ${model}-model Region metadata."
+            cat "${region_file}"
+            let fail_flag++
+            continue
+         fi
+         valid_region_id=$(awk -F '|' -v database="${database}" '/DataRegion/ && /Running/ {gsub(/[[:space:]]/, "", $2); gsub(/[[:space:]]/, "", $5); if ($2 ~ /^[0-9]+$/ && $5 == database) {print $2; exit}}' "${region_file}")
+         if [[ -z "${valid_region_id}" ]]; then
+            echo "Could not find a Running DataRegion for ${model}-model database ${database}."
+            cat "${region_file}"
+            let fail_flag++
+            continue
+         fi
+         region_owner_dn=$(awk -F '|' -v region="${valid_region_id}" '/DataRegion/ && /Running/ {gsub(/[[:space:]]/, "", $2); gsub(/[[:space:]]/, "", $8); if ($2 == region && $8 ~ /^[0-9]+$/) {print $8; exit}}' "${region_file}")
+         if [[ -z "${region_owner_dn}" ]]; then
+            echo "Could not find a DataNode hosting ${model}-model DataRegion ${valid_region_id}."
+            let fail_flag++
+            continue
+         fi
+         extend_target_dn=""
+         while IFS='|' read -r dn_id ip
+         do
+            [[ -z "${dn_id}" || -z "${ip}" || "${dn_id}" == "${region_owner_dn}" ]] && continue
+            if ! awk -F '|' -v region="${valid_region_id}" -v target="${dn_id}" '/DataRegion/ && /Running/ {gsub(/[[:space:]]/, "", $2); gsub(/[[:space:]]/, "", $8); if ($2 == region && $8 == target) found=1} END {exit found ? 0 : 1}' "${region_file}"; then
+               extend_target_dn=${dn_id}
+               break
+            fi
+         done < <(awk -F '|' '/Running/ {gsub(/[[:space:]]/, "", $2); gsub(/[[:space:]]/, "", $4); if ($2 ~ /^[0-9]+$/ && $4 ~ /^[0-9.]+$/) print $2 "|" $4}' "${datanode_file}")
+         if [[ -z "${extend_target_dn}" ]]; then
+            echo "Could not find a Running DataNode that does not host ${model}-model DataRegion ${valid_region_id}."
+            let fail_flag++
+            continue
+         fi
+         mixed_ids="${valid_region_id},199991"
+         case "${operation}" in
+            REMOVE)
+               target=${region_owner_dn}
+               all_sql="REMOVE REGION ${invalid_ids} FROM ${target};"
+               mixed_sql="REMOVE REGION ${mixed_ids} FROM ${target};"
+               ;;
+            EXTEND)
+               target=${extend_target_dn}
+               all_sql="EXTEND REGION ${invalid_ids} TO ${target};"
+               mixed_sql="EXTEND REGION ${mixed_ids} TO ${target};"
+               ;;
+            RECONSTRUCT)
+               target=${region_owner_dn}
+               all_sql="RECONSTRUCT REGION ${invalid_ids} ON ${target};"
+               mixed_sql="RECONSTRUCT REGION ${mixed_ids} ON ${target};"
+               ;;
+         esac
+         check_region_sql_rejected "${model}" "${operation}" all_invalid "${all_sql}" "199991|199992"
+         check_region_sql_rejected "${model}" "${operation}" mixed_valid_invalid "${mixed_sql}" "199991"
+      done
    done
-   exec 3<&-
-
-   skip_count=$(grep -c 'Skip non-existent Region ID' "${evidence_file}" || true)
-   submitted_count=$(grep -E 'ReconstructRegionProcedure.*17700|17700.*ReconstructRegionProcedure' "${evidence_file}" | wc -l)
-   if [[ ${skip_count} -gt 0 ]]; then
-      echo "${SCRIPT_NAME}: ConfigNode logs contain Skip non-existent Region ID."
-      let succ_flag++
-   else
-      echo "${SCRIPT_NAME}: ConfigNode logs do not contain Skip non-existent Region ID."
-      let fail_flag++
-   fi
-   if [[ ${submitted_count} -eq 0 ]]; then
-      echo "${SCRIPT_NAME}: no ReconstructRegionProcedure record contains Region ID 17700."
-      let succ_flag++
-   else
-      echo "${SCRIPT_NAME}: found ${submitted_count} ReconstructRegionProcedure record(s) containing Region ID 17700."
-      let fail_flag++
-   fi
-   echo "ConfigNode log evidence saved to ${evidence_file}"
 }
 
 function backup_logs()
@@ -279,6 +463,37 @@ do
    fi
 done
 
+}
+
+function check_region_operation_error_logs()
+{
+   local evidence_file="${cur_dir}/tc2026_region_operation_error_logs.out"
+   local nodes_file="${cur_dir}/tc2026_region_operation_log_nodes.out"
+   local node
+   local matches
+   local error_pattern='NullPointerException|(^|[[:space:]])305:[[:space:]]|error code[=:[:space:]]+305|status code[=:[:space:]]+305|ArrayIndexOutOfBoundsException|IndexOutOfBoundsException|array index out of bounds|index out of bounds'
+
+   cat "${nodeinfo_dir}/confignode.txt" "${nodeinfo_dir}/datanode.txt" | awk 'NF' | sort -u > "${nodes_file}"
+   : > "${evidence_file}"
+   while read -r node
+   do
+      [[ -z "${node}" ]] && continue
+      matches=$(ssh "${u_name}@${node}" "(find '${db_dir}/logs' -maxdepth 1 -type f -name '*all*' ! -name '*.gz' -exec grep -HnE '${error_pattern}' {} +; find '${db_dir}/logs' -maxdepth 1 -type f -name '*all*.gz' -exec zgrep -HnE '${error_pattern}' {} +) 2>/dev/null || true")
+      if [[ -n "${matches}" ]]; then
+         {
+            echo "### ${node}"
+            echo "${matches}"
+         } >> "${evidence_file}"
+         echo "Found forbidden NullPointer/305/array-bounds diagnostics on ${node}."
+         let fail_flag++
+      fi
+   done < "${nodes_file}"
+   if [[ ! -s "${evidence_file}" ]]; then
+      echo "No NullPointerException, error code 305, or array-bounds diagnostics found in CN/DN logs."
+      let succ_flag++
+   else
+      echo "Forbidden CN/DN log matches saved to ${evidence_file}"
+   fi
 }
 function wait_bm_finish()
 {
@@ -501,8 +716,8 @@ function wait_for_sync_lag_zero()
    local expected_count=0
    local instance_regex=""
    local ip
-   local response_file="${cur_dir}/tc27_sync_lag_response.json"
-   local last_nonzero_response="${cur_dir}/tc27_sync_lag_last_nonzero_response.json"
+   local response_file="${cur_dir}/tc2026_region_ops_sync_lag_response.json"
+   local last_nonzero_response="${cur_dir}/tc2026_region_ops_sync_lag_last_nonzero_response.json"
    local response_status
    local result_count
    local non_zero_num
@@ -515,15 +730,15 @@ function wait_for_sync_lag_zero()
       let fail_flag++
       return 1
    fi
-   "${cli_dir}/sbin/start-cli.sh" -u "${db_sys_admin}" ${ssl_str} -h "${query_ip}" -timeout 3600 -e "show datanodes;" > "${cur_dir}/tc27_sync_running_datanodes.out" 2>&1
-   awk -F '|' '/Running/ {gsub(/ /, "", $4); print $4}' "${cur_dir}/tc27_sync_running_datanodes.out" | sort -u > "${cur_dir}/tc27_sync_running_datanodes_ips.out"
+   "${cli_dir}/sbin/start-cli.sh" -u "${db_sys_admin}" ${ssl_str} -h "${query_ip}" -timeout 3600 -e "show datanodes;" > "${cur_dir}/tc2026_region_ops_sync_running_datanodes.out" 2>&1
+   awk -F '|' '/Running/ {gsub(/ /, "", $4); print $4}' "${cur_dir}/tc2026_region_ops_sync_running_datanodes.out" | sort -u > "${cur_dir}/tc2026_region_ops_sync_running_datanodes_ips.out"
    while read -r ip
    do
       [[ -z "${ip}" ]] && continue
       expected_count=$((expected_count + 1))
       [[ -n "${instance_regex}" ]] && instance_regex="${instance_regex}|"
       instance_regex="${instance_regex}${ip//./[.]}(:[0-9]+)?"
-   done < "${cur_dir}/tc27_sync_running_datanodes_ips.out"
+   done < "${cur_dir}/tc2026_region_ops_sync_running_datanodes_ips.out"
    if [[ ${expected_count} -eq 0 ]]; then
       echo "${SCRIPT_NAME}: no Running DataNodes found while checking syncLag."
       let fail_flag++
@@ -588,8 +803,10 @@ wait_sync_done 3600 || return 1
    cat ${cur_dir}/tmp.out |grep Running|awk -F "|" '{gsub(" ","");print $4}'>${cur_dir}/tmp1.out
    mv ${cur_dir}/tmp1.out ${cur_dir}/tmp.out
    sql1="select count(s_0) from root.test.g_0.** align by device;" 
+   sql2="select count(s_0) from region_ops_invalid_20260923.region_invalid_seed;"
    # all online
    ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -timeout 3600 -e "${sql1}" >${cur_dir}/q_all_online_tree.out 
+   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -sql_dialect table -timeout 3600 -e "${sql2}" >${cur_dir}/q_all_online_table.out
    # stop dn
    exec 3<${cur_dir}/tmp.out
    while read line<&3
@@ -609,6 +826,14 @@ wait_sync_done 3600 || return 1
       if [[ ${v_diff_tree} -gt 0 ]];then
          let fail_flag++
          echo "${v_diff_tree}"
+      fi
+      ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -sql_dialect table -timeout 3600 -e "${sql2}" >${cur_dir}/q_stop_ip${v_ip}_table.out
+      sed '/^It costs /d' ${cur_dir}/q_all_online_table.out >${cur_dir}/q_all_online_table_normalized.out
+      sed '/^It costs /d' ${cur_dir}/q_stop_ip${v_ip}_table.out >${cur_dir}/q_stop_ip${v_ip}_table_normalized.out
+      if ! diff -q ${cur_dir}/q_all_online_table_normalized.out ${cur_dir}/q_stop_ip${v_ip}_table_normalized.out >/dev/null; then
+         let fail_flag++
+         echo "Table-model replica consistency mismatch on ${line}."
+         diff ${cur_dir}/q_all_online_table_normalized.out ${cur_dir}/q_stop_ip${v_ip}_table_normalized.out
       fi
       # restart
       v_start_time=`date +%s`
@@ -775,8 +1000,8 @@ fi
 sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
    sed -i "s/^HOST=.*/HOST=${v_host}/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
    sed -i "s/LOOP=.*/LOOP=5000/g" ${bm_dir}/lt_10type_user_no_ssl/conf*/config.properties
-   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf1 >${bm_dir}/${v_bm_t}_tc27_bm1.out &
-   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf2 >${bm_dir}/${v_bm_t}_tc27_bm2.out &
+   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf1 >${bm_dir}/${v_bm_t}_tc2026_region_ops_bm1.out &
+   nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf2 >${bm_dir}/${v_bm_t}_tc2026_region_ops_bm2.out &
    sleep 60
 # extend region
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions'|grep "${query_ip}|"|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/mig_id.txt
@@ -811,10 +1036,6 @@ ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RE
 check_res "Target DataNode 2222 does not exist in the cluster" 1 "${SCRIPT_NAME}"
 
 # region id not exist , dn id exist
-check_reconstruct_success "all_invalid_ids" "17700,9999" "${v_rm_id}"
-
-# some region id not exist , dn id exist
-check_reconstruct_success "invalid_and_valid_ids" "17700,${v_remove_list}" "${v_rm_id}"
 # region id exist ,but this dn id hasn't
 >${cur_dir}/region.txt
    exec 3<${cur_dir}/mig_id.txt
@@ -836,9 +1057,13 @@ check_res "mismatched input 'ALL' expecting REGION" 1 "${SCRIPT_NAME}"
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "RECONSTRUCT NULL REGIONS ON ${v_rm_id};">${cur_dir}/tmp.out
 check_res "mismatched input 'NULL' expecting REGION" 1 "${SCRIPT_NAME}"
 
-wait_Adding_finish ${query_ip} 3600
-wait_Removing_finish ${query_ip} 3600
-   wait_bm_finish 36000 "${bm_dir}/${v_bm_t}_tc27_bm1.out" "${bm_dir}/${v_bm_t}_tc27_bm2.out"
+   wait_Adding_finish ${query_ip} 3600
+   wait_Removing_finish ${query_ip} 3600
+   wait_bm_finish 36000 "${bm_dir}/${v_bm_t}_tc2026_region_ops_bm1.out" "${bm_dir}/${v_bm_t}_tc2026_region_ops_bm2.out"
+   seed_and_verify_region_ops_data
+   test_invalid_region_operation_lists
+   wait_Adding_finish ${query_ip} 3600
+   wait_Removing_finish ${query_ip} 3600
    v_add_num1=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Adding|wc -l`
    v_add_num2=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Removing|wc -l`
    v_add_num=$((v_add_num1+v_add_num2))
@@ -852,7 +1077,7 @@ if [[ ${rm_fail_flag} = 0 ]];then
 echo "no check" 
 fi
 
-check_reconstruct_confignode_logs
+check_region_operation_error_logs
    check_npe "${SCRIPT_NAME}"
 backup_logs
 test_end_sec=`date +%s`
@@ -862,8 +1087,8 @@ tc_res=true
   if [[ ${fail_flag} = 0 ]];then
      tc_res=true
      echo "${SCRIPT_NAME} : pass"
-     rm -rf ${bm_dir}/${v_bm_t}_tc27_bm1.out 
-     rm -rf ${bm_dir}/${v_bm_t}_tc27_bm2.out 
+     rm -rf ${bm_dir}/${v_bm_t}_tc2026_region_ops_bm1.out 
+     rm -rf ${bm_dir}/${v_bm_t}_tc2026_region_ops_bm2.out 
   else
      tc_res=false
      echo "${SCRIPT_NAME} : fail"

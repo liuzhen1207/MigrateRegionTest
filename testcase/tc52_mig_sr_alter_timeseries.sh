@@ -211,11 +211,11 @@ function wait_schema_region_migration()
          # Ignore unrelated DataRegion/SchemaRegion migrations in the
          # cluster; only the submitted migration must have disappeared.
          # With the leading '|', RegionId/Type/FromNodeId/ToNodeId are
-         # fields 3/4/5/6 respectively.
-         migration_query_valid=`printf '%s\n' "${migration_info}" | grep -Ec '^\|[[:space:]]*ProcedureId[[:space:]]*\|[[:space:]]*RegionId[[:space:]]*\|'`
+         # fields 4/5/6/7 respectively. OperationType is field 3.
+         migration_query_valid=`printf '%s\n' "${migration_info}" | grep -Ec '^\|[[:space:]]*ProcedureId[[:space:]]*\|[[:space:]]*OperationType[[:space:]]*\|[[:space:]]*RegionId[[:space:]]*\|'`
          target_migration_cnt=`printf '%s\n' "${migration_info}" | awk -F '|' -v rid="${region_id}" -v from="${from_dn_id}" -v to="${to_dn_id}" '
            function trim(v) { gsub(/[[:space:]]/, "", v); return v }
-           { if (trim($3) == rid && trim($4) == "SchemaRegion" && trim($5) == from && trim($6) == to) n++ }
+           { if (trim($4) == rid && trim($5) == "SchemaRegion" && trim($6) == from && trim($7) == to) n++ }
            END { print n+0 }'`
          if [[ ${migration_query_valid} -ge 1 && ${target_migration_cnt} = 0 ]];then
             stable_cnt=$((stable_cnt+1))
@@ -370,7 +370,11 @@ if [[ ${v_check_mig_regionid} != ${sr_rep_num} || ${v_final_non_running_cnt} != 
    echo "final SchemaRegion state invalid, region_id=${v_mig_id}, replica_count=${v_check_mig_regionid}, non_running_count=${v_final_non_running_cnt}" >> "${cur_dir}/${fail_file}"
    let fail_flag++
 fi
- if ! diff -u "${cur_dir}/q_exp.out" "${cur_dir}/q_act.out" > "${cur_dir}/q_result.diff" 2>&1;then
+ # CLI execution time varies between queries and is not part of the result.
+ if ! diff -u --label q_exp.out --label q_act.out \
+      <(sed '/^It costs /d' "${cur_dir}/q_exp.out") \
+      <(sed '/^It costs /d' "${cur_dir}/q_act.out") \
+      > "${cur_dir}/q_result.diff" 2>&1;then
     echo "query result differs before and after SchemaRegion migration, see q_result.diff" >> "${cur_dir}/${fail_file}"
     let fail_flag++
  fi

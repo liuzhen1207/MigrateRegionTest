@@ -27,6 +27,12 @@ head -n ${dn_num} ${nodeinfo_dir}/total_datanode_port.txt > ${nodeinfo_dir}/data
 total_node_num=$((cn_num+dn_num))
 fail_flag=0
 rm_fail_flag=0
+expected_region_ids_file="${cur_dir}/tc23_expected_region_ids.out"
+expected_region_count=0
+expected_target_node_id=""
+expected_duplicate_count=0
+region_topology_before_file="${cur_dir}/tc23_region_topology_before.out"
+region_topology_after_file="${cur_dir}/tc23_region_topology_after.out"
 testcase_ip=`cat ${conf_file}|grep test_ip|awk -F '.' '{print $4}'`
 tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
@@ -136,8 +142,8 @@ function check_res()
    exp_res=$1
    exp_num=$2
    tc_desc=$3
-   v_act_num=`cat ${cur_dir}/tmp.out|grep "${exp_res}"|wc -l`
-   if [[ ${v_act_num} = ${exp_num} ]];then
+   v_act_num=`cat ${cur_dir}/tmp.out|grep -F "${exp_res}"|wc -l`
+   if [[ ${v_act_num} = ${exp_num} ]] && [[ -s ${cur_dir}/tmp.out ]] && ! grep -Eiq "(error|failed|exception|rollback)" ${cur_dir}/tmp.out;then
       echo "${tc_desc} PASS."
       let succ_flag++
    else
@@ -193,6 +199,240 @@ do
 done
 
 }
+
+function check_reconstruct_logs()
+{
+   local duplicate_count=0
+   local submitted_count=0
+   local completed_count=0
+   local forbidden_count=0
+   local log_pattern="${db_dir}/logs/*confignode*all*"
+   exec 3<${nodeinfo_dir}/confignode.txt
+   while read line<&3
+   do
+      local duplicate=`ssh ${u_name}@${line} "grep -h -E 'Skip duplicate Region ID' ${log_pattern} 2>/dev/null | wc -l"`
+      local submitted=`ssh ${u_name}@${line} "grep -h -E '\\[ReconstructRegion\\].*Submit ReconstructRegionProcedure successfully' ${log_pattern} 2>/dev/null | wc -l"`
+      local completed=`ssh ${u_name}@${line} "grep -h -E 'ReconstructRegionProcedure:.*\\[ReconstructRegion\\] success, region' ${log_pattern} 2>/dev/null | wc -l"`
+      local forbidden=`ssh ${u_name}@${line} "grep -hi -E 'ReconstructRegion.*(failed|error|rollback)|ReconstructRegionProcedure.*(failed|rollback)' ${log_pattern} 2>/dev/null | wc -l"`
+      duplicate_count=$((duplicate_count + duplicate))
+      submitted_count=$((submitted_count + submitted))
+      completed_count=$((completed_count + completed))
+      forbidden_count=$((forbidden_count + forbidden))
+   done
+
+   echo "ConfigNode duplicate-ID log count=${duplicate_count}, expected=${expected_duplicate_count}."
+   echo "ConfigNode successful ReconstructRegionProcedure log count=${submitted_count}, expected=${expected_region_count}."
+   echo "ConfigNode completed ReconstructRegionProcedure log count=${completed_count}, expected=${expected_region_count}."
+   if [[ ${duplicate_count} -ne ${expected_duplicate_count} ]];then
+      echo "ERROR: duplicate Region ID log count does not match the duplicate input count."
+      let fail_flag++
+   fi
+   if [[ ${submitted_count} -ne ${expected_region_count} ]];then
+      echo "ERROR: ConfigNode submitted-procedure log count does not match the unique Region count."
+      let fail_flag++
+   fi
+   if [[ ${completed_count} -ne ${expected_region_count} ]];then
+      echo "ERROR: ConfigNode completed-procedure log count does not match the unique Region count."
+      let fail_flag++
+   fi
+   if [[ ${forbidden_count} -ne 0 ]];then
+      echo "ERROR: reconstruct/procedure failure or rollback messages were found in ConfigNode logs (${forbidden_count})."
+      let fail_flag++
+   fi
+
+   exec 3<${nodeinfo_dir}/datanode.txt
+   while read line<&3
+   do
+      local dn_forbidden=`ssh ${u_name}@${line} "grep -hi -E 'ReconstructRegion.*(failed|error|rollback)|AddPeer.*(failed|error)|RemovePeer.*(failed|error)' ${db_dir}/logs/*datanode*all* 2>/dev/null | wc -l"`
+      if [[ ${dn_forbidden} -ne 0 ]];then
+         echo "ERROR: DataNode ${line} has reconstruct/peer failure messages (${dn_forbidden})."
+         let fail_flag++
+      fi
+   done
+}
+
+function normalize_region_topology()
+{
+   local input_file=$1
+   local output_file=$2
+   awk -F '|' '
+      /SchemaRegion|DataRegion/ {
+         type=$3; id=$2; node=$8
+         gsub(/[[:space:]]/, "", type)
+         gsub(/[[:space:]]/, "", id)
+         gsub(/[[:space:]]/, "", node)
+         if (type != "" && id != "" && node != "") {
+            key=type "|" id "|" node
+            print key
+         }
+      }
+   ' "${input_file}" | sort -t'|' -k1,1 -k2,2n >"${output_file}"
+}
+
+function capture_region_topology()
+{
+   local phase=$1
+   local raw_file="${cur_dir}/tc23_region_topology_${phase}_raw.out"
+   local normalized_file="${cur_dir}/tc23_region_topology_${phase}.out"
+   if ! ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} \
+      -e "show regions;" >"${raw_file}" 2>&1; then
+      echo "ERROR: show regions failed while capturing ${phase} topology."
+      cat "${raw_file}"
+      let fail_flag++
+      return 1
+   fi
+   normalize_region_topology "${raw_file}" "${normalized_file}"
+   if [[ ! -s "${normalized_file}" ]]; then
+      echo "ERROR: no Region rows found in ${phase} topology."
+      let fail_flag++
+      return 1
+   fi
+   echo "Region topology (${phase}) saved to ${normalized_file}:"
+   cat "${normalized_file}"
+}
+
+function migration_rows()
+{
+   local input_file=$1
+   awk -F '|' '
+      function trim(value) {
+         gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+         return value
+      }
+      /^\|[[:space:]]*[0-9]+[[:space:]]*\|/ {
+         proc=trim($2); op=trim($3); region=trim($4); type=trim($5)
+         from=trim($6); to=trim($7); state=trim($8); status=trim($9)
+         print proc "|" op "|" region "|" type "|" from "|" to "|" state "|" status
+      }
+   ' "${input_file}"
+}
+
+function validate_migration_snapshot()
+{
+   local phase=$1
+   local output_file=$2
+   local rows_file="${cur_dir}/tc23_migration_rows_${phase}.out"
+   migration_rows "${output_file}" >"${rows_file}"
+   local actual_count=`wc -l <"${rows_file}"`
+
+   if [[ "${phase}" = "after_wait" ]]; then
+      if [[ ${actual_count} -ne 0 ]]; then
+         echo "ERROR: ${actual_count} migration rows remain after waiting for completion."
+         cat "${rows_file}"
+         let fail_flag++
+      else
+         echo "Migration snapshot after_wait is empty."
+      fi
+      return
+   fi
+
+   if [[ ${expected_region_count} -le 0 ]]; then
+      echo "ERROR: expected Region set is empty; cannot validate submitted migrations."
+      let fail_flag++
+      return
+   fi
+   if [[ ${actual_count} -ne ${expected_region_count} ]]; then
+      echo "ERROR: submitted migration row count=${actual_count}, expected=${expected_region_count}."
+      cat "${rows_file}"
+      let fail_flag++
+   fi
+
+   local unique_region_count=`cut -d'|' -f3 "${rows_file}" | sort -u | sed '/^$/d' | wc -l`
+   local duplicate_key_count=`cut -d'|' -f3,6 "${rows_file}" | sort | uniq -d | wc -l`
+   local duplicate_proc_count=`cut -d'|' -f1 "${rows_file}" | sort | uniq -d | wc -l`
+   local invalid_row_count=`awk -F '|' -v target="${expected_target_node_id}" \
+      '$2 != "RECONSTRUCT" || $3 == "" || ($4 != "SchemaRegion" && $4 != "DataRegion") || $6 != target || $8 == "" || $8 ~ /FAILED|ROLLBACK|ERROR/ {count++} END {print count + 0}' "${rows_file}"`
+   local missing_region_count=`comm -23 \
+      <(sort "${expected_region_ids_file}") \
+      <(cut -d'|' -f3 "${rows_file}" | sort) | wc -l`
+
+   if [[ ${unique_region_count} -ne ${expected_region_count} ]]; then
+      echo "ERROR: submitted migrations contain ${unique_region_count} unique Region IDs, expected ${expected_region_count}."
+      let fail_flag++
+   fi
+   if [[ ${duplicate_key_count} -ne 0 ]]; then
+      echo "ERROR: duplicate (RegionId, ToNodeId) migration rows detected: ${duplicate_key_count}."
+      cut -d'|' -f3,6 "${rows_file}" | sort | uniq -d
+      let fail_flag++
+   fi
+   if [[ ${duplicate_proc_count} -ne 0 ]]; then
+      echo "ERROR: duplicate ProcedureId values detected in migration rows: ${duplicate_proc_count}."
+      cut -d'|' -f1 "${rows_file}" | sort | uniq -d
+      let fail_flag++
+   fi
+   if [[ ${invalid_row_count} -ne 0 ]]; then
+      echo "ERROR: invalid RECONSTRUCT migration rows detected: ${invalid_row_count}."
+      cat "${rows_file}"
+      let fail_flag++
+   fi
+   if [[ ${missing_region_count} -ne 0 ]]; then
+      echo "ERROR: ${missing_region_count} expected Region IDs are missing from submitted migrations."
+      comm -23 <(sort "${expected_region_ids_file}") \
+         <(cut -d'|' -f3 "${rows_file}" | sort)
+      let fail_flag++
+   fi
+   if [[ ${actual_count} -eq ${expected_region_count} && ${unique_region_count} -eq ${expected_region_count} \
+      && ${duplicate_key_count} -eq 0 && ${duplicate_proc_count} -eq 0 \
+      && ${invalid_row_count} -eq 0 && ${missing_region_count} -eq 0 ]]; then
+      echo "Submitted migration snapshot has exactly one valid RECONSTRUCT row per expected Region."
+   fi
+}
+
+# Capture and validate the live migration table immediately after submitting the duplicate-ID
+# request. The request can return success before procedures finish, so this is the direct proof
+# that duplicate input IDs did not create duplicate parent procedures.
+function capture_migrations()
+{
+   local phase=$1
+   local t=`date +%Y_%m_%d_%H_%M_%S`
+   local output_file="${cur_dir}/tc23_show_migrations_${phase}_${t}.out"
+   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} \
+      -e "show migrations;" >"${output_file}" 2>&1
+   local capture_rc=$?
+   echo "SHOW MIGRATIONS (${phase}) saved to ${output_file} (rc=${capture_rc})"
+   cat "${output_file}"
+   if [[ ${capture_rc} -ne 0 ]];then
+      let fail_flag++
+      return 1
+   fi
+   validate_migration_snapshot "${phase}" "${output_file}"
+}
+
+# Preserve node logs before the next run's clean_cluster.sh removes them.  Archives are stored
+# beside the deployment so they survive cleanup and can be copied back with the testcase output.
+function backup_logs()
+{
+   local t=`date +%Y_%m_%d_%H_%M_%S`
+   local evidence_dir="${db_dir}/tc23_evidence_${t}"
+   local backup_failed=0
+   echo "Backing up node logs to ${evidence_dir}"
+
+   exec 3<${nodeinfo_dir}/confignode.txt
+   while read line<&3
+   do
+      if ssh ${u_name}@${line} "mkdir -p '${evidence_dir}' && tar -czf '${evidence_dir}/logs_confignode_${line}.tar.gz' -C '${db_dir}' logs";then
+         echo "Saved ConfigNode ${line} logs"
+      else
+         echo "ERROR: failed to save ConfigNode ${line} logs"
+         backup_failed=1
+      fi
+   done
+
+   exec 3<${nodeinfo_dir}/datanode.txt
+   while read line<&3
+   do
+      if ssh ${u_name}@${line} "mkdir -p '${evidence_dir}' && tar -czf '${evidence_dir}/logs_datanode_${line}.tar.gz' -C '${db_dir}' logs";then
+         echo "Saved DataNode ${line} logs"
+      else
+         echo "ERROR: failed to save DataNode ${line} logs"
+         backup_failed=1
+      fi
+   done
+
+   if [[ ${backup_failed} -ne 0 ]];then
+      let fail_flag++
+   fi
+}
 function wait_bm_finish()
 {
 local max_wait_time=$1
@@ -232,7 +472,21 @@ local max_wait_time=$2
 local t1=`date +%s`
   while true
    do
-       ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${v_query_ip} -e "show regions;">${cur_dir}/tmp.out
+       if ! ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${v_query_ip} \
+          -e "show regions;">${cur_dir}/tmp.out 2>&1; then
+          echo "ERROR: show regions failed while waiting for Adding procedures."
+          cat ${cur_dir}/tmp.out
+          let fail_flag++
+          let rm_fail_flag++
+          return 1
+       fi
+       if ! grep -Eq "SchemaRegion|DataRegion" ${cur_dir}/tmp.out; then
+          echo "ERROR: show regions returned no Region rows while waiting for Adding procedures."
+          cat ${cur_dir}/tmp.out
+          let fail_flag++
+          let rm_fail_flag++
+          return 1
+       fi
        v_rm_succ=`cat ${cur_dir}/tmp.out |grep "Adding"|wc -l`
        if [[ ${v_rm_succ} -gt 0 ]];then
           sleep 5 
@@ -258,7 +512,21 @@ local max_wait_time=$2
 local t1=`date +%s`
   while true
    do
-       ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${v_query_ip} -e "show regions;">${cur_dir}/tmp.out
+       if ! ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${v_query_ip} \
+          -e "show regions;">${cur_dir}/tmp.out 2>&1; then
+          echo "ERROR: show regions failed while waiting for Removing procedures."
+          cat ${cur_dir}/tmp.out
+          let fail_flag++
+          let rm_fail_flag++
+          return 1
+       fi
+       if ! grep -Eq "SchemaRegion|DataRegion" ${cur_dir}/tmp.out; then
+          echo "ERROR: show regions returned no Region rows while waiting for Removing procedures."
+          cat ${cur_dir}/tmp.out
+          let fail_flag++
+          let rm_fail_flag++
+          return 1
+       fi
        v_rm_succ=`cat ${cur_dir}/tmp.out |grep "Removing"|wc -l`
        if [[ ${v_rm_succ} -gt 0 ]];then
           sleep 10 
@@ -466,11 +734,23 @@ if ! wait_sync_done 60 1800;then
    return 1
 fi
    ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
+   if ! grep -q "Running" ${cur_dir}/tmp.out;then
+      echo "ERROR: no Running DataNode found before replica consistency check."
+      cat ${cur_dir}/tmp.out
+      let fail_flag++
+      return 1
+   fi
    cat ${cur_dir}/tmp.out |grep Running|awk -F "|" '{gsub(" ","");print $4}'>${cur_dir}/tmp1.out
    mv ${cur_dir}/tmp1.out ${cur_dir}/tmp.out
-   sql1="select count(s_0) from root.test.g_0.** align by device;" 
+   # Compare several measurements so equal s_0 counts cannot hide value loss or partial writes.
+   sql1="select count(s_0),count(s_1),count(s_2),count(s_3),count(s_4),count(s_5),count(s_6),count(s_7),count(s_8),count(s_9),count(s_10),count(s_11) from root.test.g_0.** align by device;" 
    # all online
-   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -timeout 3600 -e "${sql1}" >${cur_dir}/q_all_online_tree.out 
+   if ! ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -timeout 3600 -e "${sql1}" >${cur_dir}/q_all_online_tree.out 2>&1;then
+      echo "ERROR: baseline replica query failed."
+      cat ${cur_dir}/q_all_online_tree.out
+      let fail_flag++
+      return 1
+   fi
    # stop dn
    exec 3<${cur_dir}/tmp.out
    while read line<&3
@@ -485,7 +765,14 @@ fi
          query_ip=${query_ip2} 
       fi
       v_ip=`echo ${line}|awk -F '.' '{print $4}'`
-      ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip}  -timeout 3600 -e "${sql1}" >${cur_dir}/q_stop_ip${v_ip}_tree.out
+      if ! ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip}  -timeout 3600 -e "${sql1}" >${cur_dir}/q_stop_ip${v_ip}_tree.out 2>&1;then
+         echo "ERROR: replica query failed while DataNode ${line} was stopped."
+         cat ${cur_dir}/q_stop_ip${v_ip}_tree.out
+         let fail_flag++
+         # Try to restart the node before returning so the remaining checks can collect evidence.
+         ssh ${u_name}@${line} "source /etc/profile;cd ${db_dir};sudo ./sbin/start-datanode.sh > /dev/null 2>&1 &"
+         return 1
+      fi
       v_diff_tree=`diff ${cur_dir}/q_all_online_tree.out ${cur_dir}/q_stop_ip${v_ip}_tree.out|grep "root."|wc -l`
       if [[ ${v_diff_tree} -gt 0 ]];then
          let fail_flag++
@@ -517,6 +804,16 @@ fi
          return 1
       fi
    done 
+   capture_region_topology after
+   if [[ -s "${region_topology_before_file}" ]] && [[ -s "${region_topology_after_file}" ]];then
+      if ! diff -u "${region_topology_before_file}" "${region_topology_after_file}" >"${cur_dir}/tc23_region_topology.diff";then
+         echo "ERROR: Region topology changed during reconstruct verification."
+         cat "${cur_dir}/tc23_region_topology.diff"
+         let fail_flag++
+      else
+         echo "Region topology is unchanged before/after reconstruct."
+      fi
+   fi
 }
 function check_restart()
 {
@@ -591,57 +888,72 @@ function start_dn()
 
 function check_rep_num()
 {
-SCHEMA_REGION_EXPECT=3
-DATA_REGION_EXPECT=2
-# 创建一个临时文件，用于存储中间结果
-TEMP_FILE=$(mktemp)
+   local schema_region_expect=3
+   local data_region_expect=2
+   local regions_raw_file="${cur_dir}/tc23_regions_check_raw.out"
+   local regions_info_file="${cur_dir}/tc23_regions_check.out"
+   if ! ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} \
+      -e "show regions;" >"${regions_raw_file}" 2>&1; then
+      echo "ERROR: show regions failed during replica-count check."
+      cat "${regions_raw_file}"
+      let fail_flag++
+      return 1
+   fi
+   grep -E "SchemaRegion|DataRegion" "${regions_raw_file}" >"${regions_info_file}"
+   if [[ ! -s "${regions_info_file}" ]]; then
+      echo "ERROR: replica-count check found no Region rows."
+      cat "${regions_raw_file}"
+      let fail_flag++
+      return 1
+   fi
 
-# 脚本结束时，删除临时文件
-trap 'rm -f "$TEMP_FILE"' EXIT
-# 执行 show regions 并过滤出 Region 信息
-regions_info=$(${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions' | grep -E "SchemaRegion|DataRegion")
+   local schema_region_pass=true
+   local data_region_pass=true
+   local schema_ids_file="${cur_dir}/tc23_schema_region_ids.out"
+   local data_ids_file="${cur_dir}/tc23_data_region_ids.out"
+   grep "SchemaRegion" "${regions_info_file}" | awk -F '|' '{id=$2; gsub(/[[:space:]]/, "", id); print id}' \
+      | sort -n -u >"${schema_ids_file}"
+   grep "DataRegion" "${regions_info_file}" | awk -F '|' '{id=$2; gsub(/[[:space:]]/, "", id); print id}' \
+      | sort -n -u >"${data_ids_file}"
 
-# 检查 SchemaRegion 副本数
-schema_region_pass=true
-echo "===== SchemaRegion 副本数检查 ====="
-# 将处理结果写入临时文件
-echo "$regions_info" | grep "SchemaRegion" | awk -F '|' '{gsub(" ",""); print $2}' | sort | uniq -c > "$TEMP_FILE"
+   echo "===== SchemaRegion replica-count check ====="
+   while read -r region_id; do
+      [[ -z "${region_id}" ]] && continue
+      local count=`grep "SchemaRegion" "${regions_info_file}" | awk -F '|' -v id="${region_id}" \
+         '{value=$2; gsub(/[[:space:]]/, "", value); if (value == id) count++} END {print count + 0}'`
+      if [[ ${count} -ne ${schema_region_expect} ]]; then
+         echo "Region ${region_id} replica count=${count}, expected=${schema_region_expect}."
+         schema_region_pass=false
+      fi
+   done <"${schema_ids_file}"
 
-# 从临时文件读取并处理
-while read -r count region_id; do
-    if [ "$count" -ne "$SCHEMA_REGION_EXPECT" ]; then
-        echo "Region $region_id 副本数为 $count，预期 $SCHEMA_REGION_EXPECT，不满足！"
-        schema_region_pass=false
-    else
-        echo "Region $region_id 副本数为 $count，符合预期。"
-    fi
-done < "$TEMP_FILE"
+   echo "===== DataRegion replica-count check ====="
+   while read -r region_id; do
+      [[ -z "${region_id}" ]] && continue
+      local count=`grep "DataRegion" "${regions_info_file}" | awk -F '|' -v id="${region_id}" \
+         '{value=$2; gsub(/[[:space:]]/, "", value); if (value == id) count++} END {print count + 0}'`
+      if [[ ${count} -ne ${data_region_expect} ]]; then
+         echo "Region ${region_id} replica count=${count}, expected=${data_region_expect}."
+         data_region_pass=false
+      fi
+   done <"${data_ids_file}"
 
-# 检查 DataRegion 副本数
-data_region_pass=true
-echo "===== DataRegion 副本数检查 ====="
-# 清空并重新写入临时文件
-echo "$regions_info" | grep "DataRegion" | awk -F '|' '{gsub(" ",""); print $2}' | sort | uniq -c > "$TEMP_FILE"
+   if [[ "${schema_region_pass}" != true || "${data_region_pass}" != true ]]; then
+      echo "ERROR: one or more Region replica counts are incorrect."
+      let fail_flag++
+   else
+      echo "All Region replica counts match the configured factors."
+   fi
 
-# 从临时文件读取并处理
-while read -r count region_id; do
-    if [ "$count" -ne "$DATA_REGION_EXPECT" ]; then
-        echo "Region $region_id 副本数为 $count，预期 $DATA_REGION_EXPECT，不满足！"
-        data_region_pass=false
-    else
-        echo "Region $region_id 副本数为 $count，符合预期。"
-    fi
-done < "$TEMP_FILE"
-
-# 输出最终结果
-if [ "$schema_region_pass" = true ] && [ "$data_region_pass" = true ]; then
-    echo "所有 Region 副本数均符合预期！"
-#    exit 0
-else
-    echo "存在 Region 副本数不符合预期的情况，请检查！"
-    let fail_flag++
-#    exit 1
-fi
+   capture_region_topology final
+   local final_topology_file="${cur_dir}/tc23_region_topology_final.out"
+   if [[ -s "${region_topology_before_file}" ]] && [[ -s "${final_topology_file}" ]];then
+      if ! diff -u "${region_topology_before_file}" "${final_topology_file}" >"${cur_dir}/tc23_region_topology_final.diff";then
+         echo "ERROR: final Region topology differs from the pre-request topology."
+         cat "${cur_dir}/tc23_region_topology_final.diff"
+         let fail_flag++
+      fi
+   fi
 }
 function remove_dn()
 {
@@ -680,16 +992,45 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    fi
    done
    v_remove_list=`paste -sd "," ${cur_dir}/mig_id2.txt`
+   if [[ -z "${v_remove_list}" ]];then
+      echo "ERROR: no Region IDs found on target DataNode ${v_rm_id}; cannot submit reconstruct request."
+      let fail_flag++
+      let rm_fail_flag++
+      return 1
+   fi
+   expected_target_node_id=${v_rm_id}
+   # The request deliberately repeats every valid Region ID once. Keep the unique set and the
+   # duplicate count so the migration-table assertion is independent of the actual Region IDs.
+   sed '/^$/d' "${cur_dir}/mig_id2.txt" | sort -n -u >"${expected_region_ids_file}"
+   expected_region_count=`wc -l <"${expected_region_ids_file}"`
+   # The SQL below appends the complete unique list a second time.
+   expected_duplicate_count=${expected_region_count}
+   if [[ ${expected_region_count} -le 0 ]];then
+      echo "ERROR: failed to derive expected Region IDs from ${cur_dir}/mig_id2.txt."
+      let fail_flag++
+      let rm_fail_flag++
+      return 1
+   fi
+   capture_region_topology before
 # repeate list
    echo "reconstruct REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "reconstruct REGION ${v_remove_list},${v_remove_list}  on ${v_rm_id};">${cur_dir}/tmp.out 
+   if ! ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} \
+      -e "reconstruct REGION ${v_remove_list},${v_remove_list} on ${v_rm_id};" >${cur_dir}/tmp.out 2>&1;then
+      echo "ERROR: reconstruct REGION request failed."
+      cat ${cur_dir}/tmp.out
+      let fail_flag++
+      let rm_fail_flag++
+      return 1
+   fi
    check_res "successfully" 1 "${SCRIPT_NAME}"
    cat ${cur_dir}/tmp.out
+   capture_migrations submitted
 #   wait_Removing_finish ${query_ip} 3600 ${v_rm_ip}
    sleep 2
    wait_Adding_finish ${query_ip} 3600
    wait_Removing_finish ${query_ip} 3600
    wait_bm_finish 36000 "${bm_dir}/${v_t}_tc23_bm1.out" "${bm_dir}/${v_t}_tc23_bm2.out"
+   capture_migrations after_wait
    v_add_num1=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Adding|wc -l`
    v_add_num2=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Removing|wc -l`
    v_add_num=$((v_add_num1+v_add_num2))
@@ -703,7 +1044,9 @@ if [[ ${rm_fail_flag} = 0 ]];then
 fi
 
 check_rep_num
+check_reconstruct_logs
    check_npe "${SCRIPT_NAME}"
+   backup_logs
 test_end_sec=`date +%s`
 test_elp_sec=$((test_end_sec-test_begin_sec))
 tc_res=true

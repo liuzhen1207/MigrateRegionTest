@@ -46,7 +46,8 @@ function count_cn_log()
    while read cn_ip
    do
       [[ -z ${cn_ip} ]] && continue
-      local count=`timeout 30 ssh -o ConnectTimeout=10 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 ${u_name}@${cn_ip} "grep -h -F \"${log_pattern}\" ${db_dir}/logs/*confignode*all* 2>/dev/null; zgrep -h -F \"${log_pattern}\" ${db_dir}/logs/*confignode*all*.gz 2>/dev/null" | grep -F "${match_pattern}" | wc -l`
+      # Prevent ssh from consuming the while loop's ConfigNode list on stdin.
+      local count=`timeout 30 ssh -n -o ConnectTimeout=10 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 ${u_name}@${cn_ip} "grep -h -F \"${log_pattern}\" ${db_dir}/logs/*confignode*all* 2>/dev/null; zgrep -h -F \"${log_pattern}\" ${db_dir}/logs/*confignode*all*.gz 2>/dev/null" | grep -F "${match_pattern}" | wc -l`
       total=$((total + count))
    done < ${nodeinfo_dir}/confignode.txt
    echo ${total}

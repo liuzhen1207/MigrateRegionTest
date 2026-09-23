@@ -456,7 +456,9 @@ collect_v2_1215_log_evidence() {
   while read -r dn_ip
   do
     [[ -z "${dn_ip}" ]] && continue
-    ssh "${u_name}@${dn_ip}" \
+    # Prevent ssh from consuming the remaining DataNode addresses from the
+    # while loop's redirected stdin.
+    ssh -n "${u_name}@${dn_ip}" \
       "grep -hF 'endpoint=TEndPoint(ip:${v2_1215_adding_ip}, port:10760)' ${db_dir}/logs/*datanode*all* 2>/dev/null | grep -F 'fail to sync logEntries because system is read-only' | tail -n 20" \
       > "${node_evidence}" 2>/dev/null
     if [[ -s "${node_evidence}" ]]; then

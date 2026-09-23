@@ -237,20 +237,50 @@ function restart_surviving_datanodes()
    local line
    local start_time
    local running_num
+   local stop_wait_start
+   local v_jps
 
-   while read line
+   while IFS= read -r line
    do
-      ssh ${u_name}@${line} "sudo ${db_dir}/sbin/stop-datanode.sh" || {
+      [[ -z "${line}" ]] && continue
+      ssh -n ${u_name}@${line} "sudo ${db_dir}/sbin/stop-datanode.sh" || {
          echo "Failed to stop surviving DataNode ${line}."
          let fail_flag++
          return 1
       }
    done <"${surviving_file}"
 
-   while read line
+   # stop-datanode.sh returns before the JVM has necessarily released the data
+   # directory lock. Wait for every surviving DataNode process to exit before
+   # starting any of them again.
+   while IFS= read -r line
    do
-      ssh ${u_name}@${line} "sudo ${db_dir}/sbin/start-datanode.sh" || {
-         echo "Failed to start surviving DataNode ${line}."
+      [[ -z "${line}" ]] && continue
+      stop_wait_start=`date +%s`
+      while true
+      do
+         v_jps=`ssh -n ${u_name}@${line} "sudo jps -l | grep -c DataNode || true"` || {
+            echo "Failed to check stopped DataNode ${line}."
+            let fail_flag++
+            return 1
+         }
+         if [[ ${v_jps} -eq 0 ]];then
+            break
+         fi
+         if [[ $((`date +%s`-stop_wait_start)) -gt 180 ]];then
+            echo "DataNode ${line} did not stop within 180 seconds."
+            let fail_flag++
+            return 1
+         fi
+         sleep 1
+      done
+   done <"${surviving_file}"
+
+   while IFS= read -r line
+   do
+      [[ -z "${line}" ]] && continue
+      ssh -n ${u_name}@${line} "sudo nohup ${db_dir}/sbin/start-datanode.sh </dev/null >/dev/null 2>&1 &" || {
+         echo "Failed to launch surviving DataNode ${line}."
          let fail_flag++
          return 1
       }

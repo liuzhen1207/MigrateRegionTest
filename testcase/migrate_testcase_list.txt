@@ -13,6 +13,7 @@ tc1502_mig_sr_stop_dest_jira961.sh
 tc1503_jira960_restart_2dn.sh
 tc16_mig_schemaregion_stop_dest_dn.sh
 tc17_timechodb_650_check_dest_comp.sh
+tc18_mig_1readonly_1unknown_to_running_issue_v2_671.sh
 tc18_mig_1readonly_1unknown_to_running.sh
 tc19_con_mig_1readonly_1unknown_to_running.sh
 tc20_mig_same_orig_to_diff_dest.sh
@@ -43,6 +44,7 @@ tc41_add_peer_coord_exp.sh
 tc4101_jr1217.sh
 tc42_add_peer_stop_dest_dn.sh
 tc43_add_peer_stop_cn_coord.sh
+tc43_add_peer_stop_cn_coord_close_subscription_subscription_mem_is_bigger.sh
 tc44_add_peer_stop_cn_remove-coord.sh
 tc45_add_peer_stop_mig-region_2dn.sh
 tc46_add_peer_stop_mig_region_all_dn.sh
@@ -55,3 +57,4 @@ tc52_mig_sr_alter_timeseries.sh
 tc53_mig_comping.sh
 tc56_TIMECHODB-947.sh
 tc57_timechodb_857_985.sh
+tc2081002_sys_connections_drop_user_v2081.sh

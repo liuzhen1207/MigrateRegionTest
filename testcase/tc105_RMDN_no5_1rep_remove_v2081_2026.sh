@@ -289,8 +289,8 @@ if [[ ${fail_flag} = 0 ]];then
    fi
    # All five RF=1 rows must remain queryable after both removes.
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "select text,grade,male,likething,money,rate,age,movie,birthday,run from root.**;" >${cur_dir}/q_exp.out
-   if [[ $(grep -c "expensive" ${cur_dir}/q_exp.out) -ne 5 ]];then
-      echo "Expected 5 rows after removing DataNodes."
+   if [[ $(grep -o "expensive" ${cur_dir}/q_exp.out | wc -l) -ne 5 ]];then
+      echo "Expected 5 values after removing DataNodes."
       let fail_flag++
    fi
    v_diff=`diff ${cur_dir}/q_exp.out ${cur_dir}/q_act.out|grep root|wc -l`

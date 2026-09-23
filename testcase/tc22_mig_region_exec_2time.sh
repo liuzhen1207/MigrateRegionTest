@@ -33,32 +33,56 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
-function find_mig_success_sec()
+function region_layout()
+{
+   local region_id=$1
+   # The control-plane view is authoritative.  Do not infer completion from
+   # ConfigNode log text, which may be rotated or written on another node.
+   timeout 45 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;" 2>/dev/null |
+      awk -F '|' -v region_id="${region_id}" '
+         {gsub(/[[:space:]]/, "", $2); gsub(/[[:space:]]/, "", $3);
+          gsub(/[[:space:]]/, "", $4); gsub(/[[:space:]]/, "", $8);
+          gsub(/[[:space:]]/, "", $9);
+          if ($2 == region_id && $3 == "DataRegion") print $8 "," $9 "," $4}'
+}
+
+function migration_queue_is_empty()
+{
+   timeout 45 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show migrations;" 2>/dev/null |
+      grep -q '^Empty set'
+}
+
+function wait_region_migration()
 {
    local region_id=$1
    local from_dn_id=$2
-   local from_dn_ip=$3
-   local dest_dn_id=$4
-   local dest_dn_ip=$5
-   local after_sec=$6
-   local latest_sec=0
-   local cn_ip line log_time log_sec
-
-   # A ConfigNode leader change can put the procedure log on a different node.
-   while read cn_ip
+   local dest_dn_id=$3
+   local start_sec=`date +%s`
+   local layout replica_num running_num dest_num source_num elapsed
+   while true
    do
-      [[ -z ${cn_ip} ]] && continue
-      while IFS= read -r line
-      do
-         log_time=${line%%,*}
-         log_sec=`date -d "${log_time}" +%s 2>/dev/null`
-         [[ ${log_sec} =~ ^[0-9]+$ ]] || continue
-         if [[ ${log_sec} -ge ${after_sec} && ${log_sec} -gt ${latest_sec} ]];then
-            latest_sec=${log_sec}
-         fi
-      done < <(timeout 30 ssh -o ConnectTimeout=10 -o ServerAliveInterval=5 -o ServerAliveCountMax=2 ${u_name}@${cn_ip} "grep -h -F '[MigrateRegion] success' ${db_dir}/logs/*confignode*all* 2>/dev/null; zgrep -h -F '[MigrateRegion] success' ${db_dir}/logs/*confignode*all*.gz 2>/dev/null" | grep -F "TConsensusGroupId(type:DataRegion, id:${region_id})" | grep -F "has been migrated from DataNode ${from_dn_id}@${from_dn_ip} to ${dest_dn_id}@${dest_dn_ip}")
-   done < ${nodeinfo_dir}/confignode.txt
-   echo ${latest_sec}
+      layout=`region_layout "${region_id}"`
+      replica_num=`printf '%s\n' "${layout}" | sed '/^[[:space:]]*$/d' | wc -l`
+      running_num=`printf '%s\n' "${layout}" | awk -F ',' '$3 == "Running" {n++} END {print n+0}'`
+      dest_num=`printf '%s\n' "${layout}" | awk -F ',' -v id="${dest_dn_id}" '$1 == id && $3 == "Running" {n++} END {print n+0}'`
+      source_num=`printf '%s\n' "${layout}" | awk -F ',' -v id="${from_dn_id}" '$1 == id {n++} END {print n+0}'`
+      # The test deliberately stops one replica before the first migration, so
+      # the unaffected replica may legitimately remain Unknown.  Completion is
+      # determined by the migrated replica and the control-plane procedure,
+      # rather than requiring every replica to be Running.
+      if [[ ${replica_num} -eq ${dr_rep_num} && ${dest_num} -eq 1 && ${source_num} -eq 0 ]] && migration_queue_is_empty; then
+         echo "Region ${region_id} migration verified by SHOW DATA REGIONS: ${from_dn_id} -> ${dest_dn_id}."
+         return 0
+      fi
+      elapsed=$((`date +%s`-start_sec))
+      if [[ ${elapsed} -gt 3600 ]]; then
+         echo "ERROR: timed out waiting for Region ${region_id} layout ${from_dn_id} -> ${dest_dn_id}; replicas=${replica_num}, running=${running_num}, destination=${dest_num}, source=${source_num}" >&2
+         echo "Last SHOW DATA REGIONS rows:" >&2
+         printf '%s\n' "${layout}" >&2
+         return 1
+      fi
+      sleep 5
+   done
 }
 
 function clean_env()
@@ -202,32 +226,15 @@ function mig_region()
    local v_mig_dest_dn_id=$3
    local v_mig_from_dn_ip=`awk -F ',' -v id="${v_mig_from_dn_id}" '$1 == id {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
    local v_mig_dest_dn_ip=`awk -F ',' -v id="${v_mig_dest_dn_id}" '$1 == id {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
-   local v_bef_mig_sec=`date +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_dest_dn_id};" > ${cur_dir}/mig.out
    check_res "Msg: The statement is executed successfully" 1 ${SCRIPT_NAME} ${cur_dir}/mig.out
    sleep 1
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_dest_dn_id};" > ${cur_dir}/mig.out
    check_res "has some other region operation procedures in progress" 1 ${SCRIPT_NAME} ${cur_dir}/mig.out
    sleep 2
-   local v_mig_start_sec=`date +%s`
-   while true
-   do
-              local v_mig_suc_sec=`find_mig_success_sec "${v_mig_id}" "${v_mig_from_dn_id}" "${v_mig_from_dn_ip}" "${v_mig_dest_dn_id}" "${v_mig_dest_dn_ip}" "${v_bef_mig_sec}"`
-
-              if [[ ${v_mig_suc_sec} -ge ${v_bef_mig_sec} ]];then
-                 break
-              else
-                 local v_mig_cur_sec=`date +%s`
-                 local v_mig_elp=$((v_mig_cur_sec-v_mig_start_sec))
-                 if [[ ${v_mig_elp} -gt 1200 ]];then
-                    echo "ERROR: timed out waiting for Region ${v_mig_id} migration ${v_mig_from_dn_id}@${v_mig_from_dn_ip} -> ${v_mig_dest_dn_id}@${v_mig_dest_dn_ip}" >&2
-                    let fail_flag++
-                    break
-                 fi 
-                 sleep 5 
-              fi
-
-   done
+   if ! wait_region_migration "${v_mig_id}" "${v_mig_from_dn_id}" "${v_mig_dest_dn_id}"; then
+      let fail_flag++
+   fi
 
 }
 

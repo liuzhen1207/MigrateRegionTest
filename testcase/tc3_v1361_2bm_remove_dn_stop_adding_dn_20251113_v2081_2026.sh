@@ -9,6 +9,7 @@ db_dir=`cat ${conf_file}|grep ^db_dir|awk -F '=' '{print $2}'`
 iotdb_host=`cat ${conf_file}|grep test_ip|awk -F '=' '{print $2}'`
 v_cur_db=`cat ${conf_file}|grep v_cur_db|awk -F '=' '{print $2}'`
 cli_dir=`cat ${conf_file}|grep client_db_dir|awk -F '=' '{print $2}'`
+monitor_url=`cat ${conf_file}|grep '^monitor_url='|awk -F '=' '{print $2}'`
 ssl_str=""
 clean_env_dir="${cur_dir}/../clean_env"
 prepare_env_dir="${cur_dir}/../prepare_env"
@@ -257,49 +258,190 @@ do
 
 done
 }
+function parse_monitor_query_status()
+{
+   local response_file=$1
+   if command -v jq >/dev/null 2>&1;then
+      jq -r '.status // empty' "${response_file}" 2>/dev/null
+   else
+      sed -n 's/.*"status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "${response_file}"
+   fi
+}
+
+function count_sync_lag_results()
+{
+   local response_file=$1
+   if command -v jq >/dev/null 2>&1;then
+      jq -r '.data.result | length' "${response_file}" 2>/dev/null
+   else
+      grep -o '"value"[[:space:]]*:' "${response_file}" 2>/dev/null | wc -l
+   fi
+}
+
+function count_non_zero_sync_lag()
+{
+   local response_file=$1
+   if command -v jq >/dev/null 2>&1;then
+      jq -r '.data.result[] | .value[1]' "${response_file}" 2>/dev/null \
+         | awk '$1 + 0 != 0 {count++} END {print count + 0}'
+   else
+      awk '
+      {
+         line=$0
+         while (match(line, /"value"[[:space:]]*:[[:space:]]*\[[^]]*\]/)) {
+            item=substr(line, RSTART, RLENGTH)
+            split(item, parts, ",")
+            value=parts[2]
+            gsub(/[^0-9eE+.-]/, "", value)
+            if (value + 0 != 0) count++
+            line=substr(line, RSTART + RLENGTH)
+         }
+      }
+      END {print count + 0}' "${response_file}"
+   fi
+}
+
+function print_sync_lag_results()
+{
+   local response_file=$1
+   if command -v jq >/dev/null 2>&1;then
+      jq -r '.data.result[] | "  " + .metric.instance + " syncLag=" + .value[1]' "${response_file}" 2>/dev/null
+   else
+      cat "${response_file}"
+   fi
+}
+
 function wait_sync_done()
 {
-local max_wait_time=$1
-   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;">${cur_dir}/tmp.out
-   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
-   cat ${cur_dir}/tmp.out |grep Running|awk -F "|" '{gsub(" ","");print $4}'>${cur_dir}/tmp1.out
-   mv ${cur_dir}/tmp1.out ${cur_dir}/tmp.out
-   exec 3<${cur_dir}/tmp.out
-   while read line<&3
+   local stable_zero_seconds=${1:-60}
+   local max_wait_time=${2:-1800}
+   local check_interval=10
+   local prometheus_user=admin
+   local prometheus_pass=admin
+   local metric_name=iot_consensus
+   local server_name=ioTConsensusServerImpl
+   local start_time=`date +%s`
+   local zero_start_time=0
+   local expected_count=0
+   local instance_regex=""
+   local response_file="${cur_dir}/sync_lag_response.json"
+   local status
+   local result_count
+   local non_zero_count
+   local now
+   local ip
+   local query
+
+   if [[ -z "${monitor_url}" ]];then
+      echo "ERROR: monitor_url is empty; cannot verify sync lag."
+      let fail_flag++
+      return 1
+   fi
+
+   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;">${cur_dir}/sync_flush.out
+   if ! grep -q "success" "${cur_dir}/sync_flush.out";then
+      echo "ERROR: Flush failed before sync-lag check."
+      cat "${cur_dir}/sync_flush.out"
+      let fail_flag++
+      return 1
+   fi
+
+   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/sync_running_datanodes.out
+   : > "${cur_dir}/sync_running_datanodes_no_data_ips.out"
+   awk -F '|' '
+      /Running/ {
+         ip=$4
+         data_region_num=$6
+         gsub(/[[:space:]]/, "", ip)
+         gsub(/[[:space:]]/, "", data_region_num)
+         if (ip == "") {
+            next
+         }
+         if (data_region_num ~ /^[0-9]+$/ && data_region_num > 0) {
+            print ip
+         } else {
+            print ip > "'"${cur_dir}"'/sync_running_datanodes_no_data_ips.out"
+         }
+      }
+   ' "${cur_dir}/sync_running_datanodes.out" \
+      | sort -u > "${cur_dir}/sync_running_datanodes_ips.out"
+   if [[ -s "${cur_dir}/sync_running_datanodes_no_data_ips.out" ]];then
+      sort -u -o "${cur_dir}/sync_running_datanodes_no_data_ips.out" "${cur_dir}/sync_running_datanodes_no_data_ips.out"
+      echo "Ignoring Running DataNodes without DataRegion: $(paste -sd, "${cur_dir}/sync_running_datanodes_no_data_ips.out")"
+   fi
+   while read ip
    do
+      [[ -z "${ip}" ]] && continue
+      let expected_count++
+      [[ -n "${instance_regex}" ]] && instance_regex="${instance_regex}|"
+      instance_regex="${instance_regex}${ip//./[.]}(:[0-9]+)?"
+   done < "${cur_dir}/sync_running_datanodes_ips.out"
+
+   if [[ ${expected_count} -eq 0 ]];then
+      echo "ERROR: No Running DataNode found; cannot verify sync lag."
+      let fail_flag++
+      return 1
+   fi
+   instance_regex="^(${instance_regex})$"
+   query="sum(${metric_name}{instance=~\"${instance_regex}\",name=\"${server_name}\",type=\"syncLag\"}) by (instance)"
+
+   echo "Waiting for syncLag=0 on all ${expected_count} Running DataNodes for ${stable_zero_seconds}s ..."
    while true
    do
-   ssh ${u_name}@${line} "grep \"create a new\" ${db_dir}/logs/log_datanode_all.log|grep root.test">${cur_dir}/tmp1.out
-   ssh ${u_name}@${line} "grep \"create a new\" ${db_dir}/logs/log_datanode_all.log|grep test_g_0">${cur_dir}/tmp2.out
-   last_time_str1=$(tail -n 1 "${cur_dir}/tmp1.out" | awk -F',' '{print $1}')
-   last_time_str2=$(tail -n 1 "${cur_dir}/tmp2.out" | awk -F',' '{print $1}')
-   last_timestamp1=$(date -d "$last_time_str1" +%s 2>/dev/null)
-   last_timestamp2=$(date -d "$last_time_str2" +%s 2>/dev/null)
-   if [[ ${last_timestamp1} -gt ${last_timestamp2} ]];then
-      last_timestamp=${last_timestamp1}
-   else
-      last_timestamp=${last_timestamp2}
-   fi
-current_timestamp=$(date +%s)
+      now=`date +%s`
+      if [[ $((now-start_time)) -gt ${max_wait_time} ]];then
+         echo "ERROR: sync lag did not remain zero within ${max_wait_time}s. Last response:"
+         if [[ -f "${response_file}" ]];then
+            print_sync_lag_results "${response_file}"
+         fi
+         let fail_flag++
+         return 1
+      fi
 
-# 计算时间差（秒）
-time_diff=$((current_timestamp - last_timestamp))
-# 判断是否超过1分钟（120秒）
-if [ $time_diff -gt ${max_wait_time} ]; then
-    echo "最后一条日志距离现在已超过1分钟（${time_diff}秒）"
-    break
-else
-    v_sleep=$((max_wait_time-time_diff+1))
-    sleep ${v_sleep}
-#    echo "最后一条日志距离现在未超过1分钟（${time_diff}秒）"
-fi
-   done
-   done
+      if ! curl -sS --connect-timeout 10 --max-time 30 -u "${prometheus_user}:${prometheus_pass}" \
+         --get --data-urlencode "query=${query}" "${monitor_url}/api/v1/query" > "${response_file}";then
+         echo "WARN: Failed to query sync lag from ${monitor_url}."
+         zero_start_time=0
+         sleep ${check_interval}
+         continue
+      fi
 
+      status=`parse_monitor_query_status "${response_file}"`
+      result_count=`count_sync_lag_results "${response_file}"`
+      if [[ "${status}" != "success" ]] || [[ ! "${result_count}" =~ ^[0-9]+$ ]] || [[ ${result_count} -ne ${expected_count} ]];then
+         echo "WARN: Incomplete sync-lag metrics: status=${status}, results=${result_count:-invalid}, expected=${expected_count}."
+         zero_start_time=0
+         sleep ${check_interval}
+         continue
+      fi
+
+      non_zero_count=`count_non_zero_sync_lag "${response_file}"`
+      if [[ ! "${non_zero_count}" =~ ^[0-9]+$ ]];then
+         echo "WARN: Failed to parse sync-lag metrics."
+         zero_start_time=0
+      elif [[ ${non_zero_count} -gt 0 ]];then
+         echo "sync lag is not zero (${non_zero_count}/${expected_count} DataNodes):"
+         print_sync_lag_results "${response_file}"
+         zero_start_time=0
+      else
+         if [[ ${zero_start_time} -eq 0 ]];then
+            zero_start_time=${now}
+            echo "sync lag reached zero; verifying it remains zero for ${stable_zero_seconds}s."
+         elif [[ $((now-zero_start_time)) -ge ${stable_zero_seconds} ]];then
+            echo "sync lag remained zero on all ${expected_count} Running DataNodes for ${stable_zero_seconds}s."
+            print_sync_lag_results "${response_file}"
+            return 0
+         fi
+      fi
+      sleep ${check_interval}
+   done
 }
 function check_data_consistent()
 {
-wait_sync_done 120
+if ! wait_sync_done 60 1800;then
+   echo "ERROR: Skip replica consistency check because sync lag is not confirmed as zero."
+   return 1
+fi
    ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
    cat ${cur_dir}/tmp.out |grep Running|awk -F "|" '{gsub(" ","");print $4}'>${cur_dir}/tmp1.out
    mv ${cur_dir}/tmp1.out ${cur_dir}/tmp.out
@@ -345,6 +487,10 @@ wait_sync_done 120
          return
       fi  
       done 
+      if ! wait_sync_done 60 1800;then
+         echo "ERROR: Stop replica consistency check because ${line} did not catch up after restart."
+         return 1
+      fi
    done 
 }
 function check_restart()

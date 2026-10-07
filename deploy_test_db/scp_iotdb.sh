@@ -25,7 +25,7 @@ else
 fi
 
 
-exec 3<${nodeinfo_dir}/datanode.txt
+exec 3<${nodeinfo_dir}/datanode_5d.txt
 while read line<&3
 do
    scp -rp ${source_db_dir} ${u_name}@${line}:${dest_db_dir} &

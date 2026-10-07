@@ -358,7 +358,7 @@ function migrate_once()
    submit_migration "${cur_dir}/mig_${label}.out" || return 1
 
    if [[ "${inject_source_failure}" = "true" ]];then
-      source_pid=`ssh ${u_name}@${v_mig_from_dn_ip} "sudo jps|awk 'tolower(\$0) ~ /datanode/ {print \$1; exit}'"`
+      source_pid=$(ssh ${u_name}@${v_mig_from_dn_ip} "sudo jps -l | grep -i DataNode | head -1 | grep -o '^[0-9]*'")
       [[ -n "${source_pid}" ]] || { echo "ERROR: cannot find DataNode pid on ${v_mig_from_dn_ip}" >&2; return 1; }
       wait_for_removing_phase || return 1
       next_query_ip=`awk -F ',' -v source_ip="${v_mig_from_dn_ip}" '$2 != source_ip {print $2; exit}' "${cur_dir}/all_dn_id_ip.txt"`

@@ -279,10 +279,24 @@ local v_mig_to_dn_id=-1
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};"
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
 # get Add Coord ip
-   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure successfully, Region: TConsensusGroupId(type:DataRegion, id:${v_mig_id}), Origin DataNode: TDataNodeLocation(dataNodeId:${v_mig_from_dn_id},\" ${db_dir}/logs/*confignode*all*"`
+   # 2026-09-26: ConfigNode 2.0.12 changed the submit log wording and may
+   # omit coordinator locations. Match this migration by Region ID and use
+   # the latest record; coordinator IPs fall back to the migration topology.
+   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h -E 'Submit RegionMigrateProcedure successfully.*DataRegion, id:${v_mig_id}.*dataNodeId:${v_mig_from_dn_id}|Submit region operation procedure successfully.*DataRegion, id:${v_mig_id}' ${db_dir}/logs/*confignode*all* 2>/dev/null | tail -1"`
    v_add_coord_ip=`echo ${v_submit_mig_log} |awk -F "Add Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
 # get Remove Coord IP
    v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
+   # The new log format does not contain Remove Coordinator. Resolve it from
+   # the exact migration target ID before using it in any ssh command.
+   if [[ -z "${v_remove_coord_ip}" ]]; then
+      v_remove_coord_ip=`awk -F ',' -v dn_id="${v_mig_to_dn_id}" '$1 == dn_id {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
+   fi
+   if [[ -z "${v_remove_coord_ip}" ]]; then
+      echo "ERROR: cannot resolve migration target DataNode ${v_mig_to_dn_id}."
+      let fail_flag++
+      record_test_result
+      return 1
+   fi
    v_remove_coord_ip_pid_str=`ssh ${u_name}@${v_remove_coord_ip} "sudo jps|grep -i datanode"`
    v_remove_coord_ip_pid=`echo ${v_remove_coord_ip_pid_str}|awk '{print $1}'`
 
@@ -296,6 +310,12 @@ local v_mig_to_dn_id=-1
 # kill -9 dest dn pid 
          ssh ${u_name}@${v_remove_coord_ip} "sudo kill -9 ${v_remove_coord_ip_pid}"
 	 query_ip=`grep -v ${v_remove_coord_ip} ${cur_dir}/all_dn_id_ip.txt|grep -v ${v_mig_from_dn_ip}|grep -v ${v_mig_sec_dn_ip}|head -1|awk -F ',' '{print $2}'`
+         if [[ -z "${query_ip}" ]]; then
+            echo "ERROR: cannot resolve a running query DataNode after stopping ${v_remove_coord_ip}."
+            let fail_flag++
+            record_test_result
+            return 1
+         fi
 # check stop dn pid
 
 while true

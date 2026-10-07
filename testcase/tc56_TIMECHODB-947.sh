@@ -216,18 +216,21 @@ do
              fi
          done
    fi
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
-   v_submit_suc=`grep -ci "statement is executed successfully" ${cur_dir}/mig.out`
-   if [[ ${v_submit_suc} -ne 1 ]];then
+   v_submit_start=`date +%s`
+   while true; do
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
+      v_submit_suc=`grep -ci "statement is executed successfully" ${cur_dir}/mig.out`
+      if [[ ${v_submit_suc} -eq 1 ]]; then break; fi
+      if grep -q "has some other region operation procedures in progress" ${cur_dir}/mig.out && [[ $((`date +%s`-v_submit_start)) -lt 1200 ]]; then sleep 2; continue; fi
       echo "ERROR: Failed to submit migration of region ${v_mig_id} from DataNode ${v_mig_from_dn_id} to DataNode ${v_mig_to_dn_id}."
       cat ${cur_dir}/mig.out
       let fail_flag++
-      break
-   fi
+      break 2
+   done
    sleep 2
    if [[ ${v_del_flag} -gt 0 ]];then
       echo "have been executed delete timeseries;"
-   else 
+   else
       ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "delete from root.test.g_0.*.s_40;">${cur_dir}/del_s_40.out &
       let v_del_flag++
    fi

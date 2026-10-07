@@ -150,9 +150,18 @@ set_sys_conf() {
 }
 
 clean_env() {
-  sh -x "${clean_env_dir}/stop_cluster.sh"
-  sh -x "${clean_env_dir}/clean_cluster.sh"
-  sh -x "${clean_env_dir}/reset_conf.sh"
+  if ! sh -x "${clean_env_dir}/stop_cluster.sh"; then
+    log "stop_cluster failed"
+    return 1
+  fi
+  if ! sh -x "${clean_env_dir}/clean_cluster.sh"; then
+    log "clean_cluster failed"
+    return 1
+  fi
+  if ! sh -x "${clean_env_dir}/reset_conf.sh"; then
+    log "reset_conf failed"
+    return 1
+  fi
 }
 
 set_conf() {
@@ -198,10 +207,16 @@ set_conf() {
 }
 
 start_db() {
-  clean_env
+  if ! clean_env; then
+    log "cluster cleanup failed; aborting before configuration/startup"
+    return 1
+  fi
   head -n "${cn_num}" "${nodeinfo_dir}/total_node.txt" > "${nodeinfo_dir}/confignode.txt"
   set_conf
-  sh -x "${prepare_env_dir}/start_cluster.sh" "1" "${total_node_num}"
+  if ! sh -x "${prepare_env_dir}/start_cluster.sh" "1" "${total_node_num}"; then
+    log "cluster startup failed"
+    return 1
+  fi
 }
 
 create_benchmark_users() {
@@ -994,7 +1009,10 @@ testcase() {
   local target_ip
   local remove_rc=0
 
-  start_db
+  if ! start_db; then
+    log "testcase initialization failed"
+    return 1
+  fi
   create_benchmark_users
   prepare_benchmark_databases
   prepare_benchmark_workdirs

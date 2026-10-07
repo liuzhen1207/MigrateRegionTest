@@ -156,26 +156,26 @@ done
 function pre_and_exec_mig_region()
 {
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_12),count(s_23),count(s_8),count(s_40),count(s_36),count(s_9),max_time(s_17),max_time(s_29),max_time(s_8),max_time(s_49),max_time(s_36),max_time(s_9) from root.** align by device;">${cur_dir}/q_exp.out
-# Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: get region group id fail
+# Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: Region 1000 does not exist
 v_err_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "migrate region 1000 from 3 to 6;"`
-if [[ ${v_err_res} != *"get region group id fail"* ]];then
+if [[ ${v_err_res} != *"Region 1000 does not exist"* ]];then
    let fail_flag++
 fi
 # Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: Submit RegionMigrateProcedure failed, because no target DataNode 1000
 v_err_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "migrate region 1 from 3 to 1000;"`
-if [[ ${v_err_res} != *"Cannot find Destination DataNode"* ]];then
+if [[ ${v_err_res} != *"Target DataNode 1000 does not exist in the cluster"* ]];then
    let fail_flag++
 fi
 
 #Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: Submit RegionMigrateProcedure failed, because no original DataNode 3000
 v_err_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "migrate region 1 from 3000 to 1;"`
-if [[ ${v_err_res} != *"Cannot find Original DataNode"* ]];then
+if [[ ${v_err_res} != *"Source DataNode 3000 does not exist in the cluster"* ]];then
    let fail_flag++
 fi
 
 #Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: Submit RegionMigrateProcedure failed, because no target DataNode 1
 v_err_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "migrate region 9 from 7 to 1;"`
-if [[ ${v_err_res} != *"Cannot find Destination DataNode"* ]];then
+if [[ ${v_err_res} != *"Target DataNode 1 does not exist in the cluster"* ]];then
    let fail_flag++
 fi
 #Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 700: Error occurred while parsing SQL to physical plan: line 1:26 missing INTEGER_LITERAL at '<EOF>'
@@ -211,9 +211,9 @@ if [[ ${v_err_res} != *"Error occurred while parsing SQL to physical plan"* ]];t
    let fail_flag++
 fi
 
-#Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: Submit RegionMigrateProcedure failed, because the target DataNode 7 already contains Region 9
+#Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: Submit RegionMigrateProcedure failed, Source and target DataNode IDs must be different
 v_err_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "migrate region 9 from 7 to 7;"`
-if [[ ${v_err_res} != *"because the target DataNode 7 already contains Region 9"* ]];then
+if [[ ${v_err_res} != *"Source and target DataNode IDs must be different"* ]];then
    let fail_flag++
 fi
 #Msg: org.apache.iotdb.jdbc.IoTDBSQLException: 900: Submit RegionMigrateProcedure failed, because the original DataNode 3 doesn't contain Region 9

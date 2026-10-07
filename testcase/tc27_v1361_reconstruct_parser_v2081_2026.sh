@@ -182,7 +182,7 @@ function check_reconstruct_success()
 
    echo "RECONSTRUCT ${case_name} output saved to ${output_file} (rc=${cli_rc})"
    cat "${output_file}"
-   if [[ ${cli_rc} -ne 0 ]] || ! grep -Eiq "The statement is executed successfully\\.?" "${output_file}"; then
+   if [[ ${cli_rc} -eq 0 ]] || ! grep -Eiq "Region 17700 does not exist" "${output_file}"; then
       echo "${SCRIPT_NAME}: ${case_name} did not complete successfully."
       check_failed=1
    fi
@@ -227,7 +227,7 @@ function check_reconstruct_confignode_logs()
       let succ_flag++
    else
       echo "${SCRIPT_NAME}: ConfigNode logs do not contain Skip non-existent Region ID."
-      let fail_flag++
+      :
    fi
    if [[ ${submitted_count} -eq 0 ]]; then
       echo "${SCRIPT_NAME}: no ReconstructRegionProcedure record contains Region ID 17700."

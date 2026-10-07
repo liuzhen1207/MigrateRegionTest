@@ -555,6 +555,17 @@ tc_res=true
   else
      tc_res=false
      echo "${SCRIPT_NAME} : fail" >>"${res_file}"
+     backup_time=$(date +%Y_%m_%d_%H_%M_%S)
+     backup_script="${cur_dir}/../clean_env/backup_cluster_logs.sh"
+     if [[ -f "${backup_script}" ]]; then
+        if bash "${backup_script}" "${SCRIPT_NAME%.sh}" "${backup_time}"; then
+           echo "Failure logs backed up to ${cur_dir}/logs_backup/${SCRIPT_NAME%.sh}_${backup_time}"
+        else
+           echo "WARNING: Failed to back up cluster logs for ${SCRIPT_NAME}"
+        fi
+     else
+        echo "WARNING: Log backup helper not found: ${backup_script}"
+     fi
   fi
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
 

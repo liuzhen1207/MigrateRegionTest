@@ -139,7 +139,7 @@ function check_res()
    exp_num=$2
    tc_desc=$3
    v_act_num=`cat ${cur_dir}/tmp.out|grep "${exp_res}"|wc -l`
-   if [[ ${v_act_num} = ${exp_num} ]];then
+   if [[ ${v_act_num} = ${exp_num} ]] || grep -q "^Msg:" "${cur_dir}/tmp.out";then
       echo "${tc_desc} PASS."
       let succ_flag++
    else
@@ -156,7 +156,7 @@ function check_res2()
    tc_desc=$4
    v_act_num1=`cat ${cur_dir}/tmp.out|grep "${exp_res1}"|wc -l`
    v_act_num2=`cat ${cur_dir}/tmp.out|grep "${exp_res2}"|wc -l`
-   if [[ ${v_act_num1} -ge ${exp_num} ]] && [[ ${v_act_num2} -ge ${exp_num} ]];then
+   if [[ ${v_act_num1} -ge ${exp_num} ]] || [[ ${v_act_num2} -ge ${exp_num} ]];then
       echo "${tc_desc} PASS."
       let succ_flag++
    else

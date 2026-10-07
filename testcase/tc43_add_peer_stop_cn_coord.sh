@@ -3,6 +3,8 @@
 # query memory. This may cause the replica-consistency query to report an OOM.
 # The issue has been verified and requires no testcase workaround; it will
 # recover naturally after the corresponding product bug is fixed.
+# Migration waits are bounded, and the add coordinator is resolved from current
+# Region membership so a missing migration log cannot create an empty-host SSH loop.
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
@@ -581,11 +583,26 @@ local v_mig_to_dn_id=-1
          sleep 1
       fi
    done
-# get Add Coord ip
-   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure successfully, Region: TConsensusGroupId(type:DataRegion, id:${v_mig_id}), Origin DataNode: TDataNodeLocation(dataNodeId:${v_mig_from_dn_id},\" ${db_dir}/logs/*confignode*all*"`
-   v_add_coord_ip=`echo ${v_submit_mig_log} |awk -F "Add Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
-# get Remove Coord IP
-   v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
+# AddRegionPeerProcedure records the actual snapshot sender. It may be a
+# different existing Region peer than the migration source, so prefer this
+# procedure record over inferring the coordinator from the source DN.
+   v_add_coord_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h 'AddRegionPeerProcedure' ${db_dir}/logs/*confignode*all* 2>/dev/null | grep -E 'regionId=.*id:${v_mig_id}[),].*targetDataNode=${v_mig_to_dn_id}@' | tail -1"`
+   v_add_coord_dn_id=`echo "${v_add_coord_log}" | sed -nE 's/.*coordinator=([0-9]+)@.*/\\1/p'`
+   v_add_coord_ip=`echo "${v_add_coord_log}" | sed -nE 's/.*coordinator=[0-9]+@([^, ]+).*/\\1/p'`
+   if [[ -z "${v_add_coord_ip}" ]]; then
+      # Older or rotated ConfigNode logs may not contain the procedure record.
+      # Fall back to a pre-migration Region peer, excluding the source DN.
+      v_add_coord_dn_id=`grep -v "^${v_mig_from_dn_id}$" ${cur_dir}/mig_region_dn_id.txt|head -1`
+      v_add_coord_ip=`awk -F ',' -v dn_id="${v_add_coord_dn_id}" '$1 == dn_id {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
+      append_warn "AddRegionPeerProcedure coordinator log missing; using Region peer DN ${v_add_coord_dn_id} (${v_add_coord_ip})"
+   fi
+   v_remove_coord_ip=`awk -F ',' -v exclude_ip="${v_add_coord_ip}" '$2 != exclude_ip {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
+   if [[ -z "${v_add_coord_dn_id}" || -z "${v_add_coord_ip}" || -z "${v_remove_coord_ip}" ]];then
+      append_warn "can not resolve add coordinator from current Region membership"
+      let fail_flag++
+      write_test_result
+      return 1
+   fi
 # check snapshot
    v_start_time=`date +%s`
    while true

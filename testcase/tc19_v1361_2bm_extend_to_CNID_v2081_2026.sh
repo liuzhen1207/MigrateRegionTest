@@ -481,7 +481,14 @@ exec 4<${cur_dir}/all_cn_id.txt
 while read cnid<&4
 do
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "EXTEND REGION ${v_remove_list}  TO ${cnid};">${cur_dir}/tmp.out
-   check_res2 "successfully submitted: 0, failed to submit" "Target DataNode ${v_rm_id}" 1 "${SCRIPT_NAME}"
+   if grep -qF "Target DataNode ${cnid} does not exist in the cluster" "${cur_dir}/tmp.out";then
+      echo "${SCRIPT_NAME} PASS."
+      let succ_flag++
+   else
+      echo "${SCRIPT_NAME} FAIL. Expected missing ConfigNode/DataNode ID ${cnid}."
+      let fail_flag++
+      cat ${cur_dir}/tmp.out
+   fi
    cat ${cur_dir}/tmp.out
 
 done
@@ -489,19 +496,19 @@ exec 4<&-
 
 # region id not exist , dn id not exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "EXTEND REGION 17700,9109  TO 2222;">${cur_dir}/tmp.out
-check_res2 "successfully submitted: 0, failed to submit: 2" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res2 "Target DataNode 2222 does not exist in the cluster" "Target DataNode 2222 does not exist in the cluster" 1 "${SCRIPT_NAME}"
 
 # some region id not exist , dn id not exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "EXTEND REGION 17700,${v_rm_id} TO 2222;">${cur_dir}/tmp.out
-check_res2 "failed to submit:" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res2 "Target DataNode 2222 does not exist in the cluster" "Target DataNode 2222 does not exist in the cluster" 1 "${SCRIPT_NAME}"
 
 # region id not exist , dn id exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "EXTEND REGION 17700,9999  TO ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "failed to submit: 2" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res2 "Region 17700 does not exist" "Region 17700 does not exist" 1 "${SCRIPT_NAME}"
 
 # some region id not exist , dn id exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "EXTEND REGION 17700,${v_remove_list}  TO ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "failed to submit: 1" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res2 "Region 17700 does not exist" "Region 17700 does not exist" 1 "${SCRIPT_NAME}"
 
 # region id exist ,but this dn id has it
 >${cur_dir}/region.txt
@@ -516,7 +523,7 @@ check_res2 "failed to submit: 1" "get region group id fail" 1 "${SCRIPT_NAME}"
 exec 3<&-
    v_remove_list=`paste -sd "," ${cur_dir}/region.txt`
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "EXTEND REGION ${v_remove_list}  TO ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "successfully submitted: 0, failed to submit:" "Target DataNode ${v_rm_id} doesn't contain Region" 1 "${SCRIPT_NAME}"
+check_res2 "successfully submitted: 0, failed to submit:" "Target DataNode ${v_rm_id} already contains region" 1 "${SCRIPT_NAME}"
 
 
    wait_bm_finish 36000 "${bm_dir}/${v_t}_tc19_bm1.out" "${bm_dir}/${v_t}_tc19_bm2.out"

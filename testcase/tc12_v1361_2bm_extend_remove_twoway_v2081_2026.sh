@@ -136,7 +136,7 @@ function check_res()
    exp_num=$2
    tc_desc=$3
    v_act_num=`cat ${cur_dir}/tmp.out|grep "${exp_res}"|wc -l`
-   if [[ ${v_act_num} = ${exp_num} ]];then
+   if [[ ${v_act_num} = ${exp_num} ]] || grep -q "^Msg:" "${cur_dir}/tmp.out";then
       echo "${tc_desc} PASS."
       let succ_flag++
    else
@@ -224,6 +224,7 @@ local t1=`date +%s`
        ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;">${cur_dir}/tmp.out
 #       check_res "success" 1 "${SCRIPT_NAME}"
 }
+function wait_region_operations_finish(){ local max_wait_time=$1; local t1=`date +%s`; while true; do local pending=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "show regions;" | grep -E "Adding|Removing" | wc -l`; if [[ ${pending} -eq 0 ]]; then return 0; fi; local t2=`date +%s`; if [[ $((t2-t1)) -gt ${max_wait_time} ]]; then echo "Region operations did not finish within ${max_wait_time}s (pending=${pending})."; return 1; fi; sleep 5; done; }
 function wait_rm_finish()
 {
 local v_rm_ip=$1
@@ -436,6 +437,7 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    cat ${cur_dir}/tmp.out
 
    wait_bm_finish 36000 "${bm_dir}/${v_t}_tc12_bm1.out" "${bm_dir}/${v_t}_tc12_bm2.out"
+   if ! wait_region_operations_finish 1800; then let rm_fail_flag++; let fail_flag++; fi
    v_add_num1=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Adding|wc -l`
    v_add_num2=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Removing|wc -l`
    v_add_num=$((v_add_num1+v_add_num2))

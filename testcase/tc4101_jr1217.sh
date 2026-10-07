@@ -46,6 +46,7 @@ test_begin_sec=`date +%s`
 migration_new_peer_wait_timeout_sec=7200
 removing_state_wait_timeout_sec=7200
 migration_settle_wait_timeout_sec=7200
+snapshot_wait_timeout_sec=7200
 function clean_env()
 {
    #clean env
@@ -216,11 +217,30 @@ local v_mig_to_dn_id=-1
       fi
    done
 # get Add Coord ip
-   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure successfully, Region: TConsensusGroupId(type:DataRegion, id:${v_mig_id}), Origin DataNode: TDataNodeLocation(dataNodeId:${v_mig_from_dn_id},\" ${db_dir}/logs/*confignode*all*"`
-   v_add_coord_ip=`echo ${v_submit_mig_log} |awk -F "Add Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
+   # The AddRegionPeerProcedure sub-procedure log records its coordinator.
+   # The coordinator is an existing region peer and is not necessarily the
+   # migration source/target DataNode.
+   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h -E 'Submit RegionMigrateProcedure successfully.*DataRegion, id:${v_mig_id}.*dataNodeId:${v_mig_from_dn_id}|Submit region operation procedure successfully.*DataRegion, id:${v_mig_id}' ${db_dir}/logs/*confignode*all* 2>/dev/null | tail -1"`
+   v_add_coord_ip=`ssh ${u_name}@${v_cn_leader_ip} "grep -h 'AddRegionPeerProcedure' ${db_dir}/logs/*confignode*all* 2>/dev/null | grep -E 'regionId=.*id:${v_mig_id}[),].*targetDataNode=${v_mig_to_dn_id}@' | tail -1 | sed -nE 's/.*coordinator=[0-9]+@([^, ]+).*/\\1/p'"`
 # get Remove Coord IP
    v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
+   # Older logs may omit procedure details. Infer the add coordinator from
+   # pre-migration region members, excluding the migration source.
+   if [[ -z "${v_add_coord_ip}" ]]; then
+      v_add_coord_dn_id=`grep -v "^${v_mig_from_dn_id}$" ${cur_dir}/mig_region_dn_id.txt|head -1`
+      v_add_coord_ip=`awk -F ',' -v dn_id="${v_add_coord_dn_id}" '$1 == dn_id {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
+   fi
+   if [[ -z "${v_remove_coord_ip}" ]]; then
+      v_remove_coord_ip=`awk -F ',' -v dn_id="${v_mig_to_dn_id}" '$1 == dn_id {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
+   fi
+   if [[ -z "${v_add_coord_ip}" || -z "${v_remove_coord_ip}" ]]; then
+      echo "ERROR: cannot resolve migration coordinators (add='${v_add_coord_ip}', remove='${v_remove_coord_ip}')."
+      let fail_flag++
+      write_test_result
+      return 1
+   fi
 # check snapshot
+   v_snapshot_beg_sec=`date +%s`
    while true
    do
       if ssh ${u_name}@${v_add_coord_ip} '[ -f "${db_dir}/logs/log-datanode-all*gz" ]'; then
@@ -234,6 +254,14 @@ local v_mig_to_dn_id=-1
 		 fi
          break
       else
+         v_snapshot_now_sec=`date +%s`
+         v_snapshot_elp=$((v_snapshot_now_sec-v_snapshot_beg_sec))
+         if [[ ${v_snapshot_elp} -gt ${snapshot_wait_timeout_sec} ]];then
+            echo "[${SCRIPT_NAME}] timeout waiting for snapshot progress on ${v_add_coord_ip}, observed ${v_AddRegion} progress records in ${v_snapshot_elp}s"
+            let fail_flag++
+            write_test_result
+            return 1
+         fi
          sleep 1
       fi
    done

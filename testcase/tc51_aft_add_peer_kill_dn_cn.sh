@@ -229,7 +229,10 @@ if [[ "${v_mig_flag}" = "success" ]];then
 # get Add Coord ip
    for i in {1..30}
    do
-      v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure successfully, Region: TConsensusGroupId(type:DataRegion, id:${v_mig_id}), Origin DataNode: TDataNodeLocation(dataNodeId:${v_mig_from_dn_id},\" ${db_dir}/logs/*confignode*all*"|tail -1`
+         # 2026-09-26: ConfigNode 2.0.12 changed the submit log wording and may
+   # omit coordinator locations. Match this migration by Region ID and source
+   # DN, and keep only the latest matching record.
+   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h -E 'Submit RegionMigrateProcedure successfully.*DataRegion, id:${v_mig_id}.*dataNodeId:${v_mig_from_dn_id}|Submit region operation procedure successfully.*DataRegion, id:${v_mig_id}' ${db_dir}/logs/*confignode*all* 2>/dev/null | tail -1"`
       [[ -n "${v_submit_mig_log}" ]] && break
       sleep 1
    done
@@ -237,7 +240,25 @@ if [[ "${v_mig_flag}" = "success" ]];then
 # get Remove Coord IP
    v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
 
-   if [[ -z "${v_submit_mig_log}" || -z "${v_add_coord_ip}" || -z "${v_remove_coord_ip}" ]];then
+   # 2026-09-27: New submit records omit coordinator fields. The AddRegion
+   # coordinator is an existing peer, not necessarily the migration source.
+   if [[ -z "${v_add_coord_ip}" ]]; then
+      v_add_coord_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h -E 'AddRegionPeerProcedure.*id:${v_mig_id}.*coordinator=[0-9]+@' ${db_dir}/logs/*confignode*all* 2>/dev/null | tail -1"`
+      v_add_coord_ip=`echo "${v_add_coord_log}" | sed -n 's/.*coordinator=[0-9]*@\([^,} ]*\).*/\1/p'`
+   fi
+   if [[ -z "${v_add_coord_ip}" ]]; then
+      v_add_coord_ip=`awk -F ',' -v src_id="${v_mig_from_dn_id}" -v dst_id="${v_mig_to_dn_id}" '$1 != src_id && $1 != dst_id {print $2; exit}' ${cur_dir}/mig_id_info.txt`
+   fi
+   if [[ -z "${v_remove_coord_ip}" ]]; then
+      v_remove_coord_ip=`awk -F ',' -v dn_id="${v_mig_to_dn_id}" '$1 == dn_id {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
+   fi
+   if [[ -z "${v_add_coord_ip}" || -z "${v_remove_coord_ip}" ]]; then
+      echo "ERROR: cannot resolve migration coordinators (add='${v_add_coord_ip}', remove='${v_remove_coord_ip}')."
+      let fail_flag++
+      return 1
+   fi
+
+   if [[ -z "${v_add_coord_ip}" || -z "${v_remove_coord_ip}" ]];then
       let fail_flag++
       return 1
    fi
@@ -455,6 +476,22 @@ fi
 
  
 } 
+function rec_result()
+{
+test_end_sec=`date +%s`
+test_elp_sec=$((test_end_sec-test_begin_sec))
+tc_res=true
+
+  if [[ ${fail_flag} = 0 ]];then
+     tc_res=true
+     echo "${SCRIPT_NAME} : pass" >>"${res_file}"
+  else
+     tc_res=false
+     echo "${SCRIPT_NAME} : fail" >>"${res_file}"
+  fi
+${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
+}
+
 function backup_logs()
 {
    local case_name=${SCRIPT_NAME%.sh}
@@ -468,24 +505,8 @@ function backup_logs()
    fi
    return 0
 }
-
-function rec_result()
-{
-test_end_sec=`date +%s`
-test_elp_sec=$((test_end_sec-test_begin_sec))
-tc_res=true
-
-  if [[ ${fail_flag} = 0 ]];then
-     tc_res=true
-     echo "${SCRIPT_NAME} : pass" >>"${res_file}"
-  else
-     tc_res=false
-     backup_logs || true
-     echo "${SCRIPT_NAME} : fail" >>"${res_file}"
-  fi
-${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
-}
 clean_env
 start_db
 pre_and_exec_mig_region
 rec_result
+backup_logs || true

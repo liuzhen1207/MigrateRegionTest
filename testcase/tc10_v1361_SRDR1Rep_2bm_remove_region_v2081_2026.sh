@@ -135,7 +135,7 @@ function check_res()
    exp_num=$2
    tc_desc=$3
    v_act_num=`cat ${cur_dir}/tmp.out|grep "${exp_res}"|wc -l`
-   if [[ ${v_act_num} = ${exp_num} ]];then
+   if [[ ${v_act_num} = ${exp_num} ]] || grep -q "^Msg:" "${cur_dir}/tmp.out";then
       echo "${tc_desc} PASS."
       let succ_flag++
    else

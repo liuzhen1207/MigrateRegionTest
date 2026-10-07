@@ -567,10 +567,38 @@ function pre_and_exec_mig_region()
         sleep 1
      fi
   done
-
-  v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure successfully, Region: TConsensusGroupId(type:DataRegion, id:${v_mig_id}), Origin DataNode: TDataNodeLocation(dataNodeId:${v_mig_from_dn_id},\" ${db_dir}/logs/*confignode*all*"`
+# 2026-09-26: ConfigNode 2.0.12 changed the submit log wording and may
+   # omit coordinator locations. Match this migration by Region ID and source
+   # DN, and keep only the latest matching record.
+   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h -E 'Submit RegionMigrateProcedure successfully.*DataRegion, id:${v_mig_id}.*dataNodeId:${v_mig_from_dn_id}|Submit region operation procedure successfully.*DataRegion, id:${v_mig_id}' ${db_dir}/logs/*confignode*all* 2>/dev/null | tail -1"`
   v_add_coord_ip=`echo ${v_submit_mig_log} |awk -F "Add Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
   v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
+
+   # 2026-09-27: New submit records omit coordinator fields. The AddRegion
+   # procedure has its own coordinator, which is normally an existing peer
+   # (not the migration source). Parse it from the AddRegion sub-procedure
+   # record so that snapshot progress is checked on the actual sender.
+   if [[ -z "${v_add_coord_ip}" ]]; then
+      v_add_coord_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h -E 'AddRegionPeerProcedure.*id:${v_mig_id}.*coordinator=[0-9]+@' ${db_dir}/logs/*confignode*all* 2>/dev/null | tail -1"`
+      v_add_coord_ip=`echo "${v_add_coord_log}" | sed -n 's/.*coordinator=[0-9]*@\([^,} ]*\).*/\1/p'`
+   fi
+   if [[ -z "${v_add_coord_ip}" ]]; then
+      # Last fallback: choose an existing replica of this region, excluding
+      # the source and target. This is the coordinator for the normal 3-node
+      # region migration topology.
+      v_add_coord_ip=`awk -F ',' -v src_id="${v_mig_from_dn_id}" -v dst_id="${v_mig_to_dn_id}" '$1 != src_id && $1 != dst_id {print $2; exit}' ${cur_dir}/mig_id_info.txt`
+   fi
+   if [[ -z "${v_remove_coord_ip}" ]]; then
+      # In the new procedure logs the remove coordinator is the newly added
+      # target peer; retain the target-ID fallback when the old fields are
+      # absent.
+      v_remove_coord_ip=`awk -F ',' -v dn_id="${v_mig_to_dn_id}" '$1 == dn_id {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
+   fi
+   if [[ -z "${v_add_coord_ip}" || -z "${v_remove_coord_ip}" ]]; then
+      echo "ERROR: cannot resolve migration coordinators (add='${v_add_coord_ip}', remove='${v_remove_coord_ip}')."
+      let fail_flag++
+      return 1
+   fi
 
   v_start_time=`date +%s`
   while true
@@ -589,6 +617,12 @@ function pre_and_exec_mig_region()
            echo "snapshot progress is slow, but migration is still visible and regions are changing, continue first fault injection."
            v_ready_to_inject=1
         fi
+     fi
+     if [[ ${v_ready_to_inject} = 0 && ${v_elp} -gt ${migration_wait_timeout_sec} ]];then
+        append_warn "wait snapshot progress timeout after ${migration_wait_timeout_sec}s: region=${v_mig_id}, add_coord=${v_add_coord_ip}, remove_coord=${v_remove_coord_ip}"
+        let fail_flag++
+        write_test_result
+        return 1
      fi
      if [[ ${v_ready_to_inject} = 1 ]];then
         ssh ${u_name}@${v_remove_coord_ip} "sudo ${db_dir}/sbin/stop-datanode.sh" &

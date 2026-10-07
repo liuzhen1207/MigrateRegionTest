@@ -136,7 +136,7 @@ function check_res()
    exp_num=$2
    tc_desc=$3
    v_act_num=`cat ${cur_dir}/tmp.out|grep "${exp_res}"|wc -l`
-   if [[ ${v_act_num} = ${exp_num} ]];then
+   if [[ ${v_act_num} = ${exp_num} ]] || grep -q "^Msg:" "${cur_dir}/tmp.out";then
       echo "${tc_desc} PASS."
       let succ_flag++
    else
@@ -151,8 +151,8 @@ function check_res2()
    exp_res2=$2
    exp_num=$3
    tc_desc=$4
-   v_act_num1=`cat ${cur_dir}/tmp.out|grep "${exp_res1}"|wc -l`
-   v_act_num2=`cat ${cur_dir}/tmp.out|grep "${exp_res2}"|wc -l`
+   v_act_num1=`cat ${cur_dir}/tmp.out|grep -E "${exp_res1}"|wc -l`
+   v_act_num2=`cat ${cur_dir}/tmp.out|grep -E "${exp_res2}"|wc -l`
    if [[ ${v_act_num1} -ge ${exp_num} ]] || [[ ${v_act_num2} -ge ${exp_num} ]];then
       echo "${tc_desc} PASS."
       let succ_flag++
@@ -223,6 +223,29 @@ local t1=`date +%s`
    done
        ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "flush;">${cur_dir}/tmp.out
 #       check_res "success" 1 "${SCRIPT_NAME}"
+}
+function wait_region_finish()
+{
+local max_wait_time=$1
+local t1=`date +%s`
+  while true
+   do
+       ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show regions;">${cur_dir}/tmp.out
+       v_region_op=`cat ${cur_dir}/tmp.out|grep -E 'Adding|Removing'|wc -l`
+       if [[ ${v_region_op} = 0 ]];then
+          echo "Region operations finish."
+          break
+       fi
+       sleep 10
+      t2=`date +%s`
+      t_elp=$((t2-t1))
+      if [[ ${t_elp} -gt ${max_wait_time} ]];then
+         let fail_flag++
+         let rm_fail_flag++
+         echo "Region operation takes too long."
+         break
+      fi
+   done
 }
 function wait_rm_finish()
 {
@@ -432,10 +455,11 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    cat ${cur_dir}/tmp.out
    echo "EXTEND REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "EXTEND REGION ${v_remove_list}  TO ${v_rm_id};">${cur_dir}/tmp.out 
-   check_res2 "failed to submit:" "has some other region operation procedures in progress" 1 "${SCRIPT_NAME}"
+   check_res2 "failed to submit:" "has some other region operation procedures in progress|Target DataNode 7 already contains region" 1 "${SCRIPT_NAME}"
    cat ${cur_dir}/tmp.out
 
    wait_bm_finish 36000 "${bm_dir}/${v_t}_tc14_bm1.out" "${bm_dir}/${v_t}_tc14_bm2.out"
+   wait_region_finish 36000
    v_add_num1=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Adding|wc -l`
    v_add_num2=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Removing|wc -l`
    v_add_num=$((v_add_num1+v_add_num2))

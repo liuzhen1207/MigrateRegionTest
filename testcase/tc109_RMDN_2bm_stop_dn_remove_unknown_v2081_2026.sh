@@ -124,7 +124,10 @@ ssh ${u_name}@${line} "sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"";
 fi
 done
 
-   sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"
+   if ! sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"; then
+      echo "Cluster startup failed; aborting before benchmark."
+      return 1
+   fi
 
 }
 function check_res()
@@ -462,6 +465,22 @@ echo "${test_elp_sec}"
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -pw ${res_root_pw} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
 
 }
+function record_start_failure()
+{
+   test_end_sec=`date +%s`
+   test_elp_sec=$((test_end_sec-test_begin_sec))
+   tc_res=false
+   echo "${SCRIPT_NAME} : fail (cluster startup failed)"
+   echo "${tc_num}"
+   echo "${SCRIPT_NAME}"
+   echo "${tc_res}"
+   echo "${test_elp_sec}"
+
+   ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -pw ${res_root_pw} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
+}
 clean_env
-start_db
+if ! start_db; then
+   record_start_failure
+   exit 1
+fi
 remove_dn

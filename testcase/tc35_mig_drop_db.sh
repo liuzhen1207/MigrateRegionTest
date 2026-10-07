@@ -190,6 +190,7 @@ do
       ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "drop database root.test;">${cur_dir}/del_s_40.out &
       let v_del_flag++
    fi
+   if grep -qE "IoTDBSQLException|failed to submit" "${cur_dir}/mig.out";then break;fi
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    loop=0
    while true

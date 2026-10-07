@@ -525,11 +525,37 @@ local v_mig_to_dn_id=-1
 	   done
    fi
 # get Add Coord ip
-   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure successfully, Region: TConsensusGroupId(type:DataRegion, id:${v_mig_id}), Origin DataNode: TDataNodeLocation(dataNodeId:${v_mig_from_dn_id},\" ${db_dir}/logs/*confignode*all*"`
+   # ConfigNode 2.0.12+ writes a generic submit message and no longer embeds
+   # the coordinator locations.  Keep the old, more specific match first and
+   # fall back to the new message so the subsequent source/target IP fallback
+   # can still select the coordinators from the migration topology.
+   # 2026-09-26: ConfigNode 2.0.12 changed the submit log wording and may
+   # omit coordinator locations. Match the region and source DN, select the
+   # latest matching record, then use topology-derived IPs as a safe fallback.
+   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h -E 'Submit RegionMigrateProcedure successfully.*DataRegion, id:${v_mig_id}.*dataNodeId:${v_mig_from_dn_id}|Submit region operation procedure successfully.*DataRegion, id:${v_mig_id}' ${db_dir}/logs/*confignode*all* 2>/dev/null | tail -1"`
    v_add_coord_ip=`echo ${v_submit_mig_log} |awk -F "Add Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
    v_mig_to_dn_ip=`grep "${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
 # get Remove Coord IP
    v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
+   # 2026-09-27: Newer ConfigNode logs omit the old coordinator fields. The
+   # AddRegion coordinator is recorded on the AddRegion sub-procedure and is
+   # usually an existing peer, not the migration source.
+   if [[ -z "${v_add_coord_ip}" ]]; then
+      v_add_coord_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h -E 'AddRegionPeerProcedure.*id:${v_mig_id}.*coordinator=[0-9]+@' ${db_dir}/logs/*confignode*all* 2>/dev/null | tail -1"`
+      v_add_coord_ip=`echo "${v_add_coord_log}" | sed -n 's/.*coordinator=[0-9]*@\([^,} ]*\).*/\1/p'`
+   fi
+   if [[ -z "${v_add_coord_ip}" ]]; then
+      v_add_coord_ip=`awk -F ',' -v src_id="${v_mig_from_dn_id}" -v dst_id="${v_mig_to_dn_id}" '$1 != src_id && $1 != dst_id {print $2; exit}' ${cur_dir}/mig_id_info.txt`
+   fi
+   if [[ -z "${v_remove_coord_ip}" ]]; then
+      v_remove_coord_ip="${v_mig_to_dn_ip}"
+   fi
+   if [[ -z "${v_add_coord_ip}" ]] || [[ -z "${v_remove_coord_ip}" ]]; then
+      append_warn_message "unable to determine migration coordinator IPs"
+      let fail_flag++
+      write_test_result
+      return 1
+   fi
    v_target_dn_stopped=0
    if [[ ${v_remove_coord_ip} = ${v_mig_to_dn_ip} ]];then
       v_target_dn_stopped=1

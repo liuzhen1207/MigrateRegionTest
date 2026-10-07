@@ -411,7 +411,7 @@ function remove_dn()
    if [[ -n "$v_remove_list" ]];then
    echo "REMOVE SCHEMA REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${v_remove_list}  FROM ${v_rm_id};">${cur_dir}/tmp.out
-   check_res "successfully submitted: 0, failed to submit:" 1 "${SCRIPT_NAME}"
+   check_res "only has 1 replica, it cannot be removed" 1 "${SCRIPT_NAME}"
    fi
 
    wait_bm_finish 36000 "${bm_dir}/${v_t}_tc9_bm1.out" "${bm_dir}/${v_t}_tc9_bm2.out"

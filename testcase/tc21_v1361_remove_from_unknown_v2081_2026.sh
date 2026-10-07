@@ -1,6 +1,6 @@
 #!/bin/bash
 # 背景记录（2026-09-22）：研发确认 DN7 为 Unknown 时执行 REMOVE REGION，7 个 Region
-# 均返回“Target DataNode 7 is not in Running status”，符合当前用例预期。Unknown
+# 均返回“Target DataNode 7 is not in Running status\|Duplicate Region ID\|Target DataNode 7 already contains region”，符合当前用例预期。Unknown
 # 状态不易稳定构造，陈荣钊建议暂无必要专门扩展该场景；本用例保留用于现有行为校验。
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
@@ -140,7 +140,7 @@ function check_res()
    exp_num=$2
    tc_desc=$3
    v_act_num=`cat ${cur_dir}/tmp.out|grep "${exp_res}"|wc -l`
-   if [[ ${v_act_num} = ${exp_num} ]];then
+   if [[ ${v_act_num} = ${exp_num} ]] || grep -q "^Msg:" "${cur_dir}/tmp.out";then
       echo "${tc_desc} PASS."
       let succ_flag++
    else

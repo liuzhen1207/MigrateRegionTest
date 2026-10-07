@@ -402,7 +402,7 @@ function remove_dn()
    if [[ -n "$v_remove_list" ]];then
    echo "REMOVE DATA REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${v_remove_list}  from ${v_rm_id};">${cur_dir}/tmp.out
-   check_res "successfully submitted: 0, failed to submit" 1 "${SCRIPT_NAME}"
+   check_res "only has 1 replica, it cannot be removed" 1 "${SCRIPT_NAME}"
    fi
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show schema regions'|grep "${query_ip2}|"|awk -F '|' '{gsub(" ","");print $2}'>${cur_dir}/mig_id2.txt
    v_remove_list=`paste -sd "," ${cur_dir}/mig_id2.txt`

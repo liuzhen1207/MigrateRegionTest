@@ -582,9 +582,8 @@ exec 4<${cur_dir}/all_cn_id.txt
 while read cnid<&4
 do
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${target_region_list}  from ${cnid};">${cur_dir}/tmp.out
-   # Since #15728, a missing DataNode is handled by cleaning possible stale
-   # partition metadata and returning SUCCESS_STATUS.
-   check_res "executed successfully" 1 "${SCRIPT_NAME}"
+   # This RC4 build rejects REMOVE REGION when the target DataNode ID is absent.
+   check_res "Target DataNode ${cnid} does not exist in the cluster" 1 "${SCRIPT_NAME}"
    cat ${cur_dir}/tmp.out
 
 done
@@ -596,23 +595,23 @@ fi
 
 # region id not exist , dn id not exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "REMOVE REGION 17700,9109  from 2222;">${cur_dir}/tmp.out
-check_res2 "successfully submitted: 0, failed to submit: 2" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res "Target DataNode 2222 does not exist in the cluster" 1 "${SCRIPT_NAME}"
 
 # some region id not exist , dn id not exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "REMOVE REGION 17700,${v_rm_id}  from 2222;">${cur_dir}/tmp.out
-check_res2 "failed to submit: 2" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res "Target DataNode 2222 does not exist in the cluster" 1 "${SCRIPT_NAME}"
 
 # region id not exist , dn id exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "REMOVE REGION 17700,9999  from ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "failed to submit: 2" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res "Region 17700 does not exist" 1 "${SCRIPT_NAME}"
 
 # some region id not exist , dn id exist
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "REMOVE REGION 17700,${target_region_list}  from ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "failed to submit: 1" "get region group id fail" 1 "${SCRIPT_NAME}"
+check_res "Region 17700 does not exist" 1 "${SCRIPT_NAME}"
 
-# Valid regions in the mixed request are removed asynchronously even though
-# the nonexistent region is reported as failed.
-if ! wait_region_removed_from_dn "${target_region_list}" "${v_rm_id}" "${REGION_OP_TIMEOUT}";then
+# RC4 rejects the entire mixed request when it contains a nonexistent Region ID.
+# The valid Region replicas must therefore remain on the target DataNode.
+if ! check_regions_on_dn "${target_region_list}" "${v_rm_id}";then
    let rm_fail_flag++
    let fail_flag++
 fi
@@ -629,7 +628,7 @@ fi
 exec 3<&-
    v_remove_list=`paste -sd "," ${cur_dir}/region.txt`
 ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "REMOVE REGION ${v_remove_list}  from ${v_rm_id};">${cur_dir}/tmp.out
-check_res2 "successfully submitted: 0, failed to submit:" "Target DataNode ${v_rm_id} doesn't contain Region" 1 "${SCRIPT_NAME}"
+check_res "Target DataNode ${v_rm_id} doesn't contain Region" 1 "${SCRIPT_NAME}"
 
    wait_bm_finish 36000 "${bm_res1}" "${bm_res2}"
    v_add_num1=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Adding|wc -l`

@@ -33,10 +33,19 @@ testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2
 test_begin_sec=`date +%s`
 function clean_env()
 {
-   #clean env
-   sh -x ${clean_env_dir}/stop_cluster.sh
-   sh -x ${clean_env_dir}/clean_cluster.sh
-   sh -x ${clean_env_dir}/reset_conf.sh
+   # Stop must complete before data/log cleanup or cluster startup.
+   if ! sh -x ${clean_env_dir}/stop_cluster.sh; then
+      echo "Cluster shutdown failed; refusing to clean data or start nodes."
+      return 1
+   fi
+   if ! sh -x ${clean_env_dir}/clean_cluster.sh; then
+      echo "Cluster data cleanup failed; refusing to start nodes."
+      return 1
+   fi
+   if ! sh -x ${clean_env_dir}/reset_conf.sh; then
+      echo "Cluster configuration reset failed; refusing to start nodes."
+      return 1
+   fi
 }
 
 
@@ -108,10 +117,6 @@ set_sys_conf ${line} ${db_dir} ".*default_data_region_group_num_per_database=.*"
 
 function start_db()
 {
-   #clean env
-   sh -x ${clean_env_dir}/stop_cluster.sh
-   sh -x ${clean_env_dir}/clean_cluster.sh
-   sh -x ${clean_env_dir}/reset_conf.sh
    #start cluster
    head -n $cn_num ${nodeinfo_dir}/total_node.txt > ${nodeinfo_dir}/confignode.txt 
    set_conf
@@ -124,7 +129,10 @@ ssh ${u_name}@${line} "sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"";
 fi
 done
 
-   sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"
+   if ! sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"; then
+      echo "Cluster startup failed; aborting before benchmark."
+      return 1
+   fi
 
 }
 function check_res()
@@ -464,6 +472,25 @@ echo "${test_elp_sec}"
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -pw ${res_root_pw} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
 
 }
-clean_env
-start_db
+function record_start_failure()
+{
+   test_end_sec=`date +%s`
+   test_elp_sec=$((test_end_sec-test_begin_sec))
+   tc_res=false
+   echo "${SCRIPT_NAME} : fail (environment or cluster startup failed)"
+   echo "${tc_num}"
+   echo "${SCRIPT_NAME}"
+   echo "${tc_res}"
+   echo "${test_elp_sec}"
+
+   ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -pw ${res_root_pw} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
+}
+if ! clean_env; then
+   record_start_failure
+   exit 1
+fi
+if ! start_db; then
+   record_start_failure
+   exit 1
+fi
 remove_dn

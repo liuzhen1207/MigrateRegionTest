@@ -6,8 +6,8 @@
 #    timeout increase to 900s is still not enough in this environment, so the testcase can still
 #    fail before region migration actually finishes.
 # 2. What was changed:
-#    Keep testcase logic unchanged, but raise the migration-related waiting timeouts from 900s
-#    to 7200s (2 hours) to tolerate the current environment instability.
+#    Bound every migration wait, validate migration command results, and infer the add coordinator
+#    from the current Region members so a missing log match cannot create an endless ssh loop.
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
@@ -328,6 +328,8 @@ local stage_ok=1
       stage_ok=0
    fi
    if [[ ${stage_ok} = 1 ]];then
+   # 2026-09-26: ConfigNode submit logs can be absent or reformatted; derive
+   # the add coordinator uniquely from the current Region membership.
    v_add_coord_dn_id=`grep -v "^${v_mig_from_dn_id}$" ${cur_dir}/mig_region_dn_id.txt|head -1`
    v_add_coord_ip=`get_dn_ip_by_id ${v_add_coord_dn_id}`
    if [[ -z "${v_add_coord_dn_id}" || -z "${v_add_coord_ip}" ]];then

@@ -279,13 +279,33 @@ local v_mig_to_dn_id=-1
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};"
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
 # get Add Coord ip
-   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"Submit RegionMigrateProcedure successfully, Region: TConsensusGroupId(type:DataRegion, id:${v_mig_id}), Origin DataNode: TDataNodeLocation(dataNodeId:${v_mig_from_dn_id},\" ${db_dir}/logs/*confignode*all*"`
+# 2026-09-26: ConfigNode 2.0.12 changed the submit log wording and may
+   # omit coordinator locations. Match this migration by Region ID and source
+   # DN, and keep only the latest matching record.
+   v_submit_mig_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h -E 'Submit RegionMigrateProcedure successfully.*DataRegion, id:${v_mig_id}.*dataNodeId:${v_mig_from_dn_id}|Submit region operation procedure successfully.*DataRegion, id:${v_mig_id}' ${db_dir}/logs/*confignode*all* 2>/dev/null | tail -1"`
    v_add_coord_ip=`echo ${v_submit_mig_log} |awk -F "Add Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
-   v_remove_coord_ip_pid_str=`ssh ${u_name}@${v_add_coord_ip} "sudo jps|grep -i datanode"`
-   v_remove_coord_ip_pid=`echo ${v_remove_coord_ip_pid_str}|awk '{print $1}'`
-
 # get Remove Coord IP
    v_remove_coord_ip=`echo ${v_submit_mig_log} |awk -F "Remove Coordinator:" '{print $2}'|awk -F "ip:" '{print $2}'|awk -F ',' '{print $1}'`
+
+   # 2026-09-27: New submit records omit coordinator fields. The AddRegion
+   # coordinator is an existing peer, not necessarily the migration source.
+   if [[ -z "${v_add_coord_ip}" ]]; then
+      v_add_coord_log=`ssh ${u_name}@${v_cn_leader_ip} "grep -h -E 'AddRegionPeerProcedure.*id:${v_mig_id}.*coordinator=[0-9]+@' ${db_dir}/logs/*confignode*all* 2>/dev/null | tail -1"`
+      v_add_coord_ip=`echo "${v_add_coord_log}" | sed -n 's/.*coordinator=[0-9]*@\([^,} ]*\).*/\1/p'`
+   fi
+   if [[ -z "${v_add_coord_ip}" ]]; then
+      v_add_coord_ip=`awk -F ',' -v src_id="${v_mig_from_dn_id}" -v dst_id="${v_mig_to_dn_id}" '$1 != src_id && $1 != dst_id {print $2; exit}' ${cur_dir}/mig_id_info.txt`
+   fi
+   if [[ -z "${v_remove_coord_ip}" ]]; then
+      v_remove_coord_ip=`awk -F ',' -v dn_id="${v_mig_to_dn_id}" '$1 == dn_id {print $2; exit}' ${cur_dir}/all_dn_id_ip.txt`
+   fi
+   if [[ -z "${v_add_coord_ip}" || -z "${v_remove_coord_ip}" ]]; then
+      echo "ERROR: cannot resolve migration coordinators (add='${v_add_coord_ip}', remove='${v_remove_coord_ip}')."
+      let fail_flag++
+      return 1
+   fi
+   v_remove_coord_ip_pid_str=`ssh ${u_name}@${v_add_coord_ip} "sudo jps|grep -i datanode"`
+   v_remove_coord_ip_pid=`echo ${v_remove_coord_ip_pid_str}|awk '{print $1}'`
 
 # Wait until AddRegion is complete and RemoveRegion starts. The leader can change
 # while AddRegion is transferring data, so do not keep polling only the old leader.

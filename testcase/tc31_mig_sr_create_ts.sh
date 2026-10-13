@@ -43,6 +43,44 @@ function clean_env()
    sh -x ${clean_env_dir}/reset_conf.sh
 }
 
+# TDB-462: preserve node logs before the final clean_env removes the log directories.
+function backup_cluster_logs()
+{
+   local backup_started_at
+   local backup_dir
+   local bundle_path
+   local host_list
+   local node_role
+   local host
+   local archive_path
+
+   backup_started_at=`date +%Y%m%d_%H%M%S`
+   backup_dir="${cur_dir}/logs_backup/${SCRIPT_NAME%.sh}_${backup_started_at}"
+   bundle_path="${cur_dir}/logs_backup/${SCRIPT_NAME%.sh}_${backup_started_at}.tar.gz"
+   mkdir -p "${backup_dir}"
+   : > "${backup_dir}/manifest.txt"
+
+   for node_role in confignode datanode
+   do
+      host_list="${nodeinfo_dir}/${node_role}.txt"
+      while read -r host
+      do
+         [[ -z "${host}" || "${host}" == \#* ]] && continue
+         archive_path="${backup_dir}/${node_role}_${host}.tar.gz"
+         if ssh -n -o ConnectTimeout=10 "${u_name}@${host}" \
+              "sudo tar -czf - -C '${db_dir}/logs' ." > "${archive_path}" &&
+              tar -tzf "${archive_path}" >/dev/null 2>&1; then
+            echo "${node_role} ${host}: ${archive_path}" >> "${backup_dir}/manifest.txt"
+         else
+            echo "${node_role} ${host}: log archive failed; see testcase output" >> "${backup_dir}/manifest.txt"
+         fi
+      done < "${host_list}"
+   done
+
+   tar -czf "${bundle_path}" -C "${cur_dir}/logs_backup" "$(basename "${backup_dir}")"
+   echo "Failure log backup: ${bundle_path}"
+}
+
 
 function set_sys_conf()
 {
@@ -194,6 +232,8 @@ do
    if [[ ${v_del_flag} -gt 0 ]];then
       echo "have been executed create timeseries;"
    else 
+      # TDB-462: whole-SQL retries during migration may resubmit already successful view batches.
+      # See KNOWN_ISSUES.md; failed runs archive CN/DN logs before clean_env removes them.
       ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "create view root.test.g_0.view_mig_from_\${3}(\${4}) as select * from root.test.g_0.d*;">${cur_dir}/create_ts.out &
       let v_del_flag++
    fi
@@ -279,9 +319,11 @@ tc_res=true
   if [[ ${fail_flag} = 0 ]];then
      tc_res=true
      echo "${SCRIPT_NAME} : pass" >>"${res_file}"
-  else
+   else
      tc_res=false
      echo "${SCRIPT_NAME} : fail" >>"${res_file}"
+     backup_cluster_logs
+     echo "Failure log backup: ${cur_dir}/logs_backup/${SCRIPT_NAME%.sh}_*" >>"${res_file}"
   fi
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time,warnMsg)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec},'${v_warnMsg}');"
 

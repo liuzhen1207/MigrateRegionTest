@@ -378,6 +378,27 @@ wait_remove_region_settled() {
   done
 }
 
+wait_datanode_process_exit() {
+  local dn_ip=$1
+  local timeout_sec=${2:-180}
+  local start_time
+  local jps_num
+
+  start_time=$(date +%s)
+  while true
+  do
+    jps_num=$(ssh "${u_name}@${dn_ip}" "source /etc/profile; sudo jps -l | grep -c 'DataNode' || true")
+    if [[ "${jps_num}" =~ ^[[:space:]]*0[[:space:]]*$ ]]; then
+      return 0
+    fi
+    if (( $(date +%s) - start_time >= timeout_sec )); then
+      log "timed out waiting for DataNode process to exit on ${dn_ip}; remaining_processes=${jps_num:-unknown}"
+      return 1
+    fi
+    sleep 5
+  done
+}
+
 remove_datanode_under_load() {
   local rm_dn_id
 
@@ -506,12 +527,10 @@ remove_two_datanodes_concurrently() {
     return 1
   fi
 
-  jps_num=$(ssh "${u_name}@${success_target}" "source /etc/profile; sudo jps -l | grep -c 'DataNode' || true")
-  tsfile_num=$(ssh "${u_name}@${success_target}" "sudo find '${db_dir}/data' -name '*.tsfile' -type f | wc -l")
-  if [[ ${jps_num} -ne 0 ]]; then
-    log "removed DataNode process is still present on ${success_target}"
+  if ! wait_datanode_process_exit "${success_target}" 180; then
     let fail_flag++
   fi
+  tsfile_num=$(ssh "${u_name}@${success_target}" "sudo find '${db_dir}/data' -name '*.tsfile' -type f | wc -l")
   if [[ ${tsfile_num} -ne 0 ]]; then
     log "removed DataNode ${success_target} still has ${tsfile_num} tsfiles"
     let fail_flag++

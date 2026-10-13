@@ -153,17 +153,19 @@ done
 }
 function check_res()
 {
-   exp_res=$1
-   exp_num=$2
-   tc_desc=$3
-   res_tmp=$4
-   v_act_num=`cat ${res_tmp}|grep "${exp_res}"|wc -l`
+   local exp_res=$1
+   local exp_num=$2
+   local tc_desc=$3
+   local res_tmp=$4
+   local v_act_num
+   v_act_num=$(grep -F -c -- "${exp_res}" "${res_tmp}" 2>/dev/null || true)
    if [[ ${v_act_num} = ${exp_num} ]];then
       echo "${tc_desc} PASS."
+      return 0
    else
       echo "${tc_desc} FAIL."
-      let fail_flag++
-      cat ${res_tmp} 
+      cat "${res_tmp}"
+      return 1
    fi
 }
 
@@ -173,34 +175,61 @@ function mig_region()
    local v_mig_from_dn_id=$2
    local v_mig_dest_dn_id=$3
    local v_mig_exp_msg=$4
+   local v_wait_for_success=${5:-1}
+   local mig_rc=0
    local v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    local v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
    local v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_dest_dn_id};" > ${cur_dir}/mig_tmp${v_mig_from_dn_id}.out
-   check_res "${v_mig_exp_msg}" 1 ${SCRIPT_NAME} ${cur_dir}/mig_tmp${v_mig_from_dn_id}.out
+   check_res "${v_mig_exp_msg}" 1 ${SCRIPT_NAME} ${cur_dir}/mig_tmp${v_mig_from_dn_id}.out || mig_rc=1
+   # The concurrent request is expected to be rejected while the first migration
+   # is running; it must not wait for a success event of its own.
+   if [[ ${v_wait_for_success} != 1 ]]; then
+      return ${mig_rc}
+   fi
    sleep 2
    local v_mig_start_sec=`date +%s`
    while true
    do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              local v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|tail -1"`
-              local v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-              local v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
-
-              if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]];then
-                 break
-              else
-                 local v_mig_cur_sec=`date +%s`
-                 local v_mig_elp=$((v_mig_cur_sec-v_mig_start_sec))
-                 if [[ ${v_mig_elp} -gt 1200 ]];then
-                    let fail_flag++
-                    break
-                 fi 
-                 sleep 5 
-              fi
-
+      local v_mig_suc_log
+      local v_mig_suc_time
+      local v_mig_suc_sec
+      # Read both active and rotated logs without uncompressing or changing them.
+      v_mig_suc_log=$(ssh ${u_name}@${v_cn_leader_ip} "sudo sh -c 'for f in ${db_dir}/logs/*confignode*all*; do [ -f \"\$f\" ] || continue; case \"\$f\" in *.gz) zgrep -hF \"[MigrateRegion] success\" \"\$f\" 2>/dev/null;; *) grep -hF \"[MigrateRegion] success\" \"\$f\" 2>/dev/null;; esac; done | tail -1'")
+      v_mig_suc_time=$(printf '%s\n' "${v_mig_suc_log}" | awk -F , 'NF {print $1}')
+      v_mig_suc_sec=$(date -d "${v_mig_suc_time}" +%s 2>/dev/null || true)
+      if [[ ${v_mig_suc_sec} =~ ^[0-9]+$ ]] && (( v_mig_suc_sec > v_bef_mig_sec )); then
+         return ${mig_rc}
+      fi
+      local v_mig_cur_sec=$(date +%s)
+      local v_mig_elp=$((v_mig_cur_sec-v_mig_start_sec))
+      if [[ ${v_mig_elp} -gt 1200 ]];then
+         echo "${SCRIPT_NAME}: timed out waiting for MigrateRegion success log on ${v_cn_leader_ip}."
+         return 1
+      fi
+      sleep 5
    done
+}
 
+function backup_cn_dn_logs()
+{
+   local backup_dir="${cur_dir}/../test_result/log_backup/${v_cur_db}_${SCRIPT_NAME%.sh}_$(date +%Y%m%d_%H%M%S)"
+   local manifest="${backup_dir}/MANIFEST.txt"
+   mkdir -p "${backup_dir}"
+   echo "Test failed; CN/DN logs collected at $(date '+%Y-%m-%d %H:%M:%S %z')" > "${manifest}"
+   local role ip archive
+   for role in confignode datanode; do
+      while IFS= read -r ip; do
+         [[ -n ${ip} ]] || continue
+         archive="${backup_dir}/${role}_${ip}_logs.tar.gz"
+         if ssh "${u_name}@${ip}" "sudo tar -czf - -C '${db_dir}' logs" > "${archive}" 2> "${archive}.err"; then
+            echo "OK ${role} ${ip} ${archive}" >> "${manifest}"
+         else
+            echo "FAILED ${role} ${ip} (see ${archive}.err)" >> "${manifest}"
+         fi
+      done < "${nodeinfo_dir}/${role}.txt"
+   done
+   echo "CN/DN log backup directory: ${backup_dir}"
 }
 
 function pre_and_exec_mig_region()
@@ -240,10 +269,15 @@ function pre_and_exec_mig_region()
          sleep 2
       fi
   done
-  mig_region "${v_mig_id}" "${v_mig_from_dn_id1}" "${v_mig_dest_dn_id1}" "Msg: The statement is executed successfully" &
+  mig_region "${v_mig_id}" "${v_mig_from_dn_id1}" "${v_mig_dest_dn_id1}" "Msg: The statement is executed successfully" 1 &
+  local mig_pid=$!
   sleep 1 
-  mig_region "${v_mig_id}" "${v_mig_from_dn_id2}" "${v_mig_dest_dn_id2}" "has some other region operation procedures in progress"
-  wait
+  if ! mig_region "${v_mig_id}" "${v_mig_from_dn_id2}" "${v_mig_dest_dn_id2}" "has some other region operation procedures in progress" 0; then
+     let fail_flag++
+  fi
+  if ! wait ${mig_pid}; then
+     let fail_flag++
+  fi
   # restart unknown
  v_start_time=`date +%s`
   ssh ${u_name}@${v_mig_from_dn_ip2} "source /etc/profile;sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_${v_start_time}_heapdump.hprof > /dev/null 2>&1 &"
@@ -283,6 +317,7 @@ tc_res=true
   else
      tc_res=false
      echo "${SCRIPT_NAME} : fail" >>"${res_file}"
+     backup_cn_dn_logs
   fi
 ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
 

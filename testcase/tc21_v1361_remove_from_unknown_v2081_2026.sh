@@ -1,7 +1,4 @@
 #!/bin/bash
-# 背景记录（2026-09-22）：研发确认 DN7 为 Unknown 时执行 REMOVE REGION，7 个 Region
-# 均返回“Target DataNode 7 is not in Running status\|Duplicate Region ID\|Target DataNode 7 already contains region”，符合当前用例预期。Unknown
-# 状态不易稳定构造，陈荣钊建议暂无必要专门扩展该场景；本用例保留用于现有行为校验。
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
@@ -140,7 +137,7 @@ function check_res()
    exp_num=$2
    tc_desc=$3
    v_act_num=`cat ${cur_dir}/tmp.out|grep "${exp_res}"|wc -l`
-   if [[ ${v_act_num} = ${exp_num} ]] || grep -q "^Msg:" "${cur_dir}/tmp.out";then
+   if [[ ${v_act_num} = ${exp_num} ]];then
       echo "${tc_desc} PASS."
       let succ_flag++
    else
@@ -696,11 +693,14 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    sleep 2
 # repeate list
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${v_remove_list},${v_remove_list}  FROM ${v_rm_id};">${cur_dir}/tmp.out
-   check_res2 "successfully submitted:" "Target DataNode ${v_rm_id} is not in Running status" 1 "${SCRIPT_NAME}"
+   # The current ConfigNode rejects the repeated region list before submission.
+   check_res2 "Duplicate Region ID" "Target DataNode ${v_rm_id} is not in Running status" 1 "${SCRIPT_NAME}"
    cat ${cur_dir}/tmp.out
    wait_Removing_finish ${query_ip} 3600
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "EXTEND REGION ${v_remove_list}  TO ${v_rm_id};">${cur_dir}/tmp.out
-   check_res "successfully" 1 "${SCRIPT_NAME}"
+   # The duplicate REMOVE request is rejected, so the regions remain on the
+   # restarted DataNode and EXTEND reports that they already exist there.
+   check_res2 "successfully" "Target DataNode ${v_rm_id} already contains region" 1 "${SCRIPT_NAME}"
    cat ${cur_dir}/tmp.out
    wait_Adding_finish ${query_ip} 3600 ${v_rm_ip}
 

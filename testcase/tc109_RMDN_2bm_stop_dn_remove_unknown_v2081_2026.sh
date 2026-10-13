@@ -31,6 +31,70 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+evidence_dir=""
+remove_command_response=""
+function capture_cli_snapshot()
+{
+   local name=$1
+   local dialect=$2
+   local sql=$3
+   local output="${evidence_dir}/${name}.out"
+   local rc
+   timeout 60s "${cli_dir}/sbin/start-cli.sh" -u "${db_sys_admin}" ${ssl_str} -h "${query_ip}" -sql_dialect "${dialect}" -e "${sql}" > "${output}" 2>&1
+   rc=$?
+   printf 'snapshot %s: rc=%s file=%s\n' "${name}" "${rc}" "${output}" >> "${evidence_dir}/manifest.txt"
+}
+function capture_failure_evidence()
+{
+   local reason=$1
+   local role
+   local host
+   local host_tag
+   local archive
+   local new_evidence_dir
+
+   [[ -n "${evidence_dir}" ]] && return 0
+   new_evidence_dir="${cur_dir}/logs_backup/${SCRIPT_NAME%.sh}_$(date +%Y%m%d_%H%M%S)_$$"
+   if ! mkdir -p "${new_evidence_dir}";then
+      echo "Evidence directory creation failed: ${new_evidence_dir}" >&2
+      return 1
+   fi
+   evidence_dir="${new_evidence_dir}"
+   printf 'reason=%s\ntime=%s\nversion=%s\nremoved_dn_id=%s\nremoved_dn_ip=%s\nquery_ip=%s\n' \
+      "${reason}" "$(date -Is)" "${v_cur_db}" "${v_rm_id:-unknown}" "${v_rm_ip:-unknown}" "${query_ip}" > "${evidence_dir}/manifest.txt"
+   echo "Failure evidence: ${evidence_dir}"
+   for host in test.conf confignode.txt datanode.txt;do
+      if [[ "${host}" == test.conf ]];then
+         cp -p "${conf_file}" "${evidence_dir}/test.conf"
+      else
+         cp -p "${nodeinfo_dir}/${host}" "${evidence_dir}/${host}"
+      fi
+   done
+   [[ -f "${cur_dir}/tmp.out" ]] && cp -p "${cur_dir}/tmp.out" "${evidence_dir}/last_tmp.out"
+   [[ -n "${remove_command_response}" ]] && printf '%s\n' "${remove_command_response}" > "${evidence_dir}/remove_datanode_command.out"
+
+   capture_cli_snapshot show_datanodes tree 'show datanodes;'
+   capture_cli_snapshot show_migrations tree 'show migrations;'
+   capture_cli_snapshot show_regions_tree tree 'show regions;'
+   capture_cli_snapshot show_regions_table table 'show regions;'
+   capture_cli_snapshot show_cluster tree 'show cluster;'
+
+   for role in confignode datanode;do
+      while IFS= read -r host || [[ -n "${host}" ]];do
+         [[ -z "${host}" || "${host}" == \#* ]] && continue
+         host_tag=${host//./_}
+         archive="${evidence_dir}/${role}_${host_tag}.tar.gz"
+         if timeout 300s ssh -n -o BatchMode=yes -o ConnectTimeout=10 "${u_name}@${host}" \
+               "tar -czf - -C '${db_dir}' logs" > "${archive}" 2> "${archive}.stderr" &&
+               tar -tzf "${archive}" >/dev/null 2>&1;then
+            printf 'logs %s %s: ok file=%s\n' "${role}" "${host}" "${archive}" >> "${evidence_dir}/manifest.txt"
+         else
+            printf 'logs %s %s: FAILED file=%s stderr=%s.stderr\n' "${role}" "${host}" "${archive}" "${archive}" >> "${evidence_dir}/manifest.txt"
+         fi
+      done < "${nodeinfo_dir}/${role}.txt"
+   done
+   echo "Failure evidence manifest: ${evidence_dir}/manifest.txt"
+}
 function clean_env()
 {
    #clean env
@@ -210,30 +274,66 @@ local t1=`date +%s`
 }
 function wait_rm_finish()
 {
-local v_rm_ip=$1
-local max_wait_time=$2
-local t1=`date +%s`
-  while true
-   do
-       ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
-       v_rm_succ=`cat ${cur_dir}/tmp.out |grep "${v_rm_ip}|"|wc -l`
-       v_rm_status=`cat ${cur_dir}/tmp.out |grep "${v_rm_ip}|"|awk -F "|" '{gsub(" ","");print $3}'`
-       if [[ ${v_rm_succ} -gt 0 ]] && [[ ${v_rm_status} != Running ]];then
-          sleep 1
-       else
-          break
-       fi
-      t2=`date +%s`
-      t_elp=$((t2-t1))
-      if [[ ${t_elp} -gt ${max_wait_time} ]];then
-         let fail_flag++
-         let rm_fail_flag++
-         echo "Removing takes too long."
-         break
+   local v_rm_ip=$1
+   local max_wait_time=$2
+   local attempt=$3
+   local t1=$(date +%s)
+   local empty_since=0
+   local now elapsed migrations_output migrations_rc v_rm_status
+
+   while true;do
+      migrations_output=$(timeout 60s "${cli_dir}/sbin/start-cli.sh" -u "${db_sys_admin}" ${ssl_str} -h "${query_ip}" -e 'show migrations;' 2>&1)
+      migrations_rc=$?
+      now=$(date +%s)
+      elapsed=$((now-t1))
+
+      if [[ ${migrations_rc} -eq 0 ]] && grep -q '^Empty set\.$' <<< "${migrations_output}";then
+         if [[ ${empty_since} -eq 0 ]];then
+            empty_since=${now}
+         fi
+         if [[ $((now-empty_since)) -ge 60 ]];then
+            echo "show migrations has been empty for 60 seconds; checking DataNode ${v_rm_id} (${v_rm_ip})."
+            break
+         fi
+      else
+         empty_since=0
+         if [[ ${migrations_rc} -ne 0 ]] || grep -Eq '^Error:|^Exception' <<< "${migrations_output}";then
+            echo "show migrations query failed (rc=${migrations_rc}): ${migrations_output}" >&2
+         fi
       fi
 
+      if [[ ${elapsed} -gt ${max_wait_time} ]];then
+         let fail_flag++
+         let rm_fail_flag++
+         echo "Removing takes too long: show migrations was not continuously empty for 60 seconds after ${elapsed}s."
+         capture_failure_evidence "remove datanode timeout after ${elapsed}s; migrations not continuously empty"
+         return 1
+      fi
+      sleep 1
    done
 
+   if ! timeout 60s "${cli_dir}/sbin/start-cli.sh" -u "${db_sys_admin}" ${ssl_str} -h "${query_ip}" -e 'show datanodes;' > "${cur_dir}/tmp.out" 2>&1 ||
+      ! grep -q 'Total line number' "${cur_dir}/tmp.out";then
+      let fail_flag++
+      let rm_fail_flag++
+      echo "Failed to verify DataNode ${v_rm_id} (${v_rm_ip}) after migrations became empty."
+      capture_failure_evidence 'show datanodes failed after migrations became empty'
+      return 1
+   fi
+   cp -p "${cur_dir}/tmp.out" "${cur_dir}/tc109_remove_attempt_${attempt}_datanodes.out"
+   if grep -Fq "${v_rm_ip}|" "${cur_dir}/tmp.out";then
+      v_rm_status=$(grep -F "${v_rm_ip}|" "${cur_dir}/tmp.out" | awk -F '|' 'NR == 1 {gsub(" ", "", $3); print $3}')
+      if [[ ${attempt} -eq 1 && ${v_rm_status} == Unknown ]];then
+         echo "First remove attempt ended with DataNode ${v_rm_id} still Unknown; retrying once."
+         return 2
+      fi
+      let fail_flag++
+      let rm_fail_flag++
+      echo "Remove attempt ${attempt} ended, but DataNode ${v_rm_id} (${v_rm_ip}) is still ${v_rm_status} in show datanodes."
+      capture_failure_evidence "remove attempt ${attempt}: migrations empty for 60s; datanode still ${v_rm_status}"
+      return 1
+   fi
+   echo "DataNode ${v_rm_id} (${v_rm_ip}) has been removed."
 }
 function check_dn_jps()
 {
@@ -436,10 +536,34 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
   fi
 
    ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "remove datanode ${v_rm_id};">${cur_dir}/tmp.out
+   remove_command_response=$(cat "${cur_dir}/tmp.out")
    check_res "success" 1 "${SCRIPT_NAME}"
   check_stop ${v_rm_ip} ${query_ip}
-   wait_rm_finish "${v_rm_ip}" 3600
+   if wait_rm_finish "${v_rm_ip}" 3600 1;then
+      :
+   else
+      rm_wait_rc=$?
+      if [[ ${rm_wait_rc} -eq 2 ]];then
+         echo "Submitting one more REMOVE DATANODE ${v_rm_id} after the first procedure settled."
+         if timeout 60s "${cli_dir}/sbin/start-cli.sh" -u "${db_sys_admin}" ${ssl_str} -h "${query_ip}" \
+            -e "remove datanode ${v_rm_id};" > "${cur_dir}/tc109_remove_attempt_2.out" 2>&1 &&
+            grep -q 'successfully' "${cur_dir}/tc109_remove_attempt_2.out";then
+            remove_command_response="${remove_command_response}
+Retry: $(cat "${cur_dir}/tc109_remove_attempt_2.out")"
+            wait_rm_finish "${v_rm_ip}" 3600 2
+         else
+            let fail_flag++
+            let rm_fail_flag++
+            echo "Second REMOVE DATANODE ${v_rm_id} submission failed."
+            cat "${cur_dir}/tc109_remove_attempt_2.out"
+            capture_failure_evidence 'second remove datanode submission failed'
+         fi
+      fi
+   fi
    wait_bm_finish 36000 "${bm_dir}/${v_t}_bm1.out" "${bm_dir}/${v_t}_bm2.out"
+   if [[ -n "${evidence_dir}" ]];then
+      cp -p "${bm_dir}/${v_t}_bm1.out" "${bm_dir}/${v_t}_bm2.out" "${evidence_dir}/" 2>> "${evidence_dir}/manifest.txt"
+   fi
 if [[ ${rm_fail_flag} = 0 ]];then 
    check_data_consistent
 fi
@@ -456,6 +580,10 @@ tc_res=true
   else
      tc_res=false
      echo "${SCRIPT_NAME} : fail"
+     capture_failure_evidence "test failed; fail_flag=${fail_flag}; rm_fail_flag=${rm_fail_flag}"
+     if [[ -n "${evidence_dir}" ]];then
+        cp -p "${bm_dir}/${v_t}_bm1.out" "${bm_dir}/${v_t}_bm2.out" "${evidence_dir}/" 2>> "${evidence_dir}/manifest.txt"
+     fi
   fi
 echo "${tc_num}"
 echo "${SCRIPT_NAME}"
@@ -471,6 +599,7 @@ function record_start_failure()
    test_elp_sec=$((test_end_sec-test_begin_sec))
    tc_res=false
    echo "${SCRIPT_NAME} : fail (cluster startup failed)"
+   capture_failure_evidence 'cluster startup failed'
    echo "${tc_num}"
    echo "${SCRIPT_NAME}"
    echo "${tc_res}"

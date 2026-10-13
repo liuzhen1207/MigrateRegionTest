@@ -352,6 +352,9 @@ function wait_second_migration_terminal_by_topology()
   local v_to_dn_id=$4
   local v_to_dn_ip=$5
   local v_wait_start_sec=`date +%s`
+  local v_prev_signature=""
+  local v_same_signature_rounds=0
+  local v_required_stable_rounds=5
 
   while true
   do
@@ -359,41 +362,34 @@ function wait_second_migration_terminal_by_topology()
      cp ${cur_dir}/show_data_regions_latest.out ${cur_dir}/show_data_regions.out
 
      local v_region_transitioning=`grep " ${v_region_id}|[[:space:]]*DataRegion" ${cur_dir}/show_data_regions_latest.out | grep -E "Adding|Removing" | wc -l`
-     if [[ ${v_region_transitioning} -gt 0 ]];then
-        local v_wait_cur_sec=`date +%s`
-        local v_wait_elp_sec=$((v_wait_cur_sec-v_wait_start_sec))
-        if [[ ${v_wait_elp_sec} -gt ${loop_timeout_sec} ]];then
-           append_warn_message "wait second migration terminal timeout, region ${v_region_id} still has Adding or Removing state"
-           let fail_flag++
-           return 1
-        fi
-        sleep 5
-        continue
-     fi
-
      local v_region_count=`grep " ${v_region_id}|[[:space:]]*DataRegion" ${cur_dir}/show_data_regions_latest.out | wc -l`
      local v_target_in_topology=`grep "^${v_to_dn_id}$" ${cur_dir}/mig_region_dn_id.txt 2>/dev/null | wc -l`
      local v_source_in_topology=`grep "^${v_from_dn_id}$" ${cur_dir}/mig_region_dn_id.txt 2>/dev/null | wc -l`
+     local v_state_signature="${v_region_transitioning}:${v_region_count}:${v_source_in_topology}:${v_target_in_topology}"
 
-     if [[ ${v_region_count} != ${dr_rep_num} ]];then
-        append_warn_message "second migration failed, final region ${v_region_id} replica count is ${v_region_count}, expected ${dr_rep_num}"
-        let fail_flag++
-        return 1
+     if [[ "${v_state_signature}" = "${v_prev_signature}" ]];then
+        v_same_signature_rounds=$((v_same_signature_rounds+1))
+     else
+        v_prev_signature="${v_state_signature}"
+        v_same_signature_rounds=1
      fi
 
-     if [[ ${v_target_in_topology} = 1 ]] && [[ ${v_source_in_topology} = 0 ]];then
+     # Unknown can replace Removing while the old peer is still being deleted.
+     # Only the expected, stable topology proves that migration has finished.
+     if [[ ${v_region_transitioning} = 0 ]] && [[ ${v_region_count} = ${dr_rep_num} ]] &&
+        [[ ${v_target_in_topology} = 1 ]] && [[ ${v_source_in_topology} = 0 ]] &&
+        [[ ${v_same_signature_rounds} -ge ${v_required_stable_rounds} ]];then
         return 0
      fi
 
-     if [[ ${v_source_in_topology} = 1 ]] && [[ ${v_target_in_topology} = 0 ]];then
-        append_warn_message "second migration failed, final topology still keeps source peer ${v_from_dn_id}@${v_from_dn_ip} and target peer ${v_to_dn_id}@${v_to_dn_ip} is absent for region ${v_region_id}"
+     local v_wait_cur_sec=`date +%s`
+     local v_wait_elp_sec=$((v_wait_cur_sec-v_wait_start_sec))
+     if [[ ${v_wait_elp_sec} -gt ${loop_timeout_sec} ]];then
+        append_warn_message "second migration timeout, region ${v_region_id}: replicas=${v_region_count} (expected ${dr_rep_num}), transitioning=${v_region_transitioning}, source ${v_from_dn_id}@${v_from_dn_ip} present=${v_source_in_topology}, target ${v_to_dn_id}@${v_to_dn_ip} present=${v_target_in_topology}"
         let fail_flag++
         return 1
      fi
-
-     append_warn_message "second migration failed, final topology is unexpected for region ${v_region_id}: source ${v_from_dn_id}@${v_from_dn_ip} present=${v_source_in_topology}, target ${v_to_dn_id}@${v_to_dn_ip} present=${v_target_in_topology}"
-     let fail_flag++
-     return 1
+     sleep 5
   done
 }
 

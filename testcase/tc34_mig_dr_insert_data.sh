@@ -254,6 +254,9 @@ function pre_and_exec_mig_region()
   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep Running|awk -F '|' '{gsub(" ","");print $2","$4}'>${cur_dir}/all_dn_id_ip.txt
 
 local v_mig_to_dn_id=-1
+local MIGRATION_WAIT_TIMEOUT=3600
+local MIGRATION_STABLE_POLLS=3
+local MIGRATION_POLL_INTERVAL=10
 v_del_flag=0
 exec 3<${cur_dir}/mig_id_info.txt
 while read line<&3
@@ -269,9 +272,6 @@ do
              fi
          done
    fi
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   v_bef_mig_time=`ssh ${u_name}@${v_cn_leader_ip} "date +\"%Y-%m-%d %H:%M:%S\""`
-   v_bef_mig_sec=`date -d"${v_bef_mig_time}" +%s`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "create user kevin 'TimechoDB@2021';"
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "grant all ON root.** TO USER kevin WITH GRANT OPTION;"
@@ -284,62 +284,58 @@ do
      start_bm 
       let v_del_flag++
    fi
-for v_f_cn_l in  {1..60}
-do
-   v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   if [ -n "${v_cn_leader_ip}" ]; then
-      echo "cn leader : ${v_cn_leader_ip}"
-      break
-   else
-      sleep 1
-   fi 
-done
-if [ -n "${v_cn_leader_ip}" ]; then
-# 初始化连续v_mig_status_num=0的计数器
-local count_zero_status=0
-# 定义连续3次为退出阈值
-local MAX_ZERO_COUNT=3
-   while true
-   do
-      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip ${db_dir}/logs/log-confignode-all*"
-              v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all.log|tail -1"`
-              v_mig_suc_time=`echo ${v_mig_suc_log}|awk -F , '{print $1}'`
-#              v_mig_suc_sec=`date -d"${v_mig_suc_time}" +%s`
-              v_mig_suc_sec=$(date -d"${v_mig_suc_time}" +%s 2>/dev/null || echo 0)  # 容错：时间解析失败时赋值0
-    # 2. 获取迁移状态数量（Adding/Removing的region数）
-    v_mig_status_num=$(${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show regions;" | egrep "Adding|Removing" | wc -l)
-    
-    # 3. 核心判断：满足任一条件则退出循环
-    ## 条件1：迁移成功时间戳大于基准时间
-    if [[ ${v_mig_suc_sec} -gt ${v_bef_mig_sec} ]]; then
-        echo "满足条件：v_mig_suc_sec(${v_mig_suc_sec}) > v_bef_mig_sec(${v_bef_mig_sec})，退出循环"
-        break
-    fi
-    
-    ## 条件2：连续3次v_mig_status_num=0
-    # 重置/累加计数器
-    if [[ ${v_mig_status_num} -eq 0 ]]; then
-        count_zero_status=$((count_zero_status + 1))
-        echo "当前v_mig_status_num=0，连续计数：${count_zero_status}/${MAX_ZERO_COUNT}"
-    else
-        count_zero_status=0  # 非0则重置计数器
-        echo "当前v_mig_status_num=${v_mig_status_num}，重置连续0计数"
-    fi
-    
-    # 检查是否达到连续3次0
-    if [[ ${count_zero_status} -ge ${MAX_ZERO_COUNT} ]]; then
-        echo "满足条件：连续${MAX_ZERO_COUNT}次v_mig_status_num=0，退出循环"
-        break
-    fi
-    
-    # 未满足条件，休眠10秒后继续循环
-    sleep 10
+   # Wait for this specific replica move to finish. A missing Adding/Removing
+   # row alone is not sufficient: the procedure can still be finalizing.
+   local migration_wait_start=$SECONDS
+   local stable_topology_polls=0
+   local topology
+   while (( SECONDS - migration_wait_start < MIGRATION_WAIT_TIMEOUT )); do
+      local data_regions
+      data_regions=$("${cli_dir}/sbin/start-cli.sh" -h "${query_ip}" -e "show data regions;")
+      topology=$(printf '%s\n' "${data_regions}" | awk -F '|' \
+         -v region_id="${v_mig_id}" \
+         -v source_id="${v_mig_from_dn_id}" \
+         -v target_id="${v_mig_to_dn_id}" '
+         {
+           for (i = 1; i <= NF; i++) gsub(/^[[:space:]]+|[[:space:]]+$/, "", $i)
+           if ($2 == region_id && $3 == "DataRegion") {
+             if (count == 0) all_running = 1
+             count++
+             if ($8 == source_id) source_present = 1
+             if ($8 == target_id) target_present = 1
+             if ($4 != "Running") all_running = 0
+           }
+         }
+         END {
+           if (count == 0) all_running = 0
+           printf "%d %d %d %d", count, source_present, target_present, all_running
+         }')
+      read -r region_replica_count source_present target_present all_running <<< "${topology}"
+      v_mig_status_num=$("${cli_dir}/sbin/start-cli.sh" -h "${query_ip}" -e "show regions;" | egrep "Adding|Removing" | wc -l)
+
+      if [[ "${region_replica_count}" = "${dr_rep_num}" &&
+            "${source_present}" = "0" &&
+            "${target_present}" = "1" &&
+            "${all_running}" = "1" &&
+            "${v_mig_status_num}" = "0" ]]; then
+         stable_topology_polls=$((stable_topology_polls + 1))
+         echo "Region ${v_mig_id} topology settled (${stable_topology_polls}/${MIGRATION_STABLE_POLLS}): ${topology}"
+         if (( stable_topology_polls >= MIGRATION_STABLE_POLLS )); then
+            break
+         fi
+      else
+         stable_topology_polls=0
+         echo "Waiting for Region ${v_mig_id} move ${v_mig_from_dn_id}->${v_mig_to_dn_id}; topology=${topology}, active_status=${v_mig_status_num}"
+      fi
+      sleep "${MIGRATION_POLL_INTERVAL}"
    done
+
+   if (( stable_topology_polls < MIGRATION_STABLE_POLLS )); then
+      echo "ERROR: timed out after ${MIGRATION_WAIT_TIMEOUT}s waiting for Region ${v_mig_id} move ${v_mig_from_dn_id}->${v_mig_to_dn_id}"
+      let fail_flag++
+      break
+   fi
    v_mig_to_dn_id=${v_mig_from_dn_id}
-else
-   let fail_flag++
-   echo "cn leader is empty."
-fi
 done
 while true
 do

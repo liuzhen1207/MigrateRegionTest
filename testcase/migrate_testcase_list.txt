@@ -31,6 +31,7 @@ tc28_mig_region_kill_cn_leader.sh
 tc29_mig_schema_data_priv.sh
 tc30_mig_sr_del_timeseries.sh
 tc31_mig_sr_create_ts.sh
+tc58_mig_sr_create_ts_repeat_migration.sh
 tc32_illegal_mig_sql.sh
 tc33_mig_dr_del_data.sh
 tc34_mig_dr_insert_data.sh
@@ -55,6 +56,7 @@ tc50_aft_add_peer_kill_source_dn.sh
 tc51_aft_add_peer_kill_dn_cn.sh
 tc52_mig_sr_alter_timeseries.sh
 tc53_mig_comping.sh
+tc54_add_peer_residual_lock.sh
 tc56_TIMECHODB-947.sh
 tc57_timechodb_857_985.sh
 tc2081002_sys_connections_drop_user_v2081.sh

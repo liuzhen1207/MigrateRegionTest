@@ -193,24 +193,78 @@ done
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster" > ${cur_dir}/${tmp_out_file}
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show regions" >> ${cur_dir}/${tmp_out_file}
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes" >> ${cur_dir}/${tmp_out_file}
+   # 迁移前采集基线（全 CN 的 success/failed 计数），避免历史日志造成假通过
+   v_cn_ips=`cat ${nodeinfo_dir}/confignode.txt 2>/dev/null | tr "\n" " "`
+   [ -z "${v_cn_ips}" ] && v_cn_ips="${query_ip}"
+   dn_ips=`cat ${nodeinfo_dir}/datanode.txt 2>/dev/null | tr "\n" " "`
+   v_suc_before=0
+   v_fail_before=0
+   for _cn in ${v_cn_ips}; do
+      _b=`ssh ${u_name}@${_cn} "grep -c '\[MigrateRegion\] success' ${db_dir}/logs/log_confignode_all.log 2>/dev/null; grep -cE 'sub-procedure .* failed|AddRegionPeerProcedure failed|DO_ADD_REGION_PEER result is FAIL|RegionMigrateProcedure will not continue' ${db_dir}/logs/log_confignode_all.log 2>/dev/null" 2>/dev/null`
+      _s=`echo "${_b}" | sed -n '1p' | tr -dc '0-9'`
+      _f=`echo "${_b}" | sed -n '2p' | tr -dc '0-9'`
+      v_suc_before=$((v_suc_before + ${_s:-0}))
+      v_fail_before=$((v_fail_before + ${_f:-0}))
+   done
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};"
     
    sleep 10 
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
-   while true 
+   t1=`date +%s`
+   v_mig_state="timeout"
+   v_mig_wait=${v_mig_wait:-1500}
+   while true
    do
-      v_mig_suc=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/log_confignode_all.log|wc -l"`
-      if [[ ${v_mig_suc} -gt 0 ]];then
-	      v_del_suc=`ssh ${u_name}@${v_cn_leader_ip} "grep \"DELETE_OLD_REGION_PEER failed\" ${db_dir}/logs/log_confignode_all.log|wc -l"`
-	      if [[ ${v_del_suc} -gt 0 ]];then
-		 let fail_flag++
-	      fi
-
+      v_mig_suc=0
+      v_mig_fail=0
+      # 遍历所有 CN：leader 可能切换，只看一个节点会漏判
+      for _cn in ${v_cn_ips}; do
+         _cnt=`ssh ${u_name}@${_cn} "grep -c '\[MigrateRegion\] success' ${db_dir}/logs/log_confignode_all.log 2>/dev/null; grep -cE 'sub-procedure .* failed|AddRegionPeerProcedure failed|DO_ADD_REGION_PEER result is FAIL|RegionMigrateProcedure will not continue' ${db_dir}/logs/log_confignode_all.log 2>/dev/null" 2>/dev/null`
+         _s=`echo "${_cnt}" | sed -n '1p' | tr -dc '0-9'`
+         _f=`echo "${_cnt}" | sed -n '2p' | tr -dc '0-9'`
+         v_mig_suc=$((v_mig_suc + ${_s:-0}))
+         v_mig_fail=$((v_mig_fail + ${_f:-0}))
+      done
+      # 成功：必须是相对基线的增量，避免历史日志造成假通过
+      if [[ $((v_mig_suc - v_suc_before)) -gt 0 ]];then
+         v_mig_state="success"
+         v_del_suc=`ssh ${u_name}@${v_cn_leader_ip} "grep \"DELETE_OLD_REGION_PEER failed\" ${db_dir}/logs/log_confignode_all.log|wc -l"`
+         if [[ ${v_del_suc} -gt 0 ]];then
+            let fail_flag++
+         fi
          break
-      else
-         sleep 5 
+      fi
+      # 失败快速判据：子过程失败/回滚时立即判失败，不必等满超时
+      if [[ $((v_mig_fail - v_fail_before)) -gt 0 ]];then
+         let fail_flag++
+         v_mig_state="failed"
+         echo "MigrateRegion procedure failed (rollback detected), abort waiting."
+         for _cn in ${v_cn_ips}; do
+            ssh ${u_name}@${_cn} "grep -E 'sub-procedure .* failed|DO_ADD_REGION_PEER result is FAIL|RegionMigrateProcedure will not continue|RESET_PEER_LIST after' ${db_dir}/logs/log_confignode_all.log 2>/dev/null | tail -2" 2>/dev/null | sed "s/^/    [CN ${_cn}] /"
+         done
+         for _dn in ${dn_ips}; do
+            _npe=`ssh ${u_name}@${_dn} "grep -c 'NullPointerException' ${db_dir}/logs/log_datanode_all.log 2>/dev/null" 2>/dev/null | tr -dc '0-9'`
+            if [[ ${_npe:-0} -gt 0 ]];then
+               echo "    [DN ${_dn}] NullPointerException x${_npe}"
+               ssh ${u_name}@${_dn} "grep -A6 'NullPointerException' ${db_dir}/logs/log_datanode_all.log 2>/dev/null | tail -8" 2>/dev/null | sed 's/^/      /'
+            fi
+         done
+         break
+      fi
+      sleep 5
+      t2=`date +%s`
+      t3=$((t2-t1))
+      if [[ $((t3 % 60)) -lt 5 ]];then
+         echo "  [MigrateRegion] waiting ${t3}s / ${v_mig_wait}s (suc+=$((v_mig_suc-v_suc_before)), fail+=$((v_mig_fail-v_fail_before)))"
+      fi
+      if [[ ${t3} -gt ${v_mig_wait} ]];then
+         let fail_flag++
+         v_mig_state="timeout"
+         echo "${v_mig_wait} s ,MigrateRegion not success."
+         break
       fi
    done
+   echo "  MigrateRegion 结果: ${v_mig_state}"
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_172),count(s_293),count(s_8),count(s_490),count(s_368),count(s_597),max_time(s_172),max_time(s_293),max_time(s_8),max_time(s_490),max_time(s_368),max_time(s_597) from root.test.g_0.** align by device;">${cur_dir}/q_act.out
    v_query_is_same=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out|grep root|wc -l`
    if [[ ${v_query_is_same} -gt 0 ]];then
@@ -244,6 +298,45 @@ sleep 3
       let fail_flag++
    fi
 
+# ===== 检查 CN/DN 日志中是否出现空指针异常（含快照 NPE），有则判失败 =====
+v_npe_total=0
+v_npe_detail=""
+v_warnMessage=""
+exec 3<${nodeinfo_dir}/confignode.txt
+while read line<&3
+do
+   v_npe_one=`ssh ${u_name}@${line} "grep -c 'NullPointerException' ${db_dir}/logs/log_confignode_all.log 2>/dev/null" 2>/dev/null | tr -dc '0-9'`
+   if [[ -n ${v_npe_one} && ${v_npe_one} -gt 0 ]];then
+      v_npe_total=$((v_npe_total+v_npe_one))
+      v_npe_detail="${v_npe_detail} CN:${line}(x${v_npe_one})"
+   fi
+done
+exec 3<${nodeinfo_dir}/datanode.txt
+while read line<&3
+do
+   v_npe_one=`ssh ${u_name}@${line} "grep -c 'NullPointerException' ${db_dir}/logs/log_datanode_all.log 2>/dev/null" 2>/dev/null | tr -dc '0-9'`
+   if [[ -n ${v_npe_one} && ${v_npe_one} -gt 0 ]];then
+      v_npe_total=$((v_npe_total+v_npe_one))
+      v_npe_detail="${v_npe_detail} DN:${line}(x${v_npe_one})"
+   fi
+done
+if [[ ${v_npe_total} -gt 0 ]];then
+   let fail_flag++
+   v_warnMessage="NullPointerException found in CN/DN logs:${v_npe_detail}"
+   echo "================================================================"
+   echo "FAIL: ${v_warnMessage}"
+   echo "最后一条空指针堆栈（请保留现场并提交研发）："
+   exec 3<${nodeinfo_dir}/datanode.txt
+   while read line<&3
+   do
+      v_npe_one=`ssh ${u_name}@${line} "grep -c 'NullPointerException' ${db_dir}/logs/log_datanode_all.log 2>/dev/null" 2>/dev/null | tr -dc '0-9'`
+      if [[ -n ${v_npe_one} && ${v_npe_one} -gt 0 ]];then
+         ssh ${u_name}@${line} "grep -B2 -A12 'NullPointerException' ${db_dir}/logs/log_datanode_all.log 2>/dev/null | tail -16"
+      fi
+   done
+   echo "================================================================"
+   echo "${SCRIPT_NAME} : ${v_warnMessage}" >>"${res_file}"
+fi
 test_end_sec=`date +%s`
 test_elp_sec=$((test_end_sec-test_begin_sec))
 tc_res=true

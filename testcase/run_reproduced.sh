@@ -24,6 +24,11 @@ do
     # 【全局超时保护】单个用例若陷入无限循环会阻塞整个跑批
     #   （2026-11-04 tc107 卡 4h48m、此前 tc14 卡 11h，都是等待循环无超时）
     tc_timeout=${TC_TIMEOUT:-10800}
+    # 按用例覆盖超时：慢用例（本来就跑得久）单独放宽，避免被误杀
+    if [ -f "$(dirname "$0")/slow_case_timeouts.conf" ]; then
+        _tc_ov=$(grep -E "^[[:space:]]*$(basename "${desc}")[[:space:]]" "$(dirname "$0")/slow_case_timeouts.conf" 2>/dev/null | awk '{print $2}' | head -1)
+        if [ -n "${_tc_ov}" ]; then tc_timeout=${_tc_ov}; fi
+    fi
     echo "===== Round $i, run ${desc}, log: ${logfile}, timeout: ${tc_timeout}s ====="
     timeout -s KILL "${tc_timeout}" bash -x "${desc}" > "${logfile}" 2>&1
     v_run_rc=$?

@@ -293,6 +293,12 @@ function remove_datanode()
 	exec_rm_ip=$2
         rm_flag="success"
         v_rm_datanode_id=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;"|grep ${rm_dn_ip}|awk -F '|' '{gsub(" ","");print $2}'`
+        # 记录检查前的失败计数基线（增量判定，避免历史日志误判）
+        v_rmf_before=0
+        for _cn in `cat ${nodeinfo_dir}/confignode.txt 2>/dev/null`; do
+           _b=`ssh ${u_name}@${_cn} "grep -cE 'sub-procedure .* failed|AddRegionPeerProcedure failed|RegionMigrateProcedure will not continue' ${db_dir}/logs/log_confignode_all.log 2>/dev/null" 2>/dev/null | tr -dc '0-9'`
+           v_rmf_before=$((v_rmf_before + ${_b:-0}))
+        done
         v_rm_res=`ssh ${u_name}@${exec_rm_ip} "sudo ${db_dir}/sbin/start-cli.sh -h ${query_ip} -e \"remove datanode ${v_rm_datanode_id}\""`
         v_rm_succ=`echo "${v_rm_res}"|grep "successfully"|wc -l`
         if [[ ${v_rm_succ} = 0 ]];then
@@ -300,20 +306,52 @@ function remove_datanode()
         fi
         sleep 10
         # check remove result
+        # 【修复】原循环无超时：remove datanode 接受后若迁移一直失败，节点永远停在 Running，
+        #   循环会永久挂住（2026-11-04 tc107/tc108 均因此卡死数小时）。这里加超时 + 失败快速退出。
+        v_rm_wait=${v_rm_wait:-600}
+        t_rm_start=`date +%s`
         while true
         do
            v_jps=`ssh ${u_name}@${rm_dn_ip} "sudo jps|grep -i datanode|wc -l"`
            v_removing_status=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;"|grep "${rm_dn_ip}|"|grep -i removing|wc -l`
            if [[ ${v_jps} = 0 ]];then
               echo "${rm_dn_ip}," >> ${cur_dir}/ignore_dn_list.txt
+              echo "  [remove datanode] 成功: ${rm_dn_ip} 进程已退出"
               break
-           elif [[ ${v_removing_status} = 1 ]];then
-              sleep 5
-           else
-#              let fail_flag++
-#              return 1
-               sleep 5
            fi
+           # 失败快速退出：CN 日志出现删除/迁移子过程失败，节点不可能自行下线
+           v_rmf_now=0
+           for _cn in `cat ${nodeinfo_dir}/confignode.txt 2>/dev/null`; do
+              _c=`ssh ${u_name}@${_cn} "grep -cE 'sub-procedure .* failed|AddRegionPeerProcedure failed|RegionMigrateProcedure will not continue' ${db_dir}/logs/log_confignode_all.log 2>/dev/null" 2>/dev/null | tr -dc '0-9'`
+              v_rmf_now=$((v_rmf_now + ${_c:-0}))
+           done
+           if [[ $((v_rmf_now - v_rmf_before)) -gt 0 ]];then
+              let fail_flag++
+              echo "  [remove datanode] 失败: CN 日志出现子过程失败，${rm_dn_ip} 无法下线（迁移未完成）"
+              for _cn in `cat ${nodeinfo_dir}/confignode.txt 2>/dev/null`; do
+                 ssh ${u_name}@${_cn} "grep -E 'sub-procedure .* failed|RegionMigrateProcedure will not continue|RESET_PEER_LIST after' ${db_dir}/logs/log_confignode_all.log 2>/dev/null | tail -2" 2>/dev/null | sed "s/^/      [CN ${_cn}] /"
+              done
+              for _dn in `cat ${nodeinfo_dir}/datanode.txt 2>/dev/null`; do
+                 _npe=`ssh ${u_name}@${_dn} "grep -c 'NullPointerException' ${db_dir}/logs/log_datanode_all.log 2>/dev/null" 2>/dev/null | tr -dc '0-9'`
+                 if [[ ${_npe:-0} -gt 0 ]];then
+                    echo "      [DN ${_dn}] NullPointerException x${_npe}"
+                    ssh ${u_name}@${_dn} "grep -A6 'NullPointerException' ${db_dir}/logs/log_datanode_all.log 2>/dev/null | tail -8" 2>/dev/null | sed 's/^/        /'
+                 fi
+              done
+              break
+           fi
+           t_rm_now=`date +%s`
+           t_rm_elapsed=$((t_rm_now-t_rm_start))
+           if [[ $((t_rm_elapsed % 60)) -lt 5 ]];then
+              echo "  [remove datanode] waiting ${t_rm_elapsed}s / ${v_rm_wait}s (jps=${v_jps} removing=${v_removing_status})"
+           fi
+           if [[ ${t_rm_elapsed} -gt ${v_rm_wait} ]];then
+              let fail_flag++
+              echo "  [remove datanode] 超时 ${v_rm_wait}s: ${rm_dn_ip} 仍在 Running（迁移未完成）"
+              ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes;" 2>/dev/null | grep "${rm_dn_ip}|" | sed 's/^/      /'
+              break
+           fi
+           sleep 5
         done
 }
 

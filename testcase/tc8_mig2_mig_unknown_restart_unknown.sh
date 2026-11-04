@@ -190,32 +190,77 @@ function mig_region()
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster" > ${cur_dir}/${tmp_out_file}
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show regions" >> ${cur_dir}/${tmp_out_file}
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes" >> ${cur_dir}/${tmp_out_file}
+   # 【修复】迁移前采集基线（全 CN 的 success/failed 计数）
+   v_cn_ips=`cat ${nodeinfo_dir}/confignode.txt 2>/dev/null | tr "\n" " "`
+   [ -z "${v_cn_ips}" ] && v_cn_ips="${query_ip}"
+   dn_ips=`cat ${nodeinfo_dir}/datanode.txt 2>/dev/null | tr "\n" " "`
+   v_suc_before=0
+   v_fail_before=0
+   for _cn in ${v_cn_ips}; do
+      _b=`ssh ${u_name}@${_cn} "grep -c '\[MigrateRegion\] success' ${db_dir}/logs/log_confignode_all.log 2>/dev/null; grep -cE 'sub-procedure .* failed|AddRegionPeerProcedure failed|RegionMigrateProcedure will not continue' ${db_dir}/logs/log_confignode_all.log 2>/dev/null" 2>/dev/null`
+      _s=`echo "${_b}" | sed -n '1p' | tr -dc '0-9'`
+      _f=`echo "${_b}" | sed -n '2p' | tr -dc '0-9'`
+      v_suc_before=$((v_suc_before + ${_s:-0}))
+      v_fail_before=$((v_fail_before + ${_f:-0}))
+   done
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" >> ${cur_dir}/${tmp_out_file}
    sleep 10
    v_cn_leader_ip=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show confignodes;"|grep Leader|awk -F '|' '{gsub(" ","");print $4}'`
    t1=`date +%s`
-   while true 
+   v_mig_state="timeout"
+   v_mig_wait=${v_mig_wait:-1500}
+   while true
    do
-      v_mig_suc=`ssh ${u_name}@${v_cn_leader_ip} "grep  \"\[MigrateRegion\] success\" ${db_dir}/logs/log_confignode_all.log|wc -l"`
-      if [[ ${v_mig_suc} -gt 0 ]];then
-	      v_del_suc=`ssh ${u_name}@${v_cn_leader_ip} "grep \"DELETE_OLD_REGION_PEER failed\" ${db_dir}/logs/log_confignode_all.log|wc -l"`
-	      if [[ ${v_del_suc} = 0 ]];then
-		 let fail_flag++
-	      fi
-
+      v_mig_suc=0
+      v_mig_fail=0
+      # 【修复C】遍历所有 CN，避免 leader 切换后漏判
+      for _cn in ${v_cn_ips}; do
+         _cnt=`ssh ${u_name}@${_cn} "grep -c '\[MigrateRegion\] success' ${db_dir}/logs/log_confignode_all.log 2>/dev/null; grep -cE 'sub-procedure .* failed|AddRegionPeerProcedure failed|RegionMigrateProcedure will not continue' ${db_dir}/logs/log_confignode_all.log 2>/dev/null" 2>/dev/null`
+         _s=`echo "${_cnt}" | sed -n '1p' | tr -dc '0-9'`
+         _f=`echo "${_cnt}" | sed -n '2p' | tr -dc '0-9'`
+         v_mig_suc=$((v_mig_suc + ${_s:-0}))
+         v_mig_fail=$((v_mig_fail + ${_f:-0}))
+      done
+      # 【修复A】必须是相对基线的增量，避免历史日志造成假通过
+      if [[ $((v_mig_suc - v_suc_before)) -gt 0 ]];then
+         v_mig_state="success"
+         v_del_suc=`ssh ${u_name}@${v_cn_leader_ip} "grep \"DELETE_OLD_REGION_PEER failed\" ${db_dir}/logs/log_confignode_all.log|wc -l"`
+         if [[ ${v_del_suc} = 0 ]];then
+            let fail_flag++
+         fi
          break
-      else
-         sleep 5 
       fi
+      # 【修复D】迁移子过程明确失败时快速退出（如快照 NPE）
+      if [[ $((v_mig_fail - v_fail_before)) -gt 0 ]];then
+         let fail_flag++
+         v_mig_state="failed"
+         echo "MigrateRegion failed: sub-procedure failed (提前结束等待, 不等 ${v_mig_wait}s)."
+         for _cn in ${v_cn_ips}; do
+            ssh ${u_name}@${_cn} "grep -E 'sub-procedure .* failed|RegionMigrateProcedure will not continue|RESET_PEER_LIST after' ${db_dir}/logs/log_confignode_all.log 2>/dev/null | tail -2" 2>/dev/null | sed "s/^/    [CN ${_cn}] /"
+         done
+         for _dn in ${dn_ips}; do
+            _npe=`ssh ${u_name}@${_dn} "grep -c 'NullPointerException' ${db_dir}/logs/log_datanode_all.log 2>/dev/null" 2>/dev/null | tr -dc '0-9'`
+            if [[ ${_npe:-0} -gt 0 ]];then
+               echo "    [DN ${_dn}] NullPointerException x${_npe}"
+               ssh ${u_name}@${_dn} "grep -A6 'NullPointerException' ${db_dir}/logs/log_datanode_all.log 2>/dev/null | tail -8" 2>/dev/null | sed 's/^/      /'
+            fi
+         done
+         break
+      fi
+      sleep 5
       t2=`date +%s`
       t3=$((t2-t1))
-      if [[ ${t3} -gt 1500 ]];then
+      if [[ $((t3 % 60)) -lt 5 ]];then
+         echo "  [MigrateRegion] waiting ${t3}s / ${v_mig_wait}s (suc+=$((v_mig_suc-v_suc_before)), fail+=$((v_mig_fail-v_fail_before)))"
+      fi
+      if [[ ${t3} -gt ${v_mig_wait} ]];then
          let fail_flag++
-         echo "1500 s ,MigrateRegion not success."
+         v_mig_state="timeout"
+         echo "${v_mig_wait} s ,MigrateRegion not success."
          break
       fi
-
    done
+   echo "  MigrateRegion 结果: ${v_mig_state}"
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "select count(s_172),count(s_293),count(s_8),count(s_490),count(s_368),count(s_597),max_time(s_172),max_time(s_293),max_time(s_8),max_time(s_490),max_time(s_368),max_time(s_597) from root.test.g_0.** align by device;">${cur_dir}/q_act.out
    v_query_is_same=`diff ${cur_dir}/q_act.out ${cur_dir}/q_exp.out|grep root|wc -l`
    if [[ ${v_query_is_same} -gt 0 ]];then

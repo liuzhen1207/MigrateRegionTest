@@ -555,6 +555,19 @@ function remove_dn()
    nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf1 >${bm_dir}/${v_t}_tc3_bm1.out &
    nohup sh -x ${bm_dir}/benchmark.sh -cf ${bm_dir}/lt_10type_user_no_ssl/conf2 >${bm_dir}/${v_t}_tc3_bm2.out &
    sleep 30
+   # 【方案1】记录 CN 日志基线，稍后用"新增的 AddRegion 日志"精确定位被加入的 DataNode
+   #   背景（2026-11-05 实验结论）：
+   #   - Adding 状态只持续约 1 秒，受 1 秒心跳粒度限制，与数据量无关
+   #   - remove datanode 会并行提交 N 个 RegionMigrate，所有 Adding 窗口重叠成同一个约 1 秒
+   #   - 用 1.65 秒粒度的 CLI 轮询抓该窗口是概率性的（2.0.12.1 RC8 恰好蒙中）
+   #   改为读日志，零竞态。
+   v_cn_ips=`cat ${nodeinfo_dir}/confignode.txt 2>/dev/null`
+   [ -z "${v_cn_ips}" ] && v_cn_ips="${query_ip}"
+   v_add_before=0
+   for _cn in ${v_cn_ips}; do
+      _n=`ssh ${u_name}@${_cn} "grep -c 'will be added to DataNode' ${db_dir}/logs/log_confignode_all.log 2>/dev/null" 2>/dev/null | tr -dc '0-9'`
+      v_add_before=$((v_add_before + ${_n:-0}))
+   done
    ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "remove datanode ${v_rm_id};">${cur_dir}/tmp.out
    check_res "success" 1 "${SCRIPT_NAME}"
 # stop DR-Adding dn
@@ -565,27 +578,36 @@ function remove_dn()
   v_skip_stop_adding=0
   while true
   do 
-   v_stop_Adding_ip=`${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show data regions;"|grep Adding|tail -1|awk -F "|" '{gsub(" ","");print $9}'`
-   if [ -n "$v_stop_Adding_ip" ]; then
-   ssh ${u_name}@${v_stop_Adding_ip} "source /etc/profile;cd ${db_dir};sudo ./sbin/stop-datanode.sh"
-   echo "Stopping ${v_stop_Adding_ip}"
-   break
+   v_add_now=0
+   v_stop_Adding_ip=""
+   for _cn in ${v_cn_ips}; do
+      _last=`ssh ${u_name}@${_cn} "grep 'will be added to DataNode' ${db_dir}/logs/log_confignode_all.log 2>/dev/null | tail -1" 2>/dev/null`
+      _cnt=`ssh ${u_name}@${_cn} "grep -c 'will be added to DataNode' ${db_dir}/logs/log_confignode_all.log 2>/dev/null" 2>/dev/null | tr -dc '0-9'`
+      v_add_now=$((v_add_now + ${_cnt:-0}))
+      _ip=`echo "${_last}" | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' | tail -1`
+      [ -n "${_ip}" ] && v_stop_Adding_ip=${_ip}
+   done
+   if [[ $((v_add_now - v_add_before)) -gt 0 && -n "${v_stop_Adding_ip}" ]];then
+      echo "  [方案1] 从 CN 日志捕获到正在被加入的 DataNode: ${v_stop_Adding_ip}"
+      ssh ${u_name}@${v_stop_Adding_ip} "source /etc/profile;cd ${db_dir};sudo ./sbin/stop-datanode.sh"
+      echo "Stopping ${v_stop_Adding_ip}"
+      break
    fi
    t_adding_now=`date +%s`
    t_adding_el=$((t_adding_now-t_adding_start))
    if [[ ${t_adding_el} -gt ${v_adding_wait} ]];then
       v_active=`${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show data regions;"|grep -icE "Adding|Removing"`
       if [[ ${v_active:-0} -eq 0 ]];then
-         echo "  [WARN] ${v_adding_wait}s 内未观察到 Adding 状态；当前无 Adding/Removing，迁移已结束，跳过停止 Adding DN 步骤"
+         echo "  [WARN] ${v_adding_wait}s 内 CN 日志未出现新的 AddRegion 记录，且当前无 Adding/Removing，迁移已结束，跳过"
          v_skip_stop_adding=1
       else
          let fail_flag++
-         echo "  [FAIL] ${v_adding_wait}s 内未观察到 Adding，但仍有 ${v_active} 个 Adding/Removing 记录"
+         echo "  [FAIL] ${v_adding_wait}s 内未捕获到 AddRegion 目标节点，但仍有 ${v_active} 个 Adding/Removing"
       fi
       v_stop_Adding_ip=""
       break
    fi
-   sleep 2
+   sleep 1
   done
   if [ -n "${v_stop_Adding_ip}" ]; then
      if [[ ${query_ip} = ${v_stop_Adding_ip} ]];then

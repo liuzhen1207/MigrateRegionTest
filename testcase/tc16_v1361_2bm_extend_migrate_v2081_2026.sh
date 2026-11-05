@@ -439,16 +439,26 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    fi
    done
    v_remove_list=`paste -sd "," ${cur_dir}/region.txt`
-   echo "EXTEND REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "EXTEND REGION ${v_remove_list}  TO ${v_rm_id};">${cur_dir}/tmp.out 
-   check_res "successfully" 1 "${SCRIPT_NAME}"
-   cat ${cur_dir}/tmp.out
-   echo "MIGRATE REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
-if [[ -n "$v_mig_sql" ]];then
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "${v_mig_sql}">${cur_dir}/tmp.out 
-   check_res2 "failed to submit:" "has some other region operation procedures in progress" 1 "${SCRIPT_NAME}"
-   cat ${cur_dir}/tmp.out
-fi
+   # 【修正 2026-11-05】EXTEND 与 MIGRATE 合并到同一次 CLI 调用
+   #   原实现间隔 1~4 秒不稳定；2.0.13.1 加副本更快，间隔大时 EXTEND 已完成，保护不触发
+   echo "EXTEND+MIGRATE REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
+   if [[ -n "$v_mig_sql" ]];then
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} \
+         -e "EXTEND REGION ${v_remove_list}  TO ${v_rm_id};${v_mig_sql}">${cur_dir}/tmp.out 2>&1
+      v_ext_ok=`grep -c "successfully" ${cur_dir}/tmp.out`
+      v_rej_num=`grep -c "has some other region operation procedures in progress" ${cur_dir}/tmp.out`
+      if [[ ${v_ext_ok} -ge 1 && ${v_rej_num} -ge 1 ]];then
+         echo "PASS: EXTEND 已提交，并发的 MIGRATE 被并发保护正确拒绝"
+      else
+         echo "ERROR: 期望 EXTEND 成功且 MIGRATE 被拒绝；实际输出："
+         cat ${cur_dir}/tmp.out
+         let fail_flag++
+      fi
+   else
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "EXTEND REGION ${v_remove_list}  TO ${v_rm_id};">${cur_dir}/tmp.out 2>&1
+      check_res "successfully" 1 "${SCRIPT_NAME}"
+      cat ${cur_dir}/tmp.out
+   fi
    wait_bm_finish 36000 "${bm_dir}/${v_t}_tc16_bm1.out" "${bm_dir}/${v_t}_tc16_bm2.out"
    v_add_num1=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Adding|wc -l`
    v_add_num2=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Removing|wc -l`

@@ -427,14 +427,22 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    fi
    done
    v_remove_list=`paste -sd "," ${cur_dir}/region.txt`
-   echo "EXTEND REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "EXTEND REGION ${v_remove_list}  TO ${v_rm_id};">${cur_dir}/tmp.out 
-   check_res "successfully" 1 "${SCRIPT_NAME}"
-   cat ${cur_dir}/tmp.out
-   echo "REMOVE REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${v_remove_list}  from ${v_rm_id};">${cur_dir}/tmp.out 
-   check_res2 "failed to submit:" "has some other region operation procedures in progress" 1 "${SCRIPT_NAME}"
-   cat ${cur_dir}/tmp.out
+   # 【修正 2026-11-05】两个操作合并到同一次 CLI 调用，确保第二个下发时第一个必然仍在执行
+   #   原实现是两次独立 CLI 调用，间隔实测 1~5 秒且不稳定；2.0.13.1 加副本变快后，
+   #   间隔大时第一个操作已完成（isFinished=true），并发保护不会触发 → 用例偶发 FAIL
+   #   合并后两个语句在同一会话内顺序执行，间隔毫秒级，保护必然触发
+   echo "EXTEND+REMOVE REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} \
+      -e "EXTEND REGION ${v_remove_list}  TO ${v_rm_id};REMOVE REGION ${v_remove_list}  from ${v_rm_id};">${cur_dir}/tmp.out 2>&1
+   v_ext_ok=`grep -c "successfully" ${cur_dir}/tmp.out`
+   v_rej_num=`grep -c "has some other region operation procedures in progress" ${cur_dir}/tmp.out`
+   if [[ ${v_ext_ok} -ge 1 && ${v_rej_num} -ge 1 ]];then
+      echo "PASS: EXTEND 已提交，且并发 REMOVE 被正确拒绝"
+   else
+      echo "ERROR: 期望 EXTEND 成功且 REMOVE 被并发保护拒绝；实际输出："
+      cat ${cur_dir}/tmp.out
+      let fail_flag++
+   fi
 
    wait_bm_finish 36000 "${bm_dir}/${v_t}_tc12_bm1.out" "${bm_dir}/${v_t}_tc12_bm2.out"
    if ! wait_region_operations_finish 1800; then let rm_fail_flag++; let fail_flag++; fi

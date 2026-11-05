@@ -493,14 +493,20 @@ if [[ ${benchmark_ready} = 1 ]];then
    fi
    done
    v_remove_list=`paste -sd "," ${cur_dir}/region.txt`
-   echo "REMOVE REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${v_remove_list}  FROM ${v_rm_id};">${cur_dir}/tmp.out 
-   check_res "successfully" 1 "${SCRIPT_NAME}"
-   cat ${cur_dir}/tmp.out
-   echo "REMOVE REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "REMOVE REGION ${v_remove_list}  FROM ${v_rm_id};">${cur_dir}/tmp.out 
-   check_res2 "failed to submit:" "has some other region operation procedures in progress" 1 "${SCRIPT_NAME}"
-   cat ${cur_dir}/tmp.out
+   # 【修正 2026-11-05】两次 REMOVE 合并到同一次 CLI 调用
+   #   原实现间隔 1~6 秒不稳定；2.0.13.1 移除更快，间隔大时第一次已完成，保护不触发
+   echo "REMOVE+REMOVE REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
+   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} \
+      -e "REMOVE REGION ${v_remove_list}  FROM ${v_rm_id};REMOVE REGION ${v_remove_list}  FROM ${v_rm_id};">${cur_dir}/tmp.out 2>&1
+   v_rm_ok=`grep -c "successfully" ${cur_dir}/tmp.out`
+   v_rej_num=`grep -c "has some other region operation procedures in progress" ${cur_dir}/tmp.out`
+   if [[ ${v_rm_ok} -ge 1 && ${v_rej_num} -ge 1 ]];then
+      echo "PASS: 第一次 REMOVE 已提交，重复的 REMOVE 被并发保护正确拒绝"
+   else
+      echo "ERROR: 期望第一次成功、第二次被并发保护拒绝；实际输出："
+      cat ${cur_dir}/tmp.out
+      let fail_flag++
+   fi
 
    # REMOVE REGION is asynchronous. The duplicate REMOVE failure above is
    # expected while the first procedures are running; wait for the requested

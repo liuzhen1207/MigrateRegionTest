@@ -1014,15 +1014,21 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    capture_region_topology before
 # repeate list
    echo "reconstruct REGION TIME: $(date "+%Y-%m-%d %H:%M:%S")"
-   if ! ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} \
-      -e "reconstruct REGION ${v_remove_list},${v_remove_list} on ${v_rm_id};" >${cur_dir}/tmp.out 2>&1;then
-      echo "ERROR: reconstruct REGION request failed."
+   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} \
+      -e "reconstruct REGION ${v_remove_list},${v_remove_list} on ${v_rm_id};" >${cur_dir}/tmp.out 2>&1
+   # 【修正 2026-11-05】产品预期已确认：请求中出现重复 Region ID 必须报错
+   #   （908: Duplicate Region ID x in the request）
+   #   原用例期望"自动去重后成功"，与产品行为不符；且失败时直接 return 1，
+   #   导致整个用例没有判定输出（RC6/RC8/RC1 三版均为"无判定"）。
+   v_dup_num=`grep -c "Duplicate Region ID" ${cur_dir}/tmp.out`
+   if [[ ${v_dup_num} -ge 1 ]];then
+      echo "PASS: 重复 Region ID 已被正确拒绝: $(grep 'Duplicate Region ID' ${cur_dir}/tmp.out | tail -1)"
+   else
+      echo "ERROR: 期望重复 Region ID 被拒绝，实际返回: $(tail -1 ${cur_dir}/tmp.out)"
       cat ${cur_dir}/tmp.out
       let fail_flag++
       let rm_fail_flag++
-      return 1
    fi
-   check_res "successfully" 1 "${SCRIPT_NAME}"
    cat ${cur_dir}/tmp.out
    capture_migrations submitted
 #   wait_Removing_finish ${query_ip} 3600 ${v_rm_ip}

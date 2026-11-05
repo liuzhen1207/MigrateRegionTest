@@ -558,6 +558,11 @@ function remove_dn()
    ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "remove datanode ${v_rm_id};">${cur_dir}/tmp.out
    check_res "success" 1 "${SCRIPT_NAME}"
 # stop DR-Adding dn
+  # 【修复】原循环无 sleep、无超时：Adding 窗口比轮询间隔短时抓不到，会永久空转
+  #   （2026-11-05 本用例空转 1h41m；2.0.12.1 RC8 上 883s 即可通过）
+  v_adding_wait=${v_adding_wait:-300}
+  t_adding_start=`date +%s`
+  v_skip_stop_adding=0
   while true
   do 
    v_stop_Adding_ip=`${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show data regions;"|grep Adding|tail -1|awk -F "|" '{gsub(" ","");print $9}'`
@@ -566,16 +571,35 @@ function remove_dn()
    echo "Stopping ${v_stop_Adding_ip}"
    break
    fi
+   t_adding_now=`date +%s`
+   t_adding_el=$((t_adding_now-t_adding_start))
+   if [[ ${t_adding_el} -gt ${v_adding_wait} ]];then
+      v_active=`${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show data regions;"|grep -icE "Adding|Removing"`
+      if [[ ${v_active:-0} -eq 0 ]];then
+         echo "  [WARN] ${v_adding_wait}s 内未观察到 Adding 状态；当前无 Adding/Removing，迁移已结束，跳过停止 Adding DN 步骤"
+         v_skip_stop_adding=1
+      else
+         let fail_flag++
+         echo "  [FAIL] ${v_adding_wait}s 内未观察到 Adding，但仍有 ${v_active} 个 Adding/Removing 记录"
+      fi
+      v_stop_Adding_ip=""
+      break
+   fi
+   sleep 2
   done
-  if [[ ${query_ip} = ${v_stop_Adding_ip} ]];then
-     query_ip=`tail -1 ${nodeinfo_dir}/datanode.txt` 
+  if [ -n "${v_stop_Adding_ip}" ]; then
+     if [[ ${query_ip} = ${v_stop_Adding_ip} ]];then
+        query_ip=`tail -1 ${nodeinfo_dir}/datanode.txt` 
+     fi
+     check_stop ${v_stop_Adding_ip} ${query_ip}
   fi
-  check_stop ${v_stop_Adding_ip} ${query_ip}
    wait_rm_finish "${v_rm_ip}" 3600
 #restart
+   if [ -n "${v_stop_Adding_ip}" ]; then
    v_start_time=`date +%s`
    ssh ${u_name}@${v_stop_Adding_ip} "source /etc/profile;cd ${db_dir};sudo ./sbin/start-datanode.sh -H ${db_dir}/dn_${v_start_time}_heapdump.hprof > /dev/null 2>&1 &"
    check_restart ${v_stop_Adding_ip} ${query_ip} 
+   fi
 # wait bm finish
    wait_bm_finish 36000 "${bm_dir}/${v_t}_tc3_bm1.out" "${bm_dir}/${v_t}_tc3_bm2.out"
 if [[ ${rm_fail_flag} = 0 ]];then 

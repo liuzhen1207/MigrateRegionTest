@@ -31,6 +31,7 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
+function wait_region_operations_finish(){ local max_wait_time=$1; local t1=`date +%s`; while true; do local pending=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e "show regions;" | grep -E "Adding|Removing" | wc -l`; if [[ ${pending} -eq 0 ]]; then return 0; fi; local t2=`date +%s`; if [[ $((t2-t1)) -gt ${max_wait_time} ]]; then echo "Region operations did not finish within ${max_wait_time}s (pending=${pending})."; return 1; fi; sleep 5; done; }
 function clean_env()
 {
    #clean env
@@ -460,6 +461,10 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
       cat ${cur_dir}/tmp.out
    fi
    wait_bm_finish 36000 "${bm_dir}/${v_t}_tc16_bm1.out" "${bm_dir}/${v_t}_tc16_bm2.out"
+   # 【修正 2026-11-05】检查前先等待 region 操作收敛
+   #   实测：检查时还有 2 个 region 处于 Adding，但它们在 2 秒后就 AddRegion success
+   #   属于"检查早于收敛"的时序竞态，不是产品卡住
+   if ! wait_region_operations_finish 600; then let rm_fail_flag++; let fail_flag++; fi
    v_add_num1=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Adding|wc -l`
    v_add_num2=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions;'|grep Removing|wc -l`
    v_add_num=$((v_add_num1+v_add_num2))

@@ -185,3 +185,48 @@ wait_migrations_finish() {
 **注意**：`SHOW MIGRATIONS` 反映的是**过程（Procedure）**层面的状态，
 `show regions` 的 Adding/Removing 是**副本（Replica）**层面的展示，两者粒度不同。
 判断"迁移是否做完"用前者；判断"某个副本在哪个节点上"用后者。
+
+---
+
+## 测试规范：停止 DataNode 后应等待 `Stopped` 或 `Unknown`，不能只等 `Unknown`
+
+**`NodeStatus` 共 5 个值**（`org.apache.iotdb.commons.cluster.NodeStatus`）：
+
+```
+Running | Unknown | Removing | ReadOnly | Stopped
+```
+
+**语义区别**：
+
+| 状态 | 含义 | 产生方式 |
+|---|---|---|
+| `Stopped` | **优雅停止**，进程正常退出并向集群上报 | `stop-datanode.sh` |
+| `Unknown` | **不可达**，心跳超时 | `kill -9`、网络分区、进程崩溃 |
+
+**问题**：大量用例用 `stop-datanode.sh`（优雅停止）停节点后，却只等待 `Unknown`：
+
+```bash
+ssh ... "sudo ./sbin/stop-datanode.sh"
+if ! wait_datanode_status "${query_ip}" "${rm_target_ip}" "Unknown" 300; then
+   log "datanode ... did not become Unknown before remove"
+   let fail_flag++
+fi
+```
+
+优雅停止产生的是 `Stopped`，**永远等不到 `Unknown`** → 白等 300 秒后判失败。
+
+**2026-11-05 全量回归实际影响**：
+- `tc109_RMDN_no9_remove_unknown_dn` 因此失败（1541s，报 `did not become Unknown before remove`）
+- 同类模式在 **30 个用例**中出现（含 tc109/tc110/tc113/tc114 的各版本变体）
+
+**正确写法**（已改进 `wait_datanode_status` 支持正则）：
+
+```bash
+hit_num=$(grep "${dn_ip}|" "${cur_dir}/show_datanodes.out" | grep -iE "${expect_status}" | wc -l)
+...
+# 优雅停止或崩溃都算"已停止"
+if ! wait_datanode_status "${query_ip}" "${rm_target_ip}" "Stopped|Unknown" 300; then
+```
+
+**注意**：如果用例的语义确实要求"不可达（Unknown）"而非"优雅停止（Stopped）"，
+应该用 `kill -9` 制造 Unknown，而不是用 `stop-datanode.sh`。

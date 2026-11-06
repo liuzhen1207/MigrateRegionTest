@@ -297,7 +297,7 @@ wait_datanode_status() {
   while true
   do
     run_cli_sql "${host}" tree "show datanodes;" "${cur_dir}/show_datanodes.out" 3600
-    hit_num=$(grep "${dn_ip}|" "${cur_dir}/show_datanodes.out" | grep -i "${expect_status}" | wc -l)
+    hit_num=$(grep "${dn_ip}|" "${cur_dir}/show_datanodes.out" | grep -iE "${expect_status}" | wc -l)
     if [[ ${hit_num} -gt 0 ]]; then
       return 0
     fi
@@ -391,9 +391,12 @@ remove_datanode_under_load() {
     return 1
   fi
 
+  # 【修正 2026-11-06】优雅停止（stop-datanode.sh）后状态为 Stopped，
+  #   崩溃/网络不可达才是 Unknown。NodeStatus 共 5 个值：Running/Unknown/Removing/ReadOnly/Stopped。
+  #   原判据只等 Unknown，优雅停止时永远等不到。
   ssh "${u_name}@${rm_target_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh"
-  if ! wait_datanode_status "${query_ip}" "${rm_target_ip}" "Unknown" 300; then
-    log "datanode ${rm_target_ip} did not become Unknown before remove"
+  if ! wait_datanode_status "${query_ip}" "${rm_target_ip}" "Stopped|Unknown" 300; then
+    log "datanode ${rm_target_ip} did not become Stopped/Unknown before remove"
     let fail_flag++
   fi
 

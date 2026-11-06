@@ -127,3 +127,61 @@ remove datanode <id>;   -- 应不再报 1006
 
 **教训**：排查这类"配置不生效"的问题时，**先看 `data/*/system/*.properties`**，
 它才是运行时真正生效的来源。
+
+---
+
+## 测试规范：迁移状态探测优先用 SHOW MIGRATIONS，不要轮询 show regions 的 Adding
+
+**背景（2026-11-05 实测）**：`show data regions` / `show regions` 里的 `Adding` 状态
+**只持续约 1 秒**，由 1 秒的心跳粒度决定，**与数据量无关**（用 50 万点的 region 复测仍是 1 秒）。
+
+而 `remove datanode` 会**并行提交**该节点上所有 region 的迁移，所有 Adding 窗口**重叠成同一个约 1 秒**，
+之后统一转成 `Removing`（持续十几秒）。用 CLI 轮询（单次调用约 1.65 秒）去抓这 1 秒窗口，
+本质是掷骰子 —— 这是 tc3 空转 1.5 小时、tc12/tc15/tc16 偶发失败的共同原因。
+
+**正确做法：用 `SHOW MIGRATIONS`**
+
+```sql
+SHOW MIGRATIONS;
+```
+
+输出列：
+
+```
+| ProcedureId | OperationType | RegionId | Type | FromNodeId | ToNodeId
+| CurrentState | ProcedureStatus | SubmittedTime | LastUpdateTime |
+```
+
+- 有在飞迁移时，列出每个未完成的 RegionOperationProcedure 及其当前状态
+- 无在飞迁移时返回 `Empty set.`
+
+**推荐用法（用例侧）**：
+
+```bash
+# 等待所有迁移收敛到空集，带超时
+wait_migrations_finish() {
+  local max_wait=$1; local t1=`date +%s`
+  while true; do
+     local n=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} \
+              -e "show migrations;" | grep -cE '^\|'`
+     # 表头+分隔线占 2 行，数据行 = n-2
+     if [[ $((n-2)) -le 0 ]]; then return 0; fi
+     if [[ $((`date +%s`-t1)) -gt ${max_wait} ]]; then
+        echo "Migrations did not finish within ${max_wait}s"; return 1
+     fi
+     sleep 2
+  done
+}
+```
+
+**涉及用例与改法建议**：
+
+| 用例 | 原做法 | 建议 |
+|---|---|---|
+| `tc3_..._remove_dn_stop_adding_dn` | 轮询 `show data regions \| grep Adding` 找目标 DN | 已改为读 CN 日志的 `will be added to DataNode <id>@<ip>`（零竞态，提交 84948c6）；也可改用 `SHOW MIGRATIONS` 的 ToNodeId |
+| `tc12/tc15/tc16` | 依赖两次 CLI 命令的间隔构造并发 | 已改为合并成单次 CLI 调用（提交 d95ab02）；若需更明确，可先 `SHOW MIGRATIONS` 确认有在飞过程再下发第二个命令 |
+| 任何"等迁移完成"的用例 | 轮询 `show regions` 的 Adding/Removing | 优先 `SHOW MIGRATIONS` 判空，比状态字符串可靠 |
+
+**注意**：`SHOW MIGRATIONS` 反映的是**过程（Procedure）**层面的状态，
+`show regions` 的 Adding/Removing 是**副本（Replica）**层面的展示，两者粒度不同。
+判断"迁移是否做完"用前者；判断"某个副本在哪个节点上"用后者。

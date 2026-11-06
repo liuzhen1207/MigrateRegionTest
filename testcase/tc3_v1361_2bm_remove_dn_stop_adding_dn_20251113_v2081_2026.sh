@@ -481,7 +481,7 @@ fi
       fi
       v_cur_time=`date +%s`
       v_elp_time=$((v_cur_time-v_start_time))
-      if [[ ${v_elp_time} -gt ${v_wait_restart:-600} ]];then
+      if [[ ${v_elp_time} -gt ${v_wait_restart:-1800} ]];then
          let fail_flag++
          echo "restart ${line} failed."
          return
@@ -508,7 +508,7 @@ v_start_time=`date +%s`
       fi
       v_cur_time=`date +%s`
       v_elp_time=$((v_cur_time-v_start_time))
-      if [[ ${v_elp_time} -gt ${v_wait_restart:-600} ]];then
+      if [[ ${v_elp_time} -gt ${v_wait_restart:-1800} ]];then
          let fail_flag++
          echo "restart ${line} failed."
          return
@@ -536,7 +536,7 @@ v_start_time=`date +%s`
       sleep 1
       v_cur_time=`date +%s`
       v_elp_time=$((v_cur_time-v_start_time))
-      if [[ ${v_elp_time} -gt ${v_wait_restart:-600} ]];then
+      if [[ ${v_elp_time} -gt ${v_wait_restart:-1800} ]];then
          let fail_flag++
          echo "restart ${line} failed."
          return

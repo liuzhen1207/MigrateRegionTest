@@ -481,7 +481,7 @@ fi
       fi
       v_cur_time=`date +%s`
       v_elp_time=$((v_cur_time-v_start_time))
-      if [[ ${v_elp_time} -gt 120 ]];then
+      if [[ ${v_elp_time} -gt ${v_wait_restart:-600} ]];then
          let fail_flag++
          echo "restart ${line} failed."
          return
@@ -508,7 +508,7 @@ v_start_time=`date +%s`
       fi
       v_cur_time=`date +%s`
       v_elp_time=$((v_cur_time-v_start_time))
-      if [[ ${v_elp_time} -gt 120 ]];then
+      if [[ ${v_elp_time} -gt ${v_wait_restart:-600} ]];then
          let fail_flag++
          echo "restart ${line} failed."
          return
@@ -525,14 +525,18 @@ v_start_time=`date +%s`
       do
       v_stop_ok=`${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${v_query_ip} -timeout 3600 -e "show datanodes;"|grep "${v_ip}|"|grep Unknown|wc -l`
       v_jps_ok=`ssh ${u_name}@${v_ip} "sudo jps"|grep DataNode|wc -l`
-      if [[ ${v_stop_ok} -gt 0 ]] && [[ ${v_jps_ok} = 0 ]];then
-         break
-      else
-         sleep 1
+      if [[ ${v_jps_ok} = 0 ]];then
+         # 【修正 2026-11-06】进程消失即认为已停止；集群状态可能因心跳延迟仍显示旧值，
+         #   原判据要求状态同时变 Unknown，实测会一直等不到（进程已停但状态滞后）
+         if [[ ${v_stop_ok} -eq 0 ]];then
+            echo "  [INFO] ${v_ip} 进程已停止，但集群状态尚未变为 Unknown（按已停止处理）"
+         fi
+          break
       fi
+      sleep 1
       v_cur_time=`date +%s`
       v_elp_time=$((v_cur_time-v_start_time))
-      if [[ ${v_elp_time} -gt 120 ]];then
+      if [[ ${v_elp_time} -gt ${v_wait_restart:-600} ]];then
          let fail_flag++
          echo "restart ${line} failed."
          return

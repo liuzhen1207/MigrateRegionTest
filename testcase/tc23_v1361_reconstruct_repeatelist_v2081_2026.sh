@@ -15,6 +15,9 @@ clean_env_dir="${cur_dir}/../clean_env"
 prepare_env_dir="${cur_dir}/../prepare_env"
 check_res_dir="${cur_dir}/../check_res"
 SCRIPT_NAME=$(basename "$0")
+
+# 标记：reconstruct 请求因重复 Region ID 被拒绝（TDB-383 修复后的预期行为）
+v_reconstruct_rejected=0
 seed_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`:10710
 query_cn_ip=`head -1 ${nodeinfo_dir}/confignode.txt`
 query_ip=`head -1 ${nodeinfo_dir}/datanode.txt`
@@ -223,21 +226,34 @@ function check_reconstruct_logs()
    echo "ConfigNode duplicate-ID log count=${duplicate_count}, expected=${expected_duplicate_count}."
    echo "ConfigNode successful ReconstructRegionProcedure log count=${submitted_count}, expected=${expected_region_count}."
    echo "ConfigNode completed ReconstructRegionProcedure log count=${completed_count}, expected=${expected_region_count}."
-   if [[ ${duplicate_count} -ne ${expected_duplicate_count} ]];then
-      echo "ERROR: duplicate Region ID log count does not match the duplicate input count."
-      let fail_flag++
-   fi
-   if [[ ${submitted_count} -ne ${expected_region_count} ]];then
-      echo "ERROR: ConfigNode submitted-procedure log count does not match the unique Region count."
-      let fail_flag++
-   fi
-   if [[ ${completed_count} -ne ${expected_region_count} ]];then
-      echo "ERROR: ConfigNode completed-procedure log count does not match the unique Region count."
-      let fail_flag++
-   fi
-   if [[ ${forbidden_count} -ne 0 ]];then
-      echo "ERROR: reconstruct/procedure failure or rollback messages were found in ConfigNode logs (${forbidden_count})."
-      let fail_flag++
+   if [[ ${v_reconstruct_rejected} -eq 1 ]];then
+      # 【修正】TDB-383 修复后，含重复 Region ID 的请求被整体拒绝：
+      #   不会有 Skip duplicate 日志，也不会提交/完成任何 procedure
+      echo "Reconstruct request rejected for duplicate Region IDs; expecting zero procedures."
+      if [[ ${submitted_count} -ne 0 || ${completed_count} -ne 0 ]];then
+         echo "ERROR: request was rejected but submitted=${submitted_count}, completed=${completed_count} (expected 0/0)."
+         let fail_flag++
+      fi
+      if [[ ${duplicate_count} -ne 0 ]];then
+         echo "WARN: found ${duplicate_count} 'Skip duplicate Region ID' log(s) although the request was rejected."
+      fi
+   else
+      if [[ ${duplicate_count} -ne ${expected_duplicate_count} ]];then
+         echo "ERROR: duplicate Region ID log count does not match the duplicate input count."
+         let fail_flag++
+      fi
+      if [[ ${submitted_count} -ne ${expected_region_count} ]];then
+         echo "ERROR: ConfigNode submitted-procedure log count does not match the unique Region count."
+         let fail_flag++
+      fi
+      if [[ ${completed_count} -ne ${expected_region_count} ]];then
+         echo "ERROR: ConfigNode completed-procedure log count does not match the unique Region count."
+         let fail_flag++
+      fi
+      if [[ ${forbidden_count} -ne 0 ]];then
+         echo "ERROR: reconstruct/procedure failure or rollback messages were found in ConfigNode logs (${forbidden_count})."
+         let fail_flag++
+      fi
    fi
 
    exec 3<${nodeinfo_dir}/datanode.txt
@@ -322,6 +338,18 @@ function validate_migration_snapshot()
          let fail_flag++
       else
          echo "Migration snapshot after_wait is empty."
+      fi
+      return
+   fi
+
+   if [[ ${v_reconstruct_rejected} -eq 1 ]]; then
+      # 【修正】请求被拒绝时不会提交任何迁移，期望迁移表为空
+      if [[ ${actual_count} -ne 0 ]]; then
+         echo "ERROR: request was rejected but ${actual_count} migration rows were submitted."
+         cat "${rows_file}"
+         let fail_flag++
+      else
+         echo "Migration snapshot ${phase} is empty as expected (reconstruct request rejected)."
       fi
       return
    fi
@@ -1023,6 +1051,7 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    v_dup_num=`grep -c "Duplicate Region ID" ${cur_dir}/tmp.out`
    if [[ ${v_dup_num} -ge 1 ]];then
       echo "PASS: 重复 Region ID 已被正确拒绝: $(grep 'Duplicate Region ID' ${cur_dir}/tmp.out | tail -1)"
+      v_reconstruct_rejected=1
    else
       echo "ERROR: 期望重复 Region ID 被拒绝，实际返回: $(tail -1 ${cur_dir}/tmp.out)"
       cat ${cur_dir}/tmp.out

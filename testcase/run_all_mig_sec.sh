@@ -1,0 +1,37 @@
+#!/bin/bash
+#while true
+#do
+#   v_ok=`ps -ef|grep sh|grep tc2025_issue0097.sh|wc -l`
+#   if [[ ${v_ok} -lt 2 ]];then
+#      break
+#   else
+#      sleep 5m
+#   fi
+#done
+
+
+desc=`cat ../conf/test.conf |grep "v_cur_db="|awk -F '=' '{print $2}'`
+mkdir ${desc}
+i=1
+v_cur_time=`date +'%Y_%m_%d_%H_%M_%S'`
+res_file="test_mig_${v_cur_time}.out"
+v_t1=$(date +%s)
+
+v_t2=$(date +%s)
+v_elp=$((v_t2-v_t1))
+echo "testcase time part1: ${v_elp} sec."
+v_cur_time=`date +'%Y_%m_%d_%H_%M_%S'`
+res_file="test_mig_${v_cur_time}.out"
+exec 3<./remove_iotv1_testcase_list.txt
+while read line <&3
+do
+v_cur_time=`date +'%Y_%m_%d_%H_%M_%S'`
+v_tc=`echo ${line}|awk -F '.' '{print $1}'`
+   timeout -s KILL ${TC_TIMEOUT_CASE:-3600} bash -x ${line} > ./${desc}/${v_tc}_${v_cur_time}_res.out 2>&1 
+done
+v_t3=$(date +%s)
+v_elp=$((v_t3-v_t2))
+echo "testcase time part2: ${v_elp} sec."
+v_elp=$((v_t3-v_t1))
+echo "testcase time total: ${v_elp} sec."
+

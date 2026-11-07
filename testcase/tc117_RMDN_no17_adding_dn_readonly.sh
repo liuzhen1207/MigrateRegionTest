@@ -718,7 +718,7 @@ wait_benchmarks_finish() {
 
 wait_for_monitor_sync_completion() {
   local target_duration=${1:-120}
-  local max_wait_seconds=${2:-360000}
+  local max_wait_seconds=${2:-3600}
   local prometheus_user=admin
   local prometheus_pass=admin
   local sleep_interval=30

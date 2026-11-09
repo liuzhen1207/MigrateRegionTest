@@ -198,10 +198,10 @@ choose_region_pair() {
       rid=trim($2); typ=trim($3); stat=trim($4); db=trim($5); series=trim($6); timeslot=trim($7); dn=trim($8); ip=trim($9); role=trim($12)
       if (rid ~ /^[0-9]+$/ && typ == "DataRegion" && stat == "Running" && db == "root.test.g_0" && (series+0 > 0 || timeslot+0 > 0)) {
         if (role == "Leader" && !(rid in leader)) leader[rid]=dn ":" ip
-        if (role == "Follower" && !(rid in follower) && follower[rid] != leader[rid]) follower[rid]=dn ":" ip
+        if (role == "Follower" && !(rid in follower)) follower[rid]=dn ":" ip
       }
     }
-    END {for (rid in leader) if (follower[rid] != "") {print rid, leader[rid], follower[rid]; exit}}
+    END {for (rid in leader) if (follower[rid] != "" && follower[rid] != leader[rid]) {print rid, leader[rid], follower[rid]; exit}}
   ' "$out_dir/show_regions.out" > "$out_dir/region_pair.out"
   [[ -s "$out_dir/region_pair.out" ]] || return 1
   read -r region_id pair_one pair_two < "$out_dir/region_pair.out"

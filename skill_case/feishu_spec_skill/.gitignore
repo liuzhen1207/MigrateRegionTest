@@ -2,3 +2,7 @@ results/
 results_*/
 *.log
 *.out
+*.bak_before_*
+*.bak
+__pycache__/
+*.pyc

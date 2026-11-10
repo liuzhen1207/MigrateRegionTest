@@ -180,14 +180,21 @@ function mig_region()
    if [[ ${query_ip} = ${v_stop_ip} ]];then
       query_ip=`tail -1 ${nodeinfo_dir}/datanode.txt`
    fi
-  while true
+   # 【修复】优雅 stop-datanode.sh 后节点状态是 Stopped，不是 Unknown；
+   # 这里必须两者都接受，并加超时，否则等不到会死循环（2026-11-10 实测卡 86 分钟）
+   v_stop_wait=${v_stop_wait:-300}
+   v_stop_t0=$(date +%s)
+   while true
    do
-      v_check_stop=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes"|grep "${v_stop_ip}"|grep -i unknown|wc -l`
+      v_check_stop=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes"|grep "${v_stop_ip}"|grep -iE "stopped|unknown"|wc -l`
       if [[ ${v_check_stop} = 1 ]];then
          break
-      else
-         sleep 2
       fi
+      if [[ $(( $(date +%s) - v_stop_t0 )) -gt ${v_stop_wait} ]];then
+         echo "  [warn] ${v_stop_ip} 在 ${v_stop_wait}s 内未变为 Stopped/Unknown，继续执行"
+         break
+      fi
+      sleep 2
    done
 
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster" > ${cur_dir}/${tmp_out_file}

@@ -1,5 +1,6 @@
 #!/bin/bash
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
+source "${cur_dir}/../lib/archive_logs.sh"
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
 u_name=`cat ${conf_file}|grep u_name|awk -F '=' '{print $2}'`
@@ -148,30 +149,6 @@ done
 
    sh -x ${prepare_env_dir}/start_cluster.sh "1" "${total_node_num}"
 
-}
-# 【证据归档】测试跑完立刻归档 CN/DN 日志与中间产物。
-# 背景：本 skill 是串行跑批，**下一个用例**的 clean_env 会把本轮的 data/logs 全删，
-#       导致出问题时现场全无（2026-11-10 查 RC1 的 NPE 就吃过这个亏）。
-# 位置：必须在 mig_region() 结束处（判定写完、交还环境之前）。
-#       ⚠️ 不能放在脚本末尾的 clean_env 后面 —— 那个 clean_env 是**开头**的准备步骤。
-archive_logs()
-{
-   [ "${_LOG_ARCHIVED:-0}" = "1" ] && return 0
-   _LOG_ARCHIVED=1
-   local _arch_dir="${cur_dir}/../log_archive/${v_cur_db}/${SCRIPT_NAME%.sh}_$(date +%Y%m%d_%H%M%S)"
-   mkdir -p "${_arch_dir}" 2>/dev/null || { echo "  [archive] 创建目录失败，跳过"; return 0; }
-   local _h _n=0
-   for _h in ${v_cn_ips} $(cat ${nodeinfo_dir}/datanode.txt 2>/dev/null | tr "\n" " "); do
-      [ -z "${_h}" ] && continue
-      ssh ${u_name}@${_h} "sudo tar czf - ${db_dir}/logs 2>/dev/null" 2>/dev/null > "${_arch_dir}/${_h}.logs.tgz"
-      if [ -s "${_arch_dir}/${_h}.logs.tgz" ]; then _n=$((_n+1)); else rm -f "${_arch_dir}/${_h}.logs.tgz"; fi
-   done
-   local _f
-   for _f in mig.out mig_id_info.txt q_exp.out q_act.out tc7_bef_mig_cluster.out all_dn_id.txt; do
-      [ -f "${cur_dir}/${_f}" ] && cp -p "${cur_dir}/${_f}" "${_arch_dir}/" 2>/dev/null
-   done
-   ls -dt "${cur_dir}/../log_archive/${v_cur_db}/${SCRIPT_NAME%.sh}_"* 2>/dev/null | tail -n +11 | while read _old; do rm -rf "${_old}"; done
-   echo "  [archive] 已归档 ${_n} 个节点日志 -> ${_arch_dir}（共 $(ls -1 "${_arch_dir}" 2>/dev/null | wc -l) 个文件）"
 }
 
 function mig_region()

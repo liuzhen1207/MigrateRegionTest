@@ -9,6 +9,8 @@
 #    Bound every migration wait, validate migration command results, and infer the add coordinator
 #    from the current Region members so a missing log match cannot create an endless ssh loop.
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
+source "${cur_dir}/../lib/archive_logs.sh"
+trap 'archive_logs' EXIT
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
 u_name=`cat ${conf_file}|grep u_name|awk -F '=' '{print $2}'`

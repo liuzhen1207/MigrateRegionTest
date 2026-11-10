@@ -37,6 +37,8 @@
 # - dest_peer_active_<id>.out: destination DN snapshot/active lines
 
 cur_dir="$(cd "$(dirname "$0")" && pwd)"
+source "${cur_dir}/../lib/archive_logs.sh"
+trap 'archive_logs' EXIT
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
 u_name=$(grep u_name "${conf_file}" | awk -F '=' '{print $2}')

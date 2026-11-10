@@ -1,5 +1,6 @@
 #!/bin/bash
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
+source "${cur_dir}/../lib/archive_logs.sh"
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
 u_name=`cat ${conf_file}|grep u_name|awk -F '=' '{print $2}'`
@@ -559,7 +560,7 @@ DATA_REGION_EXPECT=2
 TEMP_FILE=$(mktemp)
 
 # 脚本结束时，删除临时文件
-trap 'rm -f "$TEMP_FILE"' EXIT
+trap 'rm -f "$TEMP_FILE"; archive_logs' EXIT
 # 执行 show regions 并过滤出 Region 信息
 regions_info=$(${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show regions' | grep -E "SchemaRegion|DataRegion")
 

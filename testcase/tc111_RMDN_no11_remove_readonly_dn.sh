@@ -1,6 +1,8 @@
 #!/bin/bash
 
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
+source "${cur_dir}/../lib/archive_logs.sh"
+trap 'archive_logs' EXIT
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
 SCRIPT_NAME=$(basename "$0")

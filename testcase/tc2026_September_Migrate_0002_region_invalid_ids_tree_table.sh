@@ -5,6 +5,8 @@
 # not submit its valid Region entry. Verify both models' data after syncLag is
 # continuously zero, and scan CN/DN logs for NPE, 305, and array-bound errors.
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
+source "${cur_dir}/../lib/archive_logs.sh"
+trap 'archive_logs' EXIT
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
 u_name=`cat ${conf_file}|grep u_name|awk -F '=' '{print $2}'`

@@ -2,6 +2,8 @@
 # Known issues: local ../KNOWN_ISSUES.md; 70.3 /data1/iotdb/testcase/MigrateRegionTest/testcase/KNOWN_ISSUES.md
 # Related PLM records: TDB-68 (CN leader switch and overlapping AddRegionPeer procedures), TDB-75 (slow snapshot transmission).
 cur_dir="$( cd "$( dirname "$0"  )" && pwd  )"
+source "${cur_dir}/../lib/archive_logs.sh"
+trap 'archive_logs' EXIT
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
 u_name=`cat ${conf_file}|grep u_name|awk -F '=' '{print $2}'`

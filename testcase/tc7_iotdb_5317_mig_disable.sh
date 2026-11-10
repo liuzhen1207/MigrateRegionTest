@@ -168,8 +168,13 @@ function mig_region()
   v_mig_from_dn_id=`cat ${cur_dir}/mig_id_info.txt|grep -v Leader|head -1|awk -F ',' '{print $1}'`
 # stop datanode
    ssh ${u_name}@${v_stop_dn_ip} "sudo ${db_dir}/sbin/stop-datanode.sh"
+   _to_t0=$(date +%s); _to_max=${STATUS_WAIT:-300}
    while true
    do
+      if [[ $(( $(date +%s) - ${_to_t0} )) -gt ${_to_max} ]];then
+         echo "  [warn] 等待节点状态超时（${_to_max}s），继续执行"
+         break
+      fi
       if [[ ${query_ip} = ${v_stop_dn_ip} ]];then
          query_ip=`tail -1 ${nodeinfo_dir}/datanode.txt` 
       fi

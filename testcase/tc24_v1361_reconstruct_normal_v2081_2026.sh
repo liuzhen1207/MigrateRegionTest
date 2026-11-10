@@ -551,8 +551,13 @@ function stop_dn()
    local v_query_ip=$2
         # stop rm_dn_ip
         ssh ${u_name}@${rm_dn_ip} "sudo ${db_dir}/sbin/stop-datanode.sh"
+   _to_t0=$(date +%s); _to_max=${STATUS_WAIT:-300}
         while true
         do
+      if [[ $(( $(date +%s) - ${_to_t0} )) -gt ${_to_max} ]];then
+         echo "  [warn] 等待节点状态超时（${_to_max}s），继续执行"
+         break
+      fi
            v_unknown=`${cli_dir}/sbin/start-cli.sh -h ${v_query_ip} -u ${db_sys_admin} ${ssl_str} -e "show datanodes;"|grep "${rm_dn_ip}|"|grep -i unknown|wc -l`
            if [[ ${v_unknown} -gt 0 ]];then
               break

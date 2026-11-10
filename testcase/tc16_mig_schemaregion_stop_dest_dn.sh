@@ -393,8 +393,13 @@ fi
 #stop dest DN 
    ssh ${u_name}@${v_stop_dn_ip} "sudo ${db_dir}/sbin/stop-datanode.sh"
    v_unknown_beg_sec=`date +%s`
+   _to_t0=$(date +%s); _to_max=${STATUS_WAIT:-300}
    while true
    do
+      if [[ $(( $(date +%s) - ${_to_t0} )) -gt ${_to_max} ]];then
+         echo "  [warn] 等待节点状态超时（${_to_max}s），继续执行"
+         break
+      fi
       if [[ ${query_ip} = ${v_stop_dn_ip} ]];then
          v_new_query_ip=`get_query_ip_excluding ${v_stop_dn_ip}`
          if [[ -n "${v_new_query_ip}" ]];then

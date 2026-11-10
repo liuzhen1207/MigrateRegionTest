@@ -1,1 +1,71 @@
+# ============================================================================
+# 本仓库是自动化用例仓，跑批会在原地产生大量运行产物。
+# 下面这些只忽略「产物」，不要忽略用例脚本、配置、造数配置。
+# ⚠️ 特别注意：不要加 *.txt / *.json —— conf/confignode_3c.txt、conf/datanode_5d.txt
+#    等是 clean_env/*.sh 与多个用例依赖的**输入配置**，忽略掉会让人误以为可以不存在。
+# ============================================================================
+
+# ---------- 用例运行产物 ----------
+*.out
+*.norm
+*.diff
+*.log
+*.snapshot
+logs/
+stop_diagnostics/
 log_archive/
+
+# ---------- 备份 / 临时 ----------
+*.bak
+*.bak_*
+*.bakcup
+*.pre_*
+*.new
+*.tmp
+*.orig
+
+# ---------- 编译产物 ----------
+*.class
+
+# ---------- benchmark / 造数工作目录 ----------
+testcase/bm_work_*/
+benchmark/bm_20251017_b6be9bd/
+
+# ---------- 各版本回归结果目录（testcase/v20131rc1_xxx/ 等）----------
+testcase/v2[0-9]*/
+
+# ---------- skill 运行产物 ----------
+skill_case/runs/
+skill_case/*/results/
+skill_case/*/results_*/
+test_result/
+
+# ---------- 根目录临时文件 ----------
+/1.out
+/1.txt
+/0304_tc34.out
+
+# ---------- 用例各自的运行输出目录 ----------
+testcase/dispatcher_lifecycle_*/
+testcase/logs_backup/
+testcase/pack_tc*/
+testcase/data/
+testcase/stop_diagnostics/
+sync_lag_response.json
+q_*.json
+
+# ---------- 用例的历史运行输出目录（tc306_xxx_2026_06_15_21_57_50/ 这类）----------
+testcase/*_20[0-9][0-9]_[0-9][0-9]_[0-9][0-9]_[0-9][0-9]_[0-9][0-9]_[0-9][0-9]/
+
+# ---------- 脚本/清单的历史备份（xxx.sh.V2-1215、xxx.sh.before_wait_fix_20260922 等）----------
+testcase/*.sh.*
+testcase/testcase_ok_list.txt.*
+
+# ---------- 诊断包 ----------
+*.tar.gz
+*.sha256
+testcase/tc[0-9]*_diag_bundle_*/
+
+# ---------- 用例的临时输出 ----------
+testcase/*_response.json
+testcase/tracked_region_*.list

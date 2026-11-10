@@ -10,6 +10,7 @@
 set -u
 
 cur_dir="$(cd "$(dirname "$0")" && pwd)"
+source "${cur_dir}/../lib/archive_logs.sh"
 conf_file="${cur_dir}/../conf/test.conf"
 nodeinfo_dir="${cur_dir}/../conf"
 u_name="$(awk -F= '$1=="u_name" {print $2}' "$conf_file")"
@@ -416,7 +417,7 @@ cleanup() {
     source_stopped=0
   fi
 }
-trap cleanup EXIT
+trap 'cleanup; archive_logs' EXIT
 
 log "starting ${SCRIPT_NAME}"
 if ! start_cluster; then

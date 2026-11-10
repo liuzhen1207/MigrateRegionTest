@@ -178,7 +178,7 @@ function mig_region()
       if [[ ${query_ip} = ${v_stop_dn_ip} ]];then
          query_ip=`tail -1 ${nodeinfo_dir}/datanode.txt` 
       fi
-      v_unknown_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster"|grep -i datanode|grep ${v_stop_dn_ip}|grep -i unknown|wc -l`
+      v_unknown_res=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster"|grep -i datanode|grep ${v_stop_dn_ip}|grep -iE "stopped|unknown"|wc -l`
       if [[ ${v_unknown_res} -gt 0 ]];then
          break
       else

@@ -286,7 +286,7 @@ function pre_and_exec_mig_region()
          echo "  [warn] 等待节点状态超时（${_to_max}s），继续执行"
          break
       fi
-      v_check_status=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep -i unknown|wc -l`
+      v_check_status=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e  'show datanodes'|grep -iE "stopped|unknown"|wc -l`
       if [[ ${v_check_status} -gt 0 ]];then
          break
       else

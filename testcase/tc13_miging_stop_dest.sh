@@ -194,7 +194,7 @@ function mig_region()
          echo "  [warn] 等待节点状态超时（${_to_max}s），继续执行"
          break
       fi
-      v_check_stop=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes"|grep "${v_stop_ip}"|grep -i unknown|wc -l`
+      v_check_stop=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show datanodes"|grep "${v_stop_ip}"|grep -iE "stopped|unknown"|wc -l`
       if [[ ${v_check_stop} = 1 ]];then
          break
       else

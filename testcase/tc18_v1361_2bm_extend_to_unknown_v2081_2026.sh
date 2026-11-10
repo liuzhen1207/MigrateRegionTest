@@ -406,7 +406,7 @@ function stop_dn()
          echo "  [warn] 等待节点状态超时（${_to_max}s），继续执行"
          break
       fi
-           v_unknown=`${cli_dir}/sbin/start-cli.sh -h ${v_query_ip} -u ${db_sys_admin} ${ssl_str} -e "show datanodes;"|grep "${rm_dn_ip}|"|grep -i unknown|wc -l`
+           v_unknown=`${cli_dir}/sbin/start-cli.sh -h ${v_query_ip} -u ${db_sys_admin} ${ssl_str} -e "show datanodes;"|grep "${rm_dn_ip}|"|grep -iE "stopped|unknown"|wc -l`
            if [[ ${v_unknown} -gt 0 ]];then
               break
            else

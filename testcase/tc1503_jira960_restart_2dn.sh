@@ -243,7 +243,7 @@ do
     fi
     
     # 检查集群中DN状态是否为unknown
-    v_unknown_res=$(${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster" | grep -i datanode | grep ${v_stop_dn_ip} | grep -i unknown | wc -l)
+    v_unknown_res=$(${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show cluster" | grep -i datanode | grep ${v_stop_dn_ip} | grep -iE "stopped|unknown" | wc -l)
     if [[ ${v_unknown_res} -gt 0 ]];then
         # start another dn
         ssh ${u_name}@${v_stop_dn_ip} "source /etc/profile; sudo ${db_dir}/sbin/start-datanode.sh -H ${db_dir}/dn_${v_start_time}_heapdump.hprof > /dev/null 2>&1 &"

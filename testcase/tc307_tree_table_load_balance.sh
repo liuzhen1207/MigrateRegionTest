@@ -1769,7 +1769,7 @@ check_data_consistent() {
       let fail_flag++
       return 1
     fi
-    if ! wait_for_monitor_sync_completion 120 360000; then
+    if ! wait_for_monitor_sync_completion 120 1800; then
       return 1
     fi
   done < "${run_artifact_dir}/running_datanodes.txt"
@@ -1941,7 +1941,7 @@ main() {
   check_load_balance_disk_counter_zero_logs || true
   validate_load_balance_effect || true
 
-  wait_for_monitor_sync_completion 120 360000 || true
+  wait_for_monitor_sync_completion 120 1800 || true
 
   if [[ ${metadata_ready} -eq 1 ]]; then
     check_data_consistent || true

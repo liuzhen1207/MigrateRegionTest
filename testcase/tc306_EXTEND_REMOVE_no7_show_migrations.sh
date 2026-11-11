@@ -1470,7 +1470,7 @@ check_data_consistent() {
       let fail_flag++
       return 1
     fi
-    if ! wait_for_monitor_sync_completion 120 360000; then
+    if ! wait_for_monitor_sync_completion 120 1800; then
       return 1
     fi
   done < "${cur_dir}/running_datanodes.txt"
@@ -1630,7 +1630,7 @@ testcase() {
   fi
 
   wait_benchmarks_finish 43200
-  wait_for_monitor_sync_completion 120 360000
+  wait_for_monitor_sync_completion 120 1800
 
   if [[ ${metadata_ready} -eq 1 ]]; then
     check_data_consistent

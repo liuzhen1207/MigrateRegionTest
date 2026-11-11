@@ -761,7 +761,7 @@ check_data_consistent() {
   local v_ip
   local start_time
 
-  if ! wait_for_monitor_sync_completion 120 360000; then
+  if ! wait_for_monitor_sync_completion 120 1800; then
     return 1
   fi
 
@@ -825,7 +825,7 @@ check_data_consistent() {
       let fail_flag++
       return 1
     fi
-    if ! wait_for_monitor_sync_completion 120 360000; then
+    if ! wait_for_monitor_sync_completion 120 1800; then
       return 1
     fi
   done < "${cur_dir}/running_datanodes.txt"

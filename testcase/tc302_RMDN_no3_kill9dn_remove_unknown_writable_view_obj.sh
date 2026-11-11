@@ -1327,7 +1327,7 @@ check_data_consistent() {
   local v_ip
   local start_time
 
-  if ! wait_for_monitor_sync_completion 120 360000; then
+  if ! wait_for_monitor_sync_completion 120 1800; then
     return 1
   fi
 
@@ -1372,7 +1372,7 @@ check_data_consistent() {
       let fail_flag++
       return 1
     fi
-    if ! wait_for_monitor_sync_completion 120 360000; then
+    if ! wait_for_monitor_sync_completion 120 1800; then
       return 1
     fi
   done < "${cur_dir}/running_datanodes.txt"
@@ -1518,7 +1518,7 @@ testcase() {
   wait_until_remove_time "${benchmark_start_sec}"
   remove_datanode_under_load || return 1
   wait_benchmarks_finish 43200 || return 1
-  wait_for_monitor_sync_completion 120 360000 || return 1
+  wait_for_monitor_sync_completion 120 1800 || return 1
   check_data_consistent || return 1
   sh -x "${clean_env_dir}/stop_cluster.sh"
   check_log

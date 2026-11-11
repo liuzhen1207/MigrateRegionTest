@@ -1492,7 +1492,7 @@ check_data_consistent() {
       let fail_flag++
       return 1
     fi
-    if ! wait_for_monitor_sync_completion 120 360000; then
+    if ! wait_for_monitor_sync_completion 120 1800; then
       return 1
     fi
   done < "${cur_dir}/running_datanodes.txt"
@@ -1656,7 +1656,7 @@ testcase() {
 
   wait_benchmarks_finish 43200
   if [[ ${remove_phase_succeeded} -eq 1 ]]; then
-    wait_for_monitor_sync_completion 120 360000
+    wait_for_monitor_sync_completion 120 1800
   else
     log "skip sync-lag wait because remove phase did not complete successfully (state=${rm_result_state})"
     append_warn "sync-lag wait skipped after remove failure state=${rm_result_state}"

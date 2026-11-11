@@ -453,7 +453,31 @@ v_mig_to_dn_id=-1
    fi
  v_mig_to_dn_ip=`grep "${v_mig_to_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
  v_mig_from_dn_ip=`grep "${v_mig_from_dn_id}," ${cur_dir}/all_dn_id_ip.txt|awk -F ',' '{print $2}'`
-   ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out 2>&1
+   # 【修复 2026-11-11】提交迁移可能因「该 region 上还有未完成的 region 操作过程」被 900 拒绝。
+   # 实测（tc18/tc46）：前序 RemoveRegionPeerProcedure 卡在 RESET_PEER_LIST（目标 DN 不可达重试中），
+   # 此时提交新迁移必返回 900；原实现提交一次即判失败。
+   # 改为：只对 900 这一种错误等待重试，其它错误仍立即失败。
+   v_submit_wait=${v_submit_wait:-600}
+   v_submit_t0=`date +%s`
+   v_submit_try=0
+   while true
+   do
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "MIGRATE REGION ${v_mig_id} FROM ${v_mig_from_dn_id} TO ${v_mig_to_dn_id};" > ${cur_dir}/mig.out 2>&1
+      if grep -q "The statement is executed successfully" ${cur_dir}/mig.out; then
+         break
+      fi
+      if ! grep -q "has some other region operation procedures in progress" ${cur_dir}/mig.out; then
+         break
+      fi
+      v_submit_try=$((v_submit_try+1))
+      v_submit_elp=$(( $(date +%s) - v_submit_t0 ))
+      if [ ${v_submit_elp} -gt ${v_submit_wait} ]; then
+         echo "  [warn] 等待前序 region 操作结束超过 ${v_submit_wait}s，停止重试"
+         break
+      fi
+      echo "  [wait] 该 region 仍有未完成的操作过程，${v_submit_elp}s 后重试（第 ${v_submit_try} 次）"
+      sleep 5
+   done
 # Check the metadata topology instead of one ConfigNode's log. The ConfigNode
 # leader may change during a long migration, and the success log may be rotated.
 if ! grep -q "The statement is executed successfully" ${cur_dir}/mig.out;then

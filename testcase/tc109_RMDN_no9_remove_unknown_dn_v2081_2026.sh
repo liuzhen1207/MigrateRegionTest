@@ -227,7 +227,10 @@ function wait_dn_state()
    while true
    do
       run_query ${host} tree "show datanodes;" "${cur_dir}/show_datanodes.out" || true
-      if grep "${dn_ip}|" "${cur_dir}/show_datanodes.out" | grep -qi "${state}";then
+      # 【修正 2026-11-11】state 改为支持正则（-E），以便同时接受 Stopped|Unknown。
+      #   NodeStatus 共 5 个值：Running/Unknown/Removing/ReadOnly/Stopped。
+      #   优雅停止（stop-datanode.sh）后为 Stopped，崩溃/不可达才是 Unknown。
+      if grep "${dn_ip}|" "${cur_dir}/show_datanodes.out" | grep -qiE "${state}";then
          return 0
       fi
       if [[ $((`date +%s`-begin)) -gt ${timeout_sec} ]];then
@@ -268,8 +271,8 @@ function check_data_consistent()
          echo "Failed to stop DataNode ${line}."
          node_fail=1
       fi
-      if ! wait_dn_state ${q_node} ${line} "Unknown" 300;then
-         echo "DataNode ${line} did not become Unknown within 300 seconds."
+      if ! wait_dn_state ${q_node} ${line} "Stopped|Unknown" 300;then
+         echo "DataNode ${line} did not become Stopped/Unknown within 300 seconds."
          node_fail=1
       fi
       v_ip=${line##*.}
@@ -328,8 +331,8 @@ function remove_datanode()
            let fail_flag++
            return 1
         fi
-        if ! wait_dn_state ${query_ip} ${rm_dn_ip} "Unknown" 300;then
-           echo "Remove target ${rm_dn_ip} did not become Unknown within 300 seconds."
+        if ! wait_dn_state ${query_ip} ${rm_dn_ip} "Stopped|Unknown" 300;then
+           echo "Remove target ${rm_dn_ip} did not become Stopped/Unknown within 300 seconds."
            let fail_flag++
            return 1
         fi

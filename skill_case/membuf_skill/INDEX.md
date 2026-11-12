@@ -26,6 +26,7 @@
 | MB-15 | TVList 排序算法 | `tvlist_sort_algorithm` = TIM/QUICK/BACKWARD（默认 TIM） | 三种算法各跑一轮**乱序写入**（逆序 + 步长 7），每轮重启 | 参数生效；点数一致；三种算法查询指纹完全一致 | V1 |
 | MB-11 | 顺乱序分离存储 | `enable_separate_data`（默认 true，重启生效） | 三阶段：true 写顺序→sequence/；false 写顺序→unsequence/；false 写乱序→unsequence/ | 参数生效；A 相 seq>0 且 unseq=0；B 相 seq=0 且 unseq>0；点数正确 | V1 |
 | MB-14 | V2 协议回归 | `data_region_consensus_protocol_class=...pipe.IoTConsensusV2` | 与 MB-03 同形（memtable≈21MB，写 8MB 等自动刷盘） | 协议配置生效；`iot_consensus_v2{type="syncLag"}` 存在；自动刷盘；点数正确；逐个停 DN 一致性通过 | **V2** |
+| **MB-26** | **V2 + 合理 Pipe 内存比例（MB-14 对照）** | `data_region_consensus_protocol_class=...iot.IoTConsensusV2` + `datanode_memory_proportion=1:100:1:1:10:1` | 与 MB-14 同形，仅把 Pipe 段由 1 提到 10（0.05%→8.8%） | 同 MB-14；验证「Pipe 内存充足时 V2 复制与 syncLag 能正常收敛」。MB-14 因 Pipe 池仅 10MB 而 OOM，属配置不足（见 docs/KNOWN_ISSUES.md §5） |
 | **MB-20** | **风险模式默认值与生效方式** | `dangerous_mode`（默认 false）、**重启生效（非热加载）** | ①不配 `dangerous_mode` + 9:1:1:1:1:1 ②仅改配置为 true 不重启 ③重启 | ①默认即 false ⇒ 被限幅+告警；②未重启仍限幅（非热加载）；③重启后不限幅+无告警 | V1 |
 | **MB-21** | **60% 边界与超限限幅** | `dangerous_mode=false` 下的 60% 上限判定 | ①`12:2:2:2:1:1`（storage **恰好 60%**） ②`9:1:1:1:1:1`（64.3%） | ①边界值**不限幅**、无告警；②超限 ⇒ `Write=maxMemory×3/5` + 限幅告警 | V1 |
 | **MB-22** | **风险模式放行** | `dangerous_mode=true` 不做 60% 检查 | `dangerous_mode=true` + `9:1:1:1:1:1`（64.3%） | `Write=maxMemory×9/14`（按比例）；**无**限幅告警；集群 8/8 可用、读写正常 | V1 |

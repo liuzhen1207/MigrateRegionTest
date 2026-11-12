@@ -77,3 +77,36 @@ bash 报 `Killed`；`dmesg`、`/var/log/kern.log`、`journalctl -k` 均为空（
    - 起后台任务后，用 `ps -eo pid,etime,args | grep '[j]ob\.sh'` 确认没有**历史遗留**的 `etime` 很大的进程；
    - 关键实验（如停节点对照）**开始前必须确认无并发脚本**，并在报告里注明该前提。
 6. **教训**：任何"按时间观察"的结论（停节点、等刷盘、syncLag）都必须在**单任务独占集群**下取得，否则结论可能完全失真。
+
+## 5. MB-14 在 Pipe 池过小时 syncLag 永不归零（配置不足，非产品缺陷）
+
+**现象**：MB-14 判据②「V2 专属 syncLag 指标存在且能归零」失败，`syncLag series=14 nonzero=1`
+连续 600s 不收敛；DataNode 侧日志：
+
+```
+WARN IoTConsensusV2AsyncSink:782 - Failed to borrow client from client pool or exception
+  occurred when sending to receiver 172.20.70.30:10760.
+PipeRuntimeOutOfMemoryException{message='forceAllocate: failed to allocate memory after 10 retries,
+  total memory size 10710641 bytes, used memory size 10680580 bytes, requested memory size 50395 bytes'}
+    at PipeMemoryManager.forceAllocateWithRetry(PipeMemoryManager.java:1107)
+    at PipeMemoryManager.forceAllocateForTsFileWithRetry(PipeMemoryManager.java:986)
+```
+
+实测该类异常在 20 分钟内出现 **4448 次**。
+
+**根因**：MB-14 沿用 MB-03 的极端比例 `1:2000:1:1:1:1`
+（六段 write:read:schema:consensus:**pipe**:auto），合计 2005 份，**Pipe 段仅 0.05%**
+⇒ Pipe 池总容量约 **10.7 MB**。而 IoTConsensusV2 的复制走 Pipe 框架
+（`IoTConsensusV2AsyncSink`），TsFile 传输需要 Pipe 内存作缓冲，池满即永久失败。
+
+**定性**：**配置不足，不是产品缺陷**。与 [`DEFECT_RC11_PIPE_MEMORY.md`](DEFECT_RC11_PIPE_MEMORY.md)
+的研发结论一致（该文档顶部已撤回：*"被测场景把 Pipe 内存池配置得过小（第 5 段 = 1，6.4 MB），
+因此 TsFile 传输 OOM 属配置不足，不是产品缺陷"*）。
+
+**处置**：
+- **保留 MB-14 原样**，作为「极端内存压力下 V2 会卡住」的已知限制；
+- **新增 MB-26**（`cases/common/mb_26_v2_pipe_mem_ok.sh`）作为对照：同一套 V2 流程，
+  比例改为 `1:100:1:1:10:1`（Pipe 8.8%，约 1.7 GB），验证 Pipe 内存充足时 V2 复制与
+  syncLag 能正常收敛。
+
+**注意**：MB-14 与 MB-26 都会切换共识协议，必须排在用例序列靠后，避免反复重启集群。

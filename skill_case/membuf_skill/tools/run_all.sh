@@ -72,7 +72,7 @@ CSV="$OUTDIR/test_result.csv"
 
 # 顺序即执行顺序：MB-14 会切协议，放最后；MB-13 会停节点，放倒数第二
 # 顺序即执行顺序：会切协议/切 enable_separate_data/切算法的放后面，减少集群启停次数
-ALL_CASES="MB-01 MB-02 MB-03 MB-04 MB-05 MB-06 MB-07 MB-08 MB-09 MB-10 MB-16 MB-18 MB-12 MB-17 MB-13 MB-15 MB-11 MB-14 MB-19 MB-20 MB-21 MB-22 MB-23 MB-25 MB-24"
+ALL_CASES="MB-01 MB-02 MB-03 MB-04 MB-05 MB-06 MB-07 MB-08 MB-09 MB-10 MB-16 MB-18 MB-12 MB-17 MB-13 MB-15 MB-11 MB-14 MB-26 MB-19 MB-20 MB-21 MB-22 MB-23 MB-25 MB-24"
 
 case_in_set(){ local id=$1
   case "$SET" in

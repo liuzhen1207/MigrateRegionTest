@@ -30,6 +30,8 @@ test_begin_sec="$(date +%s)"
 run_id="$(date +%Y%m%d_%H%M%S)"
 out_dir="${cur_dir}/dispatcher_lifecycle_${run_id}"
 mkdir -p "$out_dir"
+# 【补充 2026-11-12】结果文件：与其它用例保持一致，供驱动判定
+res_file="${cur_dir}/../test_result/res_${v_cur_db}.out"
 
 fail_count=0
 pass_count=0
@@ -560,6 +562,14 @@ if [[ "$fail_count" -eq 0 ]]; then
 else
   result=false
   log "${SCRIPT_NAME}: FAIL (${pass_count} passed, ${fail_count} failed, ${elapsed}s)"
+fi
+
+# 【补充 2026-11-12】写入结果文件，格式与其它用例一致（"xxx.sh : pass|fail"）。
+# 原脚本只写 IoTDB 与日志，驱动按 ".sh : pass|fail" 判定，导致该用例长期"无判定"。
+if [[ "$result" = "true" ]]; then
+  echo "${SCRIPT_NAME} : pass" >>"${res_file}"
+else
+  echo "${SCRIPT_NAME} : fail" >>"${res_file}"
 fi
 
 if [[ -n "$testcase_res_db" && -n "$testcase_res_port" ]]; then

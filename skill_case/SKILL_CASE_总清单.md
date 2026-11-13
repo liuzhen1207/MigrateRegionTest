@@ -12,16 +12,16 @@
 | 1 | **membuf_skill**（内存缓冲区） | 31（25 功能 + 5 性能 + MB-26） | `/data1/iotdb/testcase/membuf_skill` | **RC2** `v20131rc2_1110_83183d0` | ✅ **已跑 30/31**（MB-26 待跑） |
 | 2 | **feishu_spec_skill**（查询调度） | 15 | `/data1/iotdb/testcase/feishu_spec_skill` | **RC2** `v20131rc2_1110_83183d0` | ✅ **已跑 15/15** |
 | 3 | **sanquan_skill**（三权分立） | 59 | `/data1/iotdb/testcase/sanquan_skill` | **RC1** `v20131rc1_1030_ab6d3de`（11-03） | ❌ **未跑** |
-| 4 | **ref_compaction**（合并） | 52（CO-01~43 + DT-01~09） | ❌ **未部署到 70.3** | RC8 `v20121rc6_1010_7ae8713e`（10-20） | ❌ **未跑** |
+| 4 | **ref_compaction**（合并） | 52（CO-01~43 + DT-01~09） | `/data1/iotdb/testcase/ref_compaction`（**2026-11-13 已部署**） | RC8 `v20121rc6_1010_7ae8713e`（10-20） | 🔄 **正在跑**（11-13 18:26 启动） |
 | 5 | **region_migrate_skill**（迁移） | 122 | `/data1/iotdb/testcase/MigrateRegionTest/testcase` | **RC2** | ✅ **已跑 122/122** |
 
-**合计：279 个用例；RC2 已覆盖 167 个，未覆盖 111 个。**
+**合计：279 个用例；RC2 已覆盖 167 个，正在补跑 111 个（2026-11-13 晚启动周末连跑）。**
 
 ---
 
 ## 二、缺口（需要补跑）
 
-### 缺口 1：sanquan_skill —— 59 个用例，只跑到 RC1
+### 缺口 1：sanquan_skill —— 59 个用例，只跑到 RC1（**周末已排期，紧随 compaction 之后**）
 
 ```
 最后运行：2026-11-03，v20131rc1_1030_ab6d3de
@@ -39,13 +39,12 @@ bash tools/run_all.sh
 
 **预计耗时**：59 个用例，按历史约 10~15 分钟/个 ≈ **10~15 小时**（建议分两晚）。
 
-### 缺口 2：ref_compaction —— 52 个用例，从未在 2.0.13.1 上跑过
+### 缺口 2：ref_compaction —— 52 个用例，从未在 2.0.13.1 上跑过（**2026-11-13 已部署并开跑**）
 
 ```
-当前状态：只有本地副本 /data/deepseek/skill_case_ip3_3c5d/ref_compaction
-          （70.3 上没有部署）
-最后运行：2026-10-20，2.0.12.1 RC8
-默认版本：v20121rc6_1010_7ae8713e（需改）
+部署状态：✅ 已部署到 /data1/iotdb/testcase/ref_compaction（2026-11-13）
+最后运行：2026-10-20，2.0.12.1 RC8（本次之前）
+环境适配：改了 11 项（见下方「环境适配记录」）
 ```
 
 **部署 + 跑法**：
@@ -115,6 +114,30 @@ bash tools/run_all.sh --set regression      # 52 条全跑
 | 导入入口 | `run_all_mig.sh`（读两个清单） |
 | 用例清单 | `migrate_testcase_list.txt`（62）+ `remove_iotv1_testcase_list.txt`（60） |
 | RC2 结果 | **122/122 执行完毕**：108 PASS / 13 FAIL / 1 无判定 |
+
+---
+
+### ref_compaction 环境适配记录（2026-11-13）
+
+该 skill 原为另一套环境编写（3 节点 192.168.99.77/78/79、root 用户、dataRF=3），
+部署到本环境需改 `conf/env.conf` 的 11 项：
+
+| 配置项 | 原值 | 改为 |
+|---|---|---|
+| `CLUSTER_NODES` | 192.168.99.77 78 79 | 172.20.70.5 / .4 / .26 |
+| `CN_NODES` | 跟随 CLUSTER_NODES | 172.20.70.5 / .4 / .26 |
+| `DN_NODES` | 跟随 CLUSTER_NODES | 172.20.70.4 / .26 / .14 / .27 / .30 |
+| `SSH_USER` | root | **cluster** |
+| `SHELL_CLIENT_DIR` | /data/iotdb/testdb | **/data1/iotdb/testdb** |
+| `CLUSTER_NAME` | timecho | **defaultCluster** |
+| `DATA_RF` | 3 | **2** |
+| `CN_METRIC_PORT` | 9091 | **9081** |
+| `PROMETHEUS_URL` | http://127.0.0.1:9090 | **http://172.20.70.13:9090** |
+| `PROMETHEUS_CLUSTER` | timecho | **defaultCluster** |
+| `USE_FRAMEWORK` | 1（依赖 /data/iotdb/autotest） | **0（该目录不存在，改自管集群）** |
+| `V_TESTDB` | v20121rc6_1010_7ae8713e | **v20131rc2_1110_83183d0** |
+
+**冒烟验证**：CO-01 于 2026-11-13 18:06 跑通，`PASS=1 FAIL=0`（1030 行输出，无 192.168 超时）。
 
 ---
 

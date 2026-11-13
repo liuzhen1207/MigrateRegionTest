@@ -18,11 +18,11 @@ DEVS=$(qs_ensure_data)
 assert_ge "①数据已就绪" "${DEVS:-0}" 100
 
 log "=== 大结果集查询（期望行数=总点数）==="
-EXP="${POINTS}"
+EXP=$(sq "select count(*) from $QS_LONG_DB.**;" 2>/dev/null | grep -oE "[0-9]+" | head -1)
 QOUT=$(timeout 1800 "$CLI" -h "${DN[0]}" -p "$DN_RPC_PORT" -u "$DB_USER" -pw "$ROOT_PW" \
       -e "select * from $QS_LONG_DB.**;" 2>&1)
 RC=$?
-GOT=$(echo "$OUT" | grep -cE '^\|' )
+GOT=$(echo "$QOUT" | grep -cE '^\|' )
 log "  CLI rc=${RC}  返回数据行=${GOT}  期望≈${EXP}"
 assert_eq "②大结果集查询正常结束（rc=0）" "${RC}" "0"
 assert_ge "③返回了数据行（Blocked→Ready 未卡死）" "${GOT:-0}" 1

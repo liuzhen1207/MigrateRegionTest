@@ -289,7 +289,25 @@ qs_sql(){
 
 # 当前 show queries 条数（去掉表头/分隔行）
 qs_query_count(){
-  sq "show queries;" 2>/dev/null | grep -cE '^\|' 2>/dev/null
+  # 【修正 2026-11-13】原实现 `grep -cE '^\|'` 统计以 | 开头的行，但 show queries 的输出里
+  #   ① 有 1 行表头（| Time | QueryId | ...）
+  #   ② show queries 这条语句**自身**也会出现在结果中（Statement 列 = "show queries"）
+  # 因此即使没有任何其它查询，计数也恒为 2，导致 QS-07/QS-12 的
+  # `assert_eq "SHOW QUERIES 无残留" "$(qs_query_count)" "0"` 永远失败。
+  # 改为解析 `Total line number = N` 并减去自身 1 行；解析不到时退回行数-表头。
+  local out total c
+  out=$(sq "show queries;" 2>/dev/null)
+  total=$(printf '%s\n' "$out" | grep -oE 'Total line number = [0-9]+' | head -1 | grep -oE '[0-9]+$')
+  if [ -n "${total:-}" ]; then
+    c=$((total - 1))            # 去掉 show queries 自身
+    [ "$c" -lt 0 ] && c=0
+    echo "$c"
+    return 0
+  fi
+  c=$(printf '%s\n' "$out" | grep -cE '^\|')
+  c=$((c - 2))                  # 去掉表头 + 自身
+  [ "$c" -lt 0 ] && c=0
+  echo "$c"
 }
 
 # DN 进程 RSS（KB）

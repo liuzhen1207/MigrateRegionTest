@@ -82,3 +82,44 @@ QS_SKIP_CLEAN=1 USE_FRAMEWORK=0 bash cases/qs_02_short_not_blocked.sh
 - 执行机可免密 ssh 到全部 CN/DN
 - 节点已部署被测版本；执行机有同版本 CLI
 - 短查询压测依赖 iot-benchmark（`lib/perf.sh` 的 `PERF_BM_DIR`）
+
+## 用例编写规范（2026-11-13 补充，来自 RC2 回归踩坑）
+
+### 铁律：凡被 `VAR=$(函数)` 捕获输出的函数，除最后一行 `echo` 外，所有输出必须重定向到 stderr
+
+本 skill 已累计踩到 4 次同类坑，表现全部是「产品正常、用例判失败」：
+
+| 位置 | 症状 | 根因 |
+|---|---|---|
+| `qs_device_count` | 设备数比较恒失败 | 函数内 grep 的诊断信息打到 stdout |
+| `qs_ensure_data` | 12 个用例 `assert_ge "${DEVS}" 100` 恒失败 | 函数内两次 `log` 打到 stdout |
+| `qs_query_count` | `SHOW QUERIES 无残留` 恒为 2 | 统计口径含表头 + `show queries` 自身 |
+| QS-08 | `返回数据行` 恒为 0 | 结果存 `QOUT`，却统计 `$OUT`（未定义） |
+
+**规则**
+
+1. 会被 `VAR=$(func)` 捕获的函数，函数体除最后一行 `echo` 外，全部输出重定向到 stderr：
+
+   ```bash
+   func(){
+     log "  中间过程..." >&2      # 必须
+     helper_call ...  >&2         # 被调函数内部也可能写 stdout
+     echo "$result"               # 只有这行走 stdout
+   }
+   ```
+
+2. **不要依赖「调用方不捕获」**——同一函数稍后被 `$( )` 捕获就会暴露问题。
+
+3. **写断言前先验证函数输出是纯值**：
+
+   ```bash
+   v=$(my_func); printf "[%s]\n" "$v"    # 必须只打印 [数字]
+   ```
+
+4. **统计表格输出要明确口径**：`SHOW QUERIES` 含 1 行表头，且 `show queries` **自身**也会出现在结果里；
+   优先解析 `Total line number = N`，不要直接数 `|` 开头的行。
+
+5. **相近变量名易错**：`QOUT` / `OUT` / `OUTPUT` 并存时，统计前先 `echo` 确认非空。
+
+> 落地实例：`05582cb`（qs_ensure_data stdout 污染）、`dbb3e0f`（qs_query_count 口径 + QS-08 变量名）。
+

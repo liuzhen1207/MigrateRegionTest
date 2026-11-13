@@ -11,22 +11,31 @@
 |---|---|---|---|---|---|
 | 1 | **membuf_skill**（内存缓冲区） | 31（25 功能 + 5 性能 + MB-26） | `/data1/iotdb/testcase/membuf_skill` | **RC2** `v20131rc2_1110_83183d0` | ✅ **已跑 30/31**（MB-26 待跑） |
 | 2 | **feishu_spec_skill**（查询调度） | 15 | `/data1/iotdb/testcase/feishu_spec_skill` | **RC2** `v20131rc2_1110_83183d0` | ✅ **已跑 15/15** |
-| 3 | **sanquan_skill**（三权分立） | 59 | `/data1/iotdb/testcase/sanquan_skill` | **RC1** `v20131rc1_1030_ab6d3de`（11-03） | 🔄 **正在跑**（11-13 21:45 启动） |
+| 3 | **sanquan_skill**（三权分立） | 59 | `/data1/iotdb/testcase/sanquan_skill` | **RC2** `v20131rc2_1110_83183d0`（11-13） | ✅ **已跑：58 PASS / 1 FAIL** |
 | 4 | **ref_compaction**（合并） | 52（CO-01~43 + DT-01~09） | `/data1/iotdb/testcase/ref_compaction`（2026-11-13 已部署） | RC8 `v20121rc6_1010_7ae8713e`（10-20） | ⚠️ **尝试过但结果不可信**（见下） |
 | 5 | **region_migrate_skill**（迁移） | 122 | `/data1/iotdb/testcase/MigrateRegionTest/testcase` | **RC2** | ✅ **已跑 122/122** |
 
-**合计：279 个用例；RC2 已覆盖 167 个，正在补跑 59 个（sanquan），52 个（compaction）待适配后重跑。**
+**合计：279 个用例；RC2 已覆盖 226 个（167 + 59），52 个（compaction）待适配后重跑。**
+
+| RC2 覆盖进度 | 用例数 |
+|---|---|
+| 已覆盖 | **226 / 279（81.0%）** |
+| 待补（compaction 需适配） | 52 |
+| 待验证（MB-26） | 1 |
 
 ---
 
 ## 二、缺口（需要补跑）
 
-### 缺口 1：sanquan_skill —— 59 个用例，只跑到 RC1（**周末已排期，紧随 compaction 之后**）
+### 缺口 1：sanquan_skill —— ✅ **已完成 RC2 补跑（2026-11-14）**
 
 ```
-最后运行：2026-11-03，v20131rc1_1030_ab6d3de
-结果：79 条 v20121rc12 / 242 条 v20131rc1（历史累计）
-RC2 结果：无
+运行：2026-11-13 21:45 ~ 2026-11-14 01:46（约 4 小时）
+首轮：PASS=56 / FAIL=3
+重跑失败项后：PASS=58 / FAIL=1（98.3%）
+唯一可复现失败：SQ-55（内存增幅 39.7% > 30% 阈值，非功能临界）
+另 2 个失败（SQ-09、SQ-49）经重跑确认是环境问题，已消除
+报告：plm_submit/SANQUAN回归报告_2.0.13.1_RC2.md
 ```
 
 **跑法**：

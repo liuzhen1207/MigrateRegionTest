@@ -305,13 +305,19 @@ qs_dn_rss_kb(){
 #   外部先造数再重启的写法会稳定失败。用例内"重启后再造"最稳。
 # ---------------------------------------------------------------------------
 qs_ensure_data(){
-  local min_dev="${1:-10}" dev
+  # 【修正 2026-11-13】本函数被 12 个用例以 DEVS=$(qs_ensure_data) 调用，
+  # 必须保证 stdout 只有最终数字。原来内部 log / qs_load_data 都写 stdout，
+  # 导致 DEVS 捕获到「日志行 + 数字」，随后 assert_ge "${DEVS}" 100 必然失败
+  # （实测：造数其实成功，造数后设备数=201，但断言拿到的是整段日志）。
+  # 故内部输出全部重定向到 stderr，只剩最后一行 echo 走 stdout。
+  # 另把 min_dev 默认值由 10 提到 100，与多数用例 assert_ge ... 100 的阈值一致。
+  local min_dev="${1:-100}" dev
   dev=$(qs_device_count "$QS_LONG_DB")
   if [ "${dev:-0}" -lt "$min_dev" ]; then
-    log "  数据不足（设备数=${dev:-0} < ${min_dev}），现场造数..."
-    qs_load_data 200 10 300 "auto-load" || { warn "造数失败"; echo "${dev:-0}"; return 1; }
+    log "  数据不足（设备数=${dev:-0} < ${min_dev}），现场造数..." >&2
+    qs_load_data 200 10 300 "auto-load" >&2 || { warn "造数失败" >&2; echo "${dev:-0}"; return 1; }
     dev=$(qs_device_count "$QS_LONG_DB")
-    log "  造数后设备数=${dev:-0}"
+    log "  造数后设备数=${dev:-0}" >&2
   fi
   echo "${dev:-0}"
 }

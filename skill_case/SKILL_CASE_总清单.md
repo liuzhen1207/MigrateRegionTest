@@ -12,7 +12,7 @@
 | 1 | **membuf_skill**（内存缓冲区） | 31（25 功能 + 5 性能 + MB-26） | `/data1/iotdb/testcase/membuf_skill` | **RC2** `v20131rc2_1110_83183d0` | ✅ **已跑 30/31**（MB-26 待跑） |
 | 2 | **feishu_spec_skill**（查询调度） | 15 | `/data1/iotdb/testcase/feishu_spec_skill` | **RC2** `v20131rc2_1110_83183d0` | ✅ **已跑 15/15** |
 | 3 | **sanquan_skill**（三权分立） | 59 | `/data1/iotdb/testcase/sanquan_skill` | **RC2** `v20131rc2_1110_83183d0`（11-13） | ✅ **已跑：58 PASS / 1 FAIL** |
-| 4 | **ref_compaction**（合并） | 52（CO-01~43 + DT-01~09） | `/data1/iotdb/testcase/ref_compaction`（2026-11-13 已部署） | RC8 `v20121rc6_1010_7ae8713e`（10-20） | ⚠️ **尝试过但结果不可信**（见下） |
+| 4 | **ref_compaction**（合并） | 52（CO-01~43 + DT-01~09） | `/data1/iotdb/testcase/ref_compaction`（2026-11-13 已部署） | RC8 `v20121rc6_1010_7ae8713e`（10-20） | ❌ **本环境无法可靠运行**（见下） |
 | 5 | **region_migrate_skill**（迁移） | 122 | `/data1/iotdb/testcase/MigrateRegionTest/testcase` | **RC2** | ✅ **已跑 122/122** |
 
 **合计：279 个用例；RC2 已覆盖 226 个（167 + 59），52 个（compaction）待适配后重跑。**
@@ -48,7 +48,7 @@ bash tools/run_all.sh
 
 **预计耗时**：59 个用例，按历史约 10~15 分钟/个 ≈ **10~15 小时**（建议分两晚）。
 
-### 缺口 2：ref_compaction —— 52 个用例，**首次尝试失败，结果不可信**
+### 缺口 2：ref_compaction —— 52 个用例，**经两次尝试确认：本环境无法可靠运行**
 
 ```
 部署状态：✅ 已部署（2026-11-13），11 项环境适配已做
@@ -70,12 +70,38 @@ bash tools/run_all.sh
    后续用例在拓扑不平衡的集群上跑，结果不可比。
 4. CO-03/CO-04 报"合并 90s 内未推进"，在拓扑刚被改变、region 分布不均的情况下无法定论。
 
-**重跑前需要做的事**：
+**已完成的适配（2026-11-14 上午）**：
 
-- [ ] `co_remove_nodes.sh`（CO-12）改为 **RF=3 才跑负向守卫，RF<3 直接 SKIP**
-- [ ] 长跑前先把集群收敛到 5 DN / region 均衡的干净状态
-- [ ] 用可靠的保活方式跑（见第五节的环境限制）
-- [ ] 单用例超时从外部兜底（本轮 6 个 UNKNOWN 都是被杀，没有超时保护）
+- [x] `co_remove_nodes.sh`（CO-12）改为 RF<3 时 `skip_case`，已验证 `rc=0 [SKIP]`
+- [x] `run_all.sh` 加 `timeout ${CASE_TIMEOUT_SEC:-3600}` 外部超时 + `TIMEOUT` 状态
+- [x] `run_all.sh` 支持 `RESULT SKIP` 语义（单独计入"跳过"）
+- [x] `common.sh` 的 `python3` 改 `python`（本机只有 Python 2.7.5，代码兼容）
+- [x] 第 400 行 `rm -rf` 加 `sudo`（日志文件属主 root）
+
+**第二次运行（2026-11-14 08:37）结果：仍然不可用**
+
+```
+9 个用例：PASS 1 / FAIL 2 / UNKNOWN 6
+rc 分布：rc=0 ×3，rc=137 ×6
+```
+
+**6 个 UNKNOWN 全部是 `rc=137`（SIGKILL）**，与 membuf
+`docs/KNOWN_ISSUES.md` §1 记录的完全一致：
+*ssh 长连接被回收 → 远端进程组被杀*。本 skill 单用例耗时 10~25 分钟，
+远超前述文档中"8~10 分钟后被回收"的阈值。
+
+且被杀的用例会 **留下孤儿进程与新用例抢集群**（实测同时存在两个 case 进程），
+集群被打成 `ReadOnly` / `Unknown`，需要完整重建才能恢复。
+
+**结论：本环境（70.3）不具备稳定运行 ref_compaction 的条件。**
+
+要跑通需要满足其一：
+1. 有 screen/tmux 或本地终端直连，避免 ssh 回收杀进程组；
+2. 或把 52 条用例拆成小批（每批 ≤3 条，单批 <10 分钟）；
+3. 或改造用例的收尾逻辑：把"逐个停 DN 做一致性校验"这种长收尾缩短。
+
+**另注**：本 skill 另有 3 处假设 RF=3 / 3 节点（CO-01 检查"每个 DN 都落盘"等），
+在 5 DN + RF=2 下会产生假 FAIL，需逐条评估。
 
 **部署 + 跑法**：
 

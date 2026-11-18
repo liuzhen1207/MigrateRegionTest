@@ -521,15 +521,22 @@ do
        v_mig_to_id=`cat ${cur_dir}/dn_id_ip.txt|grep -v ${line}|grep -v ${v_another_dn_ip}|head -1|awk -F ',' '{print $1}'` 
        v_mig_to_ip=`cat ${cur_dir}/dn_id_ip.txt|grep -v ${line}|grep -v ${v_another_dn_ip}|head -1|awk -F ',' '{print $2}'`
        ${cli_dir}/sbin/start-cli.sh -h ${query_ip}  -e "migrate region ${v_mig_id} from ${v_mig_from_id} to ${v_mig_to_id};"
-       while true
-       do
-          v_mig_suc=`${cli_dir}/sbin/start-cli.sh -h ${query_ip}  -e "show data regions"|grep root.test|grep ${line}|wc -l`
-          if [[ ${v_mig_suc} = 0 ]];then
-             break
-          else
-             sleep 5
-          fi
-       done
+        v_mig_wait_start=$(date +%s)
+        while true
+        do
+           v_mig_suc=`${cli_dir}/sbin/start-cli.sh -h ${query_ip}  -e "show data regions"|grep root.test|grep ${line}|wc -l`
+           if [[ ${v_mig_suc} = 0 ]];then
+              break
+           fi
+           # 【修正 2026-11-19】原为无限循环，迁移失败时永久挂住（tc53 实测挂 49 分钟）。
+           # 增加 900s 超时，超时判失败并退出，避免整个回归停摆。
+           if [[ $(( $(date +%s) - v_mig_wait_start )) -gt 900 ]];then
+              echo "FAIL: wait migrate region ${v_mig_id} (${v_mig_from_id} -> ${v_mig_to_id}) timeout after 900s"
+              let fail_flag++
+              break
+           fi
+           sleep 5
+        done
        break 
      fi
    done

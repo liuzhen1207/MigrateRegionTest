@@ -96,6 +96,39 @@ wait_for_cluster_ready() {
   return 1
 }
 
+# 【修正 2026-11-17】端口预检：上一用例的 CN/DN 若未完全退出，
+# 新进程会以 "Failed to start Grpc server" 退出，表现为
+# "ConfigNode xxx did not join within 180s" / "cluster did not reach N nodes"。
+_reclaim_ports() {
+  local host=$1; shift
+  local ports="$*" p pid
+  for p in ${ports}; do
+    pid=$(ssh "${SSH_OPTS[@]}" "${u_name}@${host}" \
+            "sudo ss -lntp 2>/dev/null | grep ':${p} ' | grep -oE 'pid=[0-9]+' | head -1 | cut -d= -f2" 2>/dev/null)
+    if [[ -n "${pid}" ]]; then
+      echo "  [preflight] ${host}:${p} 被 pid=${pid} 占用，强制释放" >&2
+      ssh "${SSH_OPTS[@]}" "${u_name}@${host}" "sudo kill -9 ${pid}" >/dev/null 2>&1
+    fi
+  done
+  for p in ${ports}; do
+    for _ in $(seq 1 30); do
+      [[ -z "$(ssh "${SSH_OPTS[@]}" "${u_name}@${host}" "sudo ss -lnt 2>/dev/null | grep ':${p} ' | head -1" 2>/dev/null)" ]] && break
+      sleep 1
+    done
+  done
+  return 0
+}
+
+_cluster_port_preflight() {
+  local h
+  for h in $(cat "${cur_dir}/../conf/confignode.txt" 2>/dev/null | tr -d '\r' | grep -vE '^\s*#|^\s*$' | sort -u); do
+    _reclaim_ports "${h}" 10710 10720
+  done
+  for h in $(cat "${cur_dir}/../conf/datanode.txt" 2>/dev/null | tr -d '\r' | grep -vE '^\s*#|^\s*$' | sort -u); do
+    _reclaim_ports "${h}" 6667 10730 10740
+  done
+}
+
 start_cluster() {
   local cur_start_count=$1
   local total_nodes=$2
@@ -104,6 +137,7 @@ start_cluster() {
   local v_alter_user_pw
   local v_succ
   local v_running
+  _cluster_port_preflight   # 【修正 2026-11-17】启动前释放残留端口
 
   while read -r c_node; do
     [[ -z "${c_node}" || "${c_node}" == \#* ]] && continue

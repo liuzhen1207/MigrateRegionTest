@@ -236,7 +236,11 @@ do
       echo "have been executed delete timeseries;"
    else
        
-      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "delete timeseries root.test.g_0.view_from_d*.*;">${cur_dir}/del_ts.out &
+      # 【修正 2026-11-18】root.test.g_0.view_from_d* 是逻辑视图（Encoding/Compression 为 null，
+      #   ViewType 无 BASE），DELETE TIMESERIES 对其返回 508。视图的正确删除语句是 DROP VIEW，
+      #   且必须带 .* 后缀（不带时报 "View [...] does not exist"）。已在 RC3 干净环境实测：
+      #   DROP VIEW root.test.g_0.view_from_d*.* → 视图数 1000000 → 0，物理序列 d* 保持 1000000。
+      ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "DROP VIEW root.test.g_0.view_from_d*.*;">${cur_dir}/del_ts.out &
       let v_del_flag++
    fi
    if ! wait_migration_finished ${v_mig_id} ${v_mig_from_dn_id} ${v_mig_to_dn_id};then

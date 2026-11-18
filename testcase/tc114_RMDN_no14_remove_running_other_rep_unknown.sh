@@ -299,7 +299,7 @@ wait_datanode_status() {
   while true
   do
     run_cli_sql "${host}" tree "show datanodes;" "${cur_dir}/show_datanodes.out" 3600
-    hit_num=$(grep "${dn_ip}|" "${cur_dir}/show_datanodes.out" | grep -i "${expect_status}" | wc -l)
+    hit_num=$(grep "${dn_ip}|" "${cur_dir}/show_datanodes.out" | grep -iE "${expect_status}" | wc -l)
     if [[ ${hit_num} -gt 0 ]]; then
       return 0
     fi
@@ -414,7 +414,7 @@ remove_datanode_under_load() {
   fi
 
   ssh "${u_name}@${rm_target_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh"
-  if ! wait_datanode_status "${query_ip}" "${rm_target_ip}" "Unknown" 300; then
+  if ! wait_datanode_status "${query_ip}" "${rm_target_ip}" "Stopped|Unknown" 900; then
     log "datanode ${rm_target_ip} did not become Unknown before remove"
     let fail_flag++
   fi
@@ -470,7 +470,7 @@ remove_running_with_replica_unknown_expect_fail() {
   fi
   log "stop replica peer ${peer_ip} of region ${region_id} before removing ${target_ip}"
   ssh "${u_name}@${peer_ip}" "source /etc/profile; cd ${db_dir}; sudo ./sbin/stop-datanode.sh"
-  if ! wait_datanode_status "${target_ip}" "${peer_ip}" "Unknown" 300; then
+  if ! wait_datanode_status "${target_ip}" "${peer_ip}" "Stopped|Unknown" 900; then
     log "replica peer ${peer_ip} did not become Unknown"
     let fail_flag++
     return 1

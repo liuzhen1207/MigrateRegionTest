@@ -149,7 +149,7 @@ function check_res()
       echo "${tc_desc} PASS."
       let succ_flag++
    else
-      echo "${tc_desc} FAIL."
+      echo "${tc_desc} FAIL. 期望匹配 [${exp_res}] x ${exp_num}，实际 ${v_act_num}"
       let fail_flag++
       cat ${cur_dir}/tmp.out
    fi
@@ -166,7 +166,7 @@ function check_res2()
       echo "${tc_desc} PASS."
       let succ_flag++
    else
-      echo "${tc_desc} FAIL."
+      echo "${tc_desc} FAIL. 期望 [${exp_res1}]>=${exp_num} 或 [${exp_res2}]>=${exp_num}，实际 ${v_act_num1}/${v_act_num2}"
       let fail_flag++
       cat ${cur_dir}/tmp.out
    fi
@@ -499,6 +499,13 @@ LOCAL_IP=$(ip route get 1.1.1.1 | awk '{print $7; exit}')
 if [ -z "${LOCAL_IP}" ] || [ "${LOCAL_IP}" = "127.0.0.1" ]; then
     echo "尝试备选方法获取IP..."
     LOCAL_IP=$(ip addr | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d '/' -f1 | head -n1)
+fi
+
+# 【修正 2026-11-17】测试机（172.20.70.3）无 ip / ifconfig 命令，
+# 上面两种方式都会失败，导致 "ERROR：无法获取有效IP地址" 并 exit 1，
+# 用例直接退出、不写判定行。这里增加 hostname -I 兜底（该命令存在且可用）。
+if [ -z "${LOCAL_IP}" ]; then
+    LOCAL_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 fi
 
 # 步骤3：最终验证

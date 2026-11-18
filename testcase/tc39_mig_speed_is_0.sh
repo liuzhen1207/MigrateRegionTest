@@ -202,7 +202,10 @@ do
    while true
    do
       v_AddRegion=`find_cn_log "AddRegion] started" "added to DataNode ${v_mig_to_dn_id}" | wc -l`
-      if [[ ${v_AddRegion} -gt 0 ]];then
+      # 【修正 2026-11-17】日志检索受轮转/落盘时序影响会漏判（迁移实际成功但查不到）。
+      # 增加 SQL 兜底：目标 DN 上已出现该 region，即说明 AddRegion 已完成。
+      v_target_has_region=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;" 2>/dev/null | grep " ${v_mig_id}|[[:space:]]*DataRegion" | awk -F "|" '{gsub(" ","");print $8}' | grep -cx "${v_mig_to_dn_id}"`
+      if [[ ${v_AddRegion} -gt 0 ]] || [[ ${v_target_has_region:-0} -gt 0 ]];then
          v_adding_check=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions"|grep Adding|wc -l`
          if [[ ${v_adding_check} = 0 ]];then
             echo "INFO: AddRegion started log found; Adding state completed before status snapshot"
@@ -223,7 +226,9 @@ do
    while true
    do
       v_AddRegion=`find_cn_log "RemoveRegion] started" "removed from DataNode ${v_mig_from_dn_id}" | wc -l`
-      if [[ ${v_AddRegion} -gt 0 ]];then
+      # 【修正 2026-11-17】同上：源 DN 上已无该 region，即说明 RemoveRegion 已完成。
+      v_source_no_region=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;" 2>/dev/null | grep " ${v_mig_id}|[[:space:]]*DataRegion" | awk -F "|" '{gsub(" ","");print $8}' | grep -cx "${v_mig_from_dn_id}"`
+      if [[ ${v_AddRegion} -gt 0 ]] || [[ ${v_source_no_region:-0} -eq 0 ]];then
          v_adding_check=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -timeout 36000 -e "show data regions"|grep Removing|wc -l`
          if [[ ${v_adding_check} = 0 ]];then
             echo "INFO: RemoveRegion started log found; Removing state completed before status snapshot"

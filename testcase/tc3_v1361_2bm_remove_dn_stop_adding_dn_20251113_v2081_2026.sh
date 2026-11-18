@@ -617,7 +617,7 @@ function remove_dn()
   done
   if [ -n "${v_stop_Adding_ip}" ]; then
      if [[ ${query_ip} = ${v_stop_Adding_ip} ]];then
-        query_ip=`tail -1 ${nodeinfo_dir}/datanode.txt` 
+        query_ip=`grep -v "^${v_stop_Adding_ip}$" ${nodeinfo_dir}/datanode.txt | tail -1`   # 【修正 2026-11-17】排除被停节点，避免连到已停 DN
      fi
      check_stop ${v_stop_Adding_ip} ${query_ip}
   fi

@@ -213,8 +213,8 @@ do
          break
       else
          v_wait_now=`date +%s`
-         if [[ $((v_wait_now-v_wait_start)) -gt 300 ]];then
-            echo "wait AddRegion started timeout after 300 seconds"
+         if [[ $((v_wait_now-v_wait_start)) -gt 900 ]];then   # 【修正 2026-11-19】原 300s 过紧：磁盘 IO 竞争时 region 进入 Adding/Removing 状态自身就会超过 300s（实测 wait RemoveRegion started timeout）
+            echo "wait AddRegion started timeout after 900 seconds"
             let fail_flag++
             break
          fi
@@ -236,8 +236,8 @@ do
          break
       else
          v_wait_now=`date +%s`
-         if [[ $((v_wait_now-v_wait_start)) -gt 300 ]];then
-            echo "wait RemoveRegion started timeout after 300 seconds"
+         if [[ $((v_wait_now-v_wait_start)) -gt 900 ]];then   # 【修正 2026-11-19】原 300s 过紧：磁盘 IO 竞争时 region 进入 Adding/Removing 状态自身就会超过 300s（实测 wait RemoveRegion started timeout）
+            echo "wait RemoveRegion started timeout after 900 seconds"
             let fail_flag++
             break
          fi

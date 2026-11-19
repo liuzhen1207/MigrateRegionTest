@@ -689,8 +689,12 @@ function wait_sync_done()
       let fail_flag++
       return 1
    fi
-   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/sync_running_datanodes.out
-   awk -F '|' '/Running/ {gsub(" ", "", $4); print $4}' "${cur_dir}/sync_running_datanodes.out" \
+   # 【修正 2026-11-19】原用 show datanodes 取所有 Running DN，
+   # 但 iot_consensus{type="syncLag"} 指标只在【承载该 DataRegion 的节点】上存在，
+   # 导致 result_count != expected_count 永远不满足，while true 持续 WARN 直至 max_wait_time 超时（实测 358 次）。
+   # 改为从 show data regions 取实际承载 DataRegion 的 DN IP（$3=Type, $9=RpcAddress）。
+   ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show data regions;">${cur_dir}/sync_running_datanodes.out
+   awk -F '|' '$3 ~ /DataRegion/ {gsub(/ /, "", $9); print $9}' "${cur_dir}/sync_running_datanodes.out" \
       | sort -u > "${cur_dir}/sync_running_datanodes_ips.out"
    while read ip
    do

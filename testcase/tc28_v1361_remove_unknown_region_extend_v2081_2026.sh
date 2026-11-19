@@ -556,13 +556,20 @@ sed -i "s/^PASSWORD=.*/PASSWORD=${bm_root_pw}/g" ${bm_dir}/lt_10type_user_no_ssl
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show datanodes;'|grep Running|awk -F '|' '{gsub(" ","");print $2","}'>${cur_dir}/all_dn_id.txt
    v_del_region_num=`cat ${cur_dir}/del_data_region_id.txt|wc -l`
 if [[ ${v_del_region_num} = 0 ]];then
-let fail_flag++
-test_end_sec=`date +%s`
-test_elp_sec=$((test_end_sec-test_begin_sec))
-tc_res=false
-res_root_pw=TimechoDB@2021
-${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -pw ${res_root_pw} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',${tc_res},${test_elp_sec});"
-exit 0
+   let fail_flag++
+   # 【修正 2026-11-19】原代码在此分支直接 exit 0，跳过了末尾的判定输出段，
+   # 导致用例只见 fail_flag 却没有 "${SCRIPT_NAME} : fail" 判定行（回归统计里表现为"无判定"）。
+   # 这里补上与末尾一致的判定输出与上报，再退出。
+   echo "${SCRIPT_NAME} : fail"
+   echo "${tc_num}"
+   echo "${SCRIPT_NAME}"
+   echo "false"
+   test_end_sec=`date +%s`
+   test_elp_sec=$((test_end_sec-test_begin_sec))
+   echo "${test_elp_sec}"
+   res_root_pw=TimechoDB@2021
+   ${cli_dir}/sbin/start-cli.sh -h ${testcase_res_db} -p ${testcase_res_port} -pw ${res_root_pw} -e "insert into root.autotest.ip${testcase_ip}(time,commitID,tc_num,tc_name,tc_result,tc_elapsed_time)aligned values(now(),'${v_cur_db}',${tc_num},'${SCRIPT_NAME}',false,${test_elp_sec});"
+   exit 0
 else
 v_del_region_id=`head -1 ${cur_dir}/del_data_region_id.txt`
    ${cli_dir}/sbin/start-cli.sh -h ${query_ip} -u ${db_sys_admin} ${ssl_str} -e  'show data regions'|grep "^| *${v_del_region_id}|"|grep -v "${query_ip2}|"|awk -F '|' '{gsub(" ","");print $8}'>${cur_dir}/del_data_region_another_dn_id.txt

@@ -517,8 +517,12 @@ function wait_for_sync_lag_zero()
       let fail_flag++
       return 1
    fi
-   "${cli_dir}/sbin/start-cli.sh" -u "${db_sys_admin}" ${ssl_str} -h "${query_ip}" -timeout 3600 -e "show datanodes;" > "${cur_dir}/tc27_sync_running_datanodes.out" 2>&1
-   awk -F '|' '/Running/ {gsub(/ /, "", $4); print $4}' "${cur_dir}/tc27_sync_running_datanodes.out" | sort -u > "${cur_dir}/tc27_sync_running_datanodes_ips.out"
+   # 【修正 2026-11-19】原用 show datanodes 取所有 Running DN（5 个）作为 expected_count，
+   # 但 iot_consensus{type="syncLag"} 指标只在【承载该 DataRegion 的节点】上存在（本次仅 2 个），
+   # 导致 result_count(2) != expected_count(5) 永远不满足，最终 timed out waiting for syncLag=0。
+   # 改为从 show data regions 取实际承载 DataRegion 的 DN IP（$3=Type, $9=RpcAddress）。（同 tc23/tc24 修复）
+   "${cli_dir}/sbin/start-cli.sh" -u "${db_sys_admin}" ${ssl_str} -h "${query_ip}" -timeout 3600 -e "show data regions;" > "${cur_dir}/tc27_sync_running_datanodes.out"
+   awk -F '|' '$3 ~ /DataRegion/ {gsub(/ /, "", $9); print $9}' "${cur_dir}/tc27_sync_running_datanodes.out" | sort -u > "${cur_dir}/tc27_sync_running_datanodes_ips.out"
    while read -r ip
    do
       [[ -z "${ip}" ]] && continue

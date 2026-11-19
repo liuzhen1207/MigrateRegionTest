@@ -36,7 +36,7 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
-loop_timeout_sec=300
+loop_timeout_sec=600  # 【修正 2026-11-19】原 300s 过紧：RC3 实测 301s 仅超 1 秒即判失败（磁盘 IO 竞争导致的正常波动）
 mig_submit_timeout_sec=180
 
 function clean_env()

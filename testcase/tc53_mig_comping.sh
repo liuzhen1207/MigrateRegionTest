@@ -425,7 +425,7 @@ function check_data_consistent()
       return 1
    fi
 wait_compaction_done 180
-wait_iot_consensus_sync_done 900 || return 1
+wait_iot_consensus_sync_done 3600 || return 1   # 【修正 2026-11-23】132GB region 实测需 10~37 分钟
    ${cli_dir}/sbin/start-cli.sh -u ${db_sys_admin} ${ssl_str} -h ${query_ip} -e "show datanodes;">${cur_dir}/tmp.out
    cat ${cur_dir}/tmp.out |grep Running|awk -F "|" '{gsub(" ","");print $4}'>${cur_dir}/tmp1.out
    mv ${cur_dir}/tmp1.out ${cur_dir}/tmp.out
@@ -516,22 +516,31 @@ do
    do
      v_comp=`ssh ${u_name}@${line} "find ${db_dir}/data -name *compaction.log|wc -l"` 
      if [[ ${v_comp} -gt 0 ]];then
+       # 【修正 2026-11-23】dataregion_ip.txt 是"所有 region 的副本 IP"，原写法用多行
+       # grep -v 会把 5 个 DN 全排除，导致目标为空、migrate 语句非法。
+       # 改为只看本 region（v_mig_id）自己的副本集合，再挑一个不在集合里的 DN。
+       v_region_ips=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions"|grep root.test|awk -F '|' -v id="${v_mig_id}" '{gsub(/ /,"",$2); if ($2==id) {gsub(/ /,"",$9); print $9}}'`
        v_mig_from_id=`grep ${line} ${cur_dir}/dn_id_ip.txt |awk -F ',' '{print $1}'`
-       v_another_dn_ip=`cat ${cur_dir}/dataregion_ip.txt|grep -v ${line}`
-       v_mig_to_id=`cat ${cur_dir}/dn_id_ip.txt|grep -v ${line}|grep -v ${v_another_dn_ip}|head -1|awk -F ',' '{print $1}'` 
-       v_mig_to_ip=`cat ${cur_dir}/dn_id_ip.txt|grep -v ${line}|grep -v ${v_another_dn_ip}|head -1|awk -F ',' '{print $2}'`
-       ${cli_dir}/sbin/start-cli.sh -h ${query_ip}  -e "migrate region ${v_mig_id} from ${v_mig_from_id} to ${v_mig_to_id};"
+       v_another_dn_ip=`echo "${v_region_ips}"|grep -vF "${line}"`
+       v_mig_to_line=`cat ${cur_dir}/dn_id_ip.txt|while IFS=, read -r _id _ip; do echo "${v_region_ips}"|grep -qxF "${_ip}" || { echo "${_id},${_ip}"; break; }; done`
+       v_mig_to_id=`echo "${v_mig_to_line}"|cut -d, -f1`
+       v_mig_to_ip=`echo "${v_mig_to_line}"|cut -d, -f2`
+       # 【修正 2026-11-23】原写法丢弃 CLI 输出，提交被残留 procedure 拒绝时无法察觉
+       v_mig_cmd_out=`${cli_dir}/sbin/start-cli.sh -h ${query_ip}  -e "migrate region ${v_mig_id} from ${v_mig_from_id} to ${v_mig_to_id};" 2>&1`
+       echo "migrate submit (${v_mig_id}: ${v_mig_from_id} -> ${v_mig_to_id}): ${v_mig_cmd_out}"
         v_mig_wait_start=$(date +%s)
         while true
         do
-           v_mig_suc=`${cli_dir}/sbin/start-cli.sh -h ${query_ip}  -e "show data regions"|grep root.test|grep ${line}|wc -l`
+           # 【修正 2026-11-23】原写法统计"所有 region 行里是否出现源 IP"，源节点承载其他 region 时永远不为 0；
+           # 改为只看本次迁移的 region 自己那一行。
+           v_mig_suc=`${cli_dir}/sbin/start-cli.sh -h ${query_ip}  -e "show data regions"|grep root.test|awk -F '|' -v id="${v_mig_id}" '{gsub(/ /,"",$2); if ($2==id) print}'|grep -cF "${line}"`
            if [[ ${v_mig_suc} = 0 ]];then
               break
            fi
            # 【修正 2026-11-19】原为无限循环，迁移失败时永久挂住（tc53 实测挂 49 分钟）。
            # 增加 900s 超时，超时判失败并退出，避免整个回归停摆。
-           if [[ $(( $(date +%s) - v_mig_wait_start )) -gt 900 ]];then
-              echo "FAIL: wait migrate region ${v_mig_id} (${v_mig_from_id} -> ${v_mig_to_id}) timeout after 900s"
+           if [[ $(( $(date +%s) - v_mig_wait_start )) -gt 3600 ]];then   # 【修正 2026-11-23】900s 短于 132GB region 的实际迁移时间
+              echo "FAIL: wait migrate region ${v_mig_id} (${v_mig_from_id} -> ${v_mig_to_id}) timeout after 3600s"
               let fail_flag++
               break
            fi

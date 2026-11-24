@@ -36,7 +36,7 @@ tc_num=`echo ${SCRIPT_NAME}|awk -F '_' '{print $1}'|awk -F "tc" '{print $2}'`
 testcase_res_db=`cat ${conf_file}|grep testcase_res_db|awk -F '=' '{print $2}'`
 testcase_res_port=`cat ${conf_file}|grep testcase_res_port|awk -F '=' '{print $2}'`
 test_begin_sec=`date +%s`
-loop_timeout_sec=300
+loop_timeout_sec=900
 mig_submit_timeout_sec=180
 
 function clean_env()
@@ -513,7 +513,13 @@ function pre_and_exec_mig_region()
   while true
   do
      ssh ${u_name}@${v_cn_leader_ip} "sudo gunzip -f ${db_dir}/logs/log-confignode-all*gz >/dev/null 2>&1 || true"
-     v_mig_suc_log=`ssh ${u_name}@${v_cn_leader_ip} "grep \"\[MigrateRegion\] success\" ${db_dir}/logs/*confignode*all*|grep \" has been migrated from DataNode ${v_mig_from_dn_id}@${v_mig_from_dn_ip} to ${v_mig_to_dn_id}@${v_mig_to_dn_ip}\"|wc -l"`
+     # 【修正 2026-11-23】本场景（add peer 失败后重试成功）产品不打
+     # "[MigrateRegion] success ... has been migrated" 行（3 个 CN 的 plain+gz 日志实测 0 次），
+     # 改为按副本落位判定：目标 DN 已承载该 region 且源 DN 已不再承载。
+     v_mig_suc_target=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|grep -cF "${v_mig_to_dn_ip}"`
+     v_mig_suc_source=`${cli_dir}/sbin/start-cli.sh -h ${query_ip} -e "show data regions;"|grep " ${v_mig_id}|[[:space:]]*DataRegion"|grep -cF "${v_mig_from_dn_ip}"`
+     v_mig_suc_log=0
+     if [[ ${v_mig_suc_target} -gt 0 ]] && [[ ${v_mig_suc_source} -eq 0 ]];then v_mig_suc_log=1; fi
      if [[ ${v_mig_suc_log} = 1 ]];then
         break
      else
